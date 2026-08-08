@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /legacy-calculator.html
+
+Sitemap: https://presentation.thanarah.com/sitemap.xml

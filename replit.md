@@ -1,21 +1,37 @@
 # Tas3eerah (تسعيرة)
 
-An Arabic RTL pricing/quotation calculator for freelancers and business owners. Helps calculate fair prices for services, packages, restaurant menus, wholesale/retail goods, and more.
+تسعيرة مساحة عمل عربية لإدارة التسعير، عروض الأسعار، الفواتير، العملاء، الرسائل، وأدوار الفريق. الواجهة الجديدة موجودة في `app.html`، بينما أدوات التسعير الأصلية محفوظة كاملة في `legacy-calculator.html` ويمكن فتحها من مركز الأدوات.
 
-## Stack
+## التشغيل
 
-- Pure HTML/CSS/JavaScript — single `index.html`, no build tools or dependencies
-- Arabic (RTL) UI using the Tajawal font (Google Fonts CDN)
-- Google Analytics (gtag)
+يعمل المشروع عبر خادم PHP المدمج:
 
-## How to run
-
-```
-python3 -m http.server 5000
+```bash
+php -S 0.0.0.0:5000 router.php
 ```
 
-Served at port 5000 via the "Start application" workflow.
+واجهة المعاينة على المنفذ 5000، والـ workflow اسمه `Start application`.
 
-## User preferences
+## البنية
 
-- Keep the existing single-file structure unless explicitly asked to change it.
+- `app.html` — الواجهة العامة ولوحات العرض الآمنة للعميل والموظف والإدارة
+- `router.php` — نقطة تشغيل آمنة للواجهة والملفات الثابتة
+- `api/index.php` — حد API للجلسات، فحص الصحة، الدخول، التسجيل، ورسائل التواصل
+- `legacy-calculator.html` — نسخة أدوات التسعير الحالية كاملة
+- `assets/brand-logo-transparent.png` — أصل الشعار المركزي المستخدم في الواجهة
+
+## التكاملات
+
+التكاملات الحقيقية لا تعمل إلا بعد ضبط المتغيرات في بيئة التشغيل، ولا تُكتب الأسرار داخل الملفات:
+
+- `MONGODB_URI` لحفظ الحسابات والأدوار والمستندات وسجل النشاط
+- `CPANEL_SMTP_HOST` و`CPANEL_SMTP_PORT` و`CPANEL_SMTP_USER` و`SMTP_PASS` للبريد
+- `MOONSHOT_API_KEY` للمساعد الذكي
+- متغيرات `GIDDYA_*` لبوابة الدفع
+- `WHATSAPP_SESSION_SECRET` لجلسة WhatsApp Web
+
+حالياً يقدم الـ API وضع عرض آمناً إذا لم تكن قاعدة البيانات والتكاملات مضبوطة، ويرجع سبب عدم الجاهزية بوضوح بدلاً من استخدام بيانات وهمية.
+
+## ملاحظات أمنية
+
+لا تضع أي مفتاح أو كلمة مرور في الواجهة أو المستودع. كلمة مرور SMTP التي ظهرت في الرسالة يجب تغييرها قبل إعادة استخدامها. تفعيل MongoDB الحقيقي يحتاج أيضاً إلى إضافة PHP الخاصة بـ MongoDB في بيئة Render أو بيئة النشر المستهدفة.

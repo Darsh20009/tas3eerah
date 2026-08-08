@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="تسعيرة — مساحة عمل عربية ذكية للتسعير وإدارة عروض الأسعار والفواتير والعملاء.">
+  <meta name="theme-color" content="#071a2e">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="تسعيرة | مساحة عملك للنمو">
+  <meta property="og:description" content="أدوات التسعير، عروض الأسعار، الفواتير، العملاء، والرسائل في مساحة عربية واحدة.">
+  <meta property="og:url" content="https://presentation.thanarah.com">
+  <meta property="og:image" content="assets/brand-logo-source.png">
+  <link rel="icon" type="image/png" href="assets/brand-logo-transparent.png">
+  <link rel="canonical" href="https://presentation.thanarah.com">
+  <title>تسعيرة | مساحة عملك للنمو</title>
+  <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"SoftwareApplication","name":"تسعيرة","alternateName":"Tas3eerah","applicationCategory":"BusinessApplication","operatingSystem":"Web","url":"https://presentation.thanarah.com","description":"مساحة عمل عربية للتسعير وإدارة عروض الأسعار والفواتير والعملاء.","publisher":{"@type":"Organization","name":"Qirox Studio Group","url":"https://qiroxstudio.online"}}
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
+    :root{--ink:#071a2e;--ink-2:#0d2945;--cyan:#79d5e6;--cyan-2:#b9f3f0;--paper:#f6f4ef;--gold:#d7ae61;--muted:#7890a6;--line:rgba(121,163,183,.22);--danger:#d86b72;--success:#6fd0ac}
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:'Tajawal',Arial,sans-serif;background:var(--paper);color:var(--ink);min-height:100vh}
+    button,input,textarea,select{font:inherit}
+    button{cursor:pointer}
+    a{color:inherit;text-decoration:none}
+    .shell{min-height:100vh;background:radial-gradient(circle at 75% -10%,rgba(121,213,230,.16),transparent 34%),var(--paper)}
+    .topbar{height:78px;background:rgba(7,26,46,.96);color:white;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(18px,5vw,72px);position:sticky;top:0;z-index:20;border-bottom:1px solid rgba(185,243,240,.14);backdrop-filter:blur(16px)}
+    .brand{display:flex;align-items:center;gap:12px}
+    .brand img{width:44px;height:44px;object-fit:contain;filter:drop-shadow(0 4px 10px rgba(0,0,0,.25))}
+    .brand strong{font-size:20px;letter-spacing:.3px}
+    .brand span{display:block;color:var(--cyan);font-size:11px;margin-top:1px}
+    .nav{display:flex;align-items:center;gap:6px}
+    .nav button,.nav a{border:0;background:transparent;color:#d9e8f0;padding:10px 12px;border-radius:9px;font-size:13px}
+    .nav button:hover,.nav a:hover{background:rgba(255,255,255,.08);color:white}
+    .top-actions{display:flex;gap:9px;align-items:center}
+    .lang{color:var(--cyan)!important}
+    .outline,.primary{padding:11px 18px;border-radius:9px;border:1px solid var(--cyan);background:transparent;color:var(--cyan);font-weight:700;font-size:13px}
+    .primary{background:var(--cyan);color:var(--ink);border-color:var(--cyan)}
+    .primary:hover{background:var(--cyan-2);border-color:var(--cyan-2)}
+    .outline:hover{background:rgba(121,213,230,.12)}
+    .hero{max-width:1220px;margin:0 auto;padding:95px 30px 70px;display:grid;grid-template-columns:1.06fr .94fr;gap:70px;align-items:center}
+    .eyebrow{color:#168ca0;font-weight:800;font-size:13px;letter-spacing:.2px;margin-bottom:17px}
+    h1{font-size:clamp(38px,6vw,72px);line-height:1.06;letter-spacing:-2px}
+    h1 span{color:#168ca0;display:block}
+    .hero-copy{font-size:18px;line-height:1.9;color:#526b80;max-width:560px;margin:24px 0 30px}
+    .hero-buttons{display:flex;gap:10px;flex-wrap:wrap}
+    .hero-buttons .primary,.hero-buttons .outline{padding:14px 22px}
+    .hero-note{font-size:11px;color:#7890a6;margin-top:18px}
+    .hero-art{position:relative;min-height:420px;display:flex;align-items:center;justify-content:center}
+    .hero-glow{position:absolute;width:350px;height:350px;background:radial-gradient(circle,rgba(121,213,230,.3),transparent 67%);filter:blur(8px)}
+    .hero-logo{position:relative;width:min(68%,350px);filter:drop-shadow(0 24px 24px rgba(7,26,46,.18))}
+    .float-card{position:absolute;background:rgba(255,255,255,.85);border:1px solid white;border-radius:14px;padding:16px 18px;box-shadow:0 16px 40px rgba(7,26,46,.11);backdrop-filter:blur(12px);min-width:170px}
+    .float-card small{display:block;color:var(--muted);font-size:11px;margin-bottom:7px}
+    .float-card b{font-size:22px}
+    .float-card.right{right:2%;top:21%;border-right:3px solid var(--cyan)}
+    .float-card.left{left:0;bottom:17%;border-right:3px solid var(--gold)}
+    .section{max-width:1220px;margin:auto;padding:70px 30px}
+    .section-head{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:28px}
+    .section-head h2{font-size:30px}
+    .section-head p{color:var(--muted);font-size:14px;max-width:460px;line-height:1.8}
+    .feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
+    .feature{background:white;border:1px solid var(--line);border-radius:16px;padding:24px;min-height:180px;transition:.22s}
+    .feature:hover{transform:translateY(-4px);box-shadow:0 16px 32px rgba(7,26,46,.08);border-color:rgba(22,140,160,.35)}
+    .feature .label{color:#168ca0;font-weight:900;font-size:12px;margin-bottom:25px}
+    .feature h3{font-size:20px;margin-bottom:9px}
+    .feature p{color:var(--muted);font-size:13px;line-height:1.8}
+    .trust{background:var(--ink);color:white}
+    .trust .section{display:flex;justify-content:space-between;align-items:center;gap:30px}
+    .trust h2{font-size:29px}
+    .trust p{color:#abc2d1;line-height:1.9;font-size:14px;max-width:570px;margin-top:12px}
+    .trust-stat{display:flex;gap:30px;flex-shrink:0}
+    .stat strong{font-size:30px;color:var(--cyan);display:block}
+    .stat span{color:#9bb5c5;font-size:12px}
+    .footer{background:#061424;color:#8ea7b7;padding:28px 30px;text-align:center;font-size:12px}
+    .footer a{color:var(--cyan)}
+    .auth-overlay,.app-overlay{position:fixed;inset:0;background:rgba(3,14,27,.72);z-index:50;display:none;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(8px)}
+    .auth-overlay.open,.app-overlay.open{display:flex}
+    .auth-card{width:min(100%,470px);background:var(--paper);border-radius:18px;padding:28px;border:1px solid rgba(185,243,240,.4);box-shadow:0 30px 80px rgba(0,0,0,.3)}
+    .close{border:0;background:transparent;color:var(--muted);font-size:22px;float:left}
+    .auth-card h2{font-size:26px;margin-bottom:7px}
+    .auth-card>p{color:var(--muted);font-size:13px;line-height:1.8;margin-bottom:20px}
+    .auth-switch{display:flex;gap:6px;background:#e7e9e7;padding:4px;border-radius:9px;margin-bottom:18px}
+    .auth-switch button{flex:1;border:0;border-radius:7px;padding:9px;background:transparent;color:var(--muted);font-weight:700}
+    .auth-switch button.active{background:white;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08)}
+    .field{display:flex;flex-direction:column;gap:6px;margin:12px 0}
+    .field label{font-size:12px;font-weight:700;color:#4e677a}
+    .field input,.field textarea,.field select{background:white;border:1px solid var(--line);border-radius:9px;padding:12px 13px;outline:0;color:var(--ink)}
+    .field input:focus,.field textarea:focus{border-color:#168ca0;box-shadow:0 0 0 3px rgba(22,140,160,.1)}
+    .auth-card .primary{width:100%;margin-top:8px}
+    .demo-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}
+    .demo-row button{border:1px solid var(--line);background:white;color:var(--ink);border-radius:8px;padding:8px 4px;font-size:11px}
+    .demo-row button:hover{border-color:#168ca0;color:#168ca0}
+    .form-status{min-height:20px;font-size:12px;line-height:1.6;margin-top:10px;color:var(--danger)}
+    .app-overlay{align-items:stretch;padding:0;background:var(--paper);backdrop-filter:none}
+    .app-shell{width:100%;display:grid;grid-template-columns:250px 1fr;direction:ltr}
+    .side{background:var(--ink);color:white;padding:24px 15px;direction:rtl;display:flex;flex-direction:column}
+    .side .brand{padding:0 10px 24px;border-bottom:1px solid rgba(255,255,255,.1)}
+    .side .brand img{width:38px;height:38px}
+    .side nav{display:flex;flex-direction:column;gap:3px;margin-top:22px}
+    .side nav button{text-align:right;border:0;background:transparent;color:#a6bdc9;padding:12px 13px;border-radius:8px;font-size:13px}
+    .side nav button.active,.side nav button:hover{background:rgba(121,213,230,.13);color:var(--cyan)}
+    .side-bottom{margin-top:auto;border-top:1px solid rgba(255,255,255,.1);padding-top:15px}
+    .side-bottom button{width:100%;border:0;background:transparent;color:#a6bdc9;padding:11px;text-align:right}
+    .workspace{direction:rtl;overflow:auto;background:#f4f6f4}
+    .workspace-top{height:80px;background:white;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 34px}
+    .workspace-top h2{font-size:20px}
+    .workspace-top p{font-size:12px;color:var(--muted);margin-top:4px}
+    .profile-chip{display:flex;gap:10px;align-items:center;border:1px solid var(--line);padding:7px 10px;border-radius:9px;font-size:12px}
+    .avatar{width:31px;height:31px;border-radius:50%;background:var(--ink);color:var(--cyan);display:grid;place-items:center;font-weight:900}
+    .workspace-content{padding:30px 34px;max-width:1300px}
+    .dash{display:none}
+    .dash.active{display:block}
+    .welcome{background:linear-gradient(105deg,var(--ink),#0e4860);color:white;border-radius:16px;padding:27px 29px;display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:18px}
+    .welcome h3{font-size:22px;margin-bottom:7px}
+    .welcome p{color:#c3e3e5;font-size:13px}
+    .welcome .primary{background:var(--gold);border-color:var(--gold);color:var(--ink);white-space:nowrap}
+    .metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+    .metric,.panel{background:white;border:1px solid var(--line);border-radius:13px;padding:19px}
+    .metric small{color:var(--muted);font-size:11px;display:block;margin-bottom:12px}
+    .metric strong{font-size:25px}
+    .metric em{font-style:normal;color:var(--success);font-size:11px;margin-right:8px}
+    .panel-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:15px}
+    .panel h3{font-size:16px;margin-bottom:15px}
+    .list{display:flex;flex-direction:column;gap:9px}
+    .list-row{display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid #edf1ef;padding:10px 0;font-size:12px}
+    .list-row:last-child{border-bottom:0}
+    .list-row small{color:var(--muted);display:block;margin-top:4px}
+    .status{font-size:10px;border-radius:20px;padding:4px 8px;background:#e6f7f0;color:#27845f;white-space:nowrap}
+    .status.pending{background:#fff5dd;color:#9a6b15}
+    .tool-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+    .tool{background:white;border:1px solid var(--line);border-radius:14px;padding:20px;min-height:175px;display:flex;flex-direction:column;transition:.2s}
+    .tool:hover{border-color:#168ca0;transform:translateY(-3px);box-shadow:0 12px 28px rgba(7,26,46,.07)}
+    .tool-tag{font-size:10px;color:#168ca0;font-weight:800;margin-bottom:24px}
+    .tool h3{font-size:17px;margin-bottom:7px}
+    .tool p{color:var(--muted);font-size:12px;line-height:1.7}
+    .tool a,.tool button{margin-top:auto;align-self:flex-start;color:#168ca0;font-size:12px;font-weight:800;background:none;border:0;padding-top:18px}
+    .notice{background:#fff8e6;border:1px solid #efd79e;color:#73551a;border-radius:11px;padding:13px 15px;font-size:12px;line-height:1.8;margin-bottom:16px}
+    .security-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .security-item{background:white;border:1px solid var(--line);border-radius:12px;padding:17px;display:flex;justify-content:space-between;gap:15px;align-items:start}
+    .security-item b{font-size:13px}.security-item p{font-size:11px;color:var(--muted);line-height:1.7;margin-top:6px}
+    .switch{width:38px;height:22px;border-radius:20px;background:#ccd6d7;position:relative;flex-shrink:0}
+    .switch:after{content:'';position:absolute;top:3px;right:3px;width:16px;height:16px;background:white;border-radius:50%}
+    .switch.on{background:#168ca0}.switch.on:after{right:19px}
+    .empty{padding:34px;text-align:center;color:var(--muted);font-size:13px;border:1px dashed #cbd9d9;border-radius:11px}
+    @media(max-width:900px){.hero{grid-template-columns:1fr;gap:15px;padding-top:60px}.hero-art{min-height:330px}.feature-grid{grid-template-columns:1fr 1fr}.trust .section{flex-direction:column;align-items:start}.app-shell{grid-template-columns:1fr}.side{display:none}.metric-grid{grid-template-columns:repeat(2,1fr)}.tool-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:620px){.topbar{height:auto;min-height:70px;padding:12px 17px;gap:7px}.nav{display:none}.top-actions .outline{display:none}.hero{padding-left:20px;padding-right:20px}.hero-copy{font-size:16px}.hero-art{min-height:290px}.float-card{transform:scale(.84)}.section{padding:48px 20px}.feature-grid,.panel-grid,.tool-grid,.security-grid{grid-template-columns:1fr}.section-head{display:block}.section-head p{margin-top:8px}.workspace-top{padding:0 18px}.workspace-content{padding:20px 16px}.welcome{display:block}.welcome .primary{margin-top:18px}.metric-grid{gap:8px}.metric{padding:14px}.metric strong{font-size:21px}.profile-chip span{display:none}}
+  </style>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <a class="brand" href="#">
+      <img data-brand-logo alt="شعار تسعيرة">
+      <div><strong>Tas3eerah</strong><span>السعر العادل لكل مشروع</span></div>
+    </a>
+    <nav class="nav">
+      <a data-nav="platform" href="#platform">المنصة</a>
+      <a data-nav="tools" href="#tools">الأدوات</a>
+      <a data-nav="security" href="#security">الأمان</a>
+      <button type="button" data-action="open-auth" data-auth-nav>تسجيل الدخول</button>
+    </nav>
+    <div class="top-actions">
+      <button class="lang" type="button" data-action="toggle-language">EN</button>
+      <button class="outline" type="button" data-action="open-auth">ابدأ الآن</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="platform">
+      <div>
+        <div class="eyebrow" data-copy="eyebrow">مساحة عمل عربية تنمو معك</div>
+        <h1 data-copy="heroTitle">حوّل شغلك إلى <span>نظام واضح.</span></h1>
+        <p class="hero-copy" data-copy="heroCopy">تسعيرة تجمع أدوات التسعير، عروض الأسعار، الفواتير، العملاء، الرسائل، والتحليلات في مكان واحد — بهوية تعرفها وبطريقة عمل تناسب فريقك.</p>
+        <div class="hero-buttons">
+          <button class="primary" type="button" data-action="open-auth" data-copy="createCta">أنشئ مساحة عملك</button>
+          <button class="outline" type="button" data-action="demo" data-role="client" data-copy="demoCta">استعرض تجربة العميل</button>
+        </div>
+        <div class="hero-note" data-copy="heroNote">تجربة العرض لا تنشئ حساباً ولا ترسل بيانات إلى أي خدمة خارجية.</div>
+      </div>
+      <div class="hero-art" aria-label="هوية تسعيرة">
+        <div class="hero-glow"></div>
+        <img class="hero-logo" data-brand-logo alt="Tas3eerah">
+        <div class="float-card right"><small>قيمة الأعمال هذا الشهر</small><b>١٢٨,٤٠٠ ر.س</b></div>
+        <div class="float-card left"><small>معدل إنجاز الفريق</small><b>٨٧٪</b></div>
+      </div>
+    </section>
+
+    <section class="section" id="tools">
+      <div class="section-head"><div><div class="eyebrow" data-copy="toolsEyebrow">كل ما تحتاجه في مساحة واحدة</div><h2 data-copy="toolsTitle">أدوات تصنع فرقاً</h2></div><p data-copy="toolsCopy">ابدأ بالحاسبة التي تعرفها، ثم وسّع عملك إلى نظام متكامل بدون أن تفقد التفاصيل المهمة.</p></div>
+      <div class="feature-grid">
+        <article class="feature"><div class="label">تسعير</div><h3>قرار سعر أذكى</h3><p>احتفظ بكل أدوات التسعير الحالية داخل مركز أدوات واضح يصلح للخدمات والمنتجات والباقات.</p></article>
+        <article class="feature"><div class="label">تشغيل</div><h3>من العرض إلى الفاتورة</h3><p>ابنِ عرض سعر، شاركه، تابع حالته، وحوّله إلى فاتورة من نفس مساحة العميل.</p></article>
+        <article class="feature"><div class="label">فريق</div><h3>كل شخص يعرف دوره</h3><p>لوحات منفصلة للعملاء والموظفين والإدارة مع صلاحيات واضحة وسجل نشاط قابل للمراجعة.</p></article>
+      </div>
+    </section>
+    <div class="trust" id="security">
+      <section class="section">
+        <div><div class="eyebrow" data-copy="securityEyebrow">أمان من البداية</div><h2 data-copy="securityTitle">بياناتك ليست تفصيلاً ثانوياً.</h2><p data-copy="securityCopy">جلسات محمية، طبقة API منفصلة، متغيرات بيئة للأسرار، وتجهيز لـ WebAuthn وPIN وOTP دون تخزين كلمات مرور أو مفاتيح داخل الواجهة.</p></div>
+        <div class="trust-stat"><div class="stat"><strong>٣</strong><span>أدوار رئيسية</span></div><div class="stat"><strong>١</strong><span>هوية مركزية</span></div><div class="stat"><strong>٠</strong><span>أسرار في الواجهة</span></div></div>
+      </section>
+    </div>
+    <section class="section">
+      <div class="section-head"><div><div class="eyebrow" data-copy="growthEyebrow">طريق واضح للنمو</div><h2 data-copy="growthTitle">ابدأ بخطوة ووسّعها بذكاء</h2></div><p data-copy="growthCopy">الهيكل مصمم ليقبل إضافاتك لاحقاً من لوحة الإدارة، مع بقاء التجربة بسيطة أمام العميل.</p></div>
+      <div class="feature-grid">
+        <article class="feature"><div class="label">للعميل</div><h3>مساحة يفهمها فوراً</h3><p>يشاهد أدواته، عروضه، فواتيره، تواصله، وسجل أعماله من لوحة واحدة.</p></article>
+        <article class="feature"><div class="label">للموظف</div><h3>عمل يومي بلا تشتت</h3><p>مهام، عملاء، رسائل، تحويلات، وتقارير في مساحة موظف مستقلة على النطاق المخصص.</p></article>
+        <article class="feature"><div class="label">للإدارة</div><h3>الصورة الكاملة</h3><p>نشاط الدخول والخروج، الاشتراكات، الإيرادات، صحة التكاملات، وإدارة المحتوى من الواجهة.</p></article>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">صنع عبر <a href="https://qiroxstudio.online" target="_blank" rel="noopener">Qirox Studio Group</a> · <a href="https://presentation.thanarah.com" target="_blank" rel="noopener">presentation.thanarah.com</a></footer>
+</div>
+
+<div class="auth-overlay" id="auth-overlay" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+  <div class="auth-card">
+    <button class="close" type="button" data-action="close-auth" aria-label="إغلاق">×</button>
+    <div class="eyebrow">تسعيرة · مساحة العمل</div>
+    <h2 id="auth-title">أهلاً بك</h2>
+    <p>أنشئ حساباً للبدء. الحسابات الحقيقية ستُحفظ في MongoDB بعد ضبط بيئة الإنتاج، أما تجربة العرض فهي متاحة الآن بدون بيانات حقيقية.</p>
+    <div class="auth-switch"><button class="active" type="button" data-auth-mode="login">تسجيل الدخول</button><button type="button" data-auth-mode="register">إنشاء حساب</button></div>
+    <form id="auth-form">
+      <div class="field register-only" hidden><label for="auth-name">الاسم أو اسم المنشأة</label><input id="auth-name" name="name" autocomplete="name"></div>
+      <div class="field"><label for="auth-email">البريد الإلكتروني</label><input id="auth-email" name="email" type="email" autocomplete="email" required></div>
+      <div class="field"><label for="auth-password">كلمة المرور</label><input id="auth-password" name="password" type="password" autocomplete="current-password" required minlength="8"></div>
+      <div class="field register-only" hidden><label><input type="checkbox" name="terms"> أوافق على الشروط وسياسة الخصوصية</label></div>
+      <button class="primary" type="submit">متابعة آمنة</button>
+      <div class="form-status" id="auth-status" role="status"></div>
+    </form>
+    <div class="demo-row"><button type="button" data-action="demo" data-role="client">عرض عميل</button><button type="button" data-action="demo" data-role="employee">عرض موظف</button><button type="button" data-action="demo" data-role="admin">عرض إدارة</button></div>
+  </div>
+</div>
+
+<div class="app-overlay" id="app-overlay" role="dialog" aria-modal="true">
+  <div class="app-shell">
+    <aside class="side">
+      <a class="brand" href="#"><img data-brand-logo alt="شعار تسعيرة"><div><strong>Tas3eerah</strong><span>مساحة عملك</span></div></a>
+      <nav id="side-nav"></nav>
+      <div class="side-bottom"><button type="button" data-action="close-app">العودة للواجهة العامة</button><button type="button" data-action="logout">تسجيل الخروج</button></div>
+    </aside>
+    <section class="workspace">
+      <header class="workspace-top"><div><h2 id="workspace-title">لوحة العميل</h2><p id="workspace-subtitle">كل ما تحتاجه لإدارة عملك بهدوء.</p></div><div class="profile-chip"><div class="avatar" id="avatar">ع</div><span id="profile-name">حساب العرض</span></div></header>
+      <div class="workspace-content">
+        <div class="dash active" id="dash-overview"></div>
+        <div class="dash" id="dash-tools"></div>
+        <div class="dash" id="dash-quotes"></div>
+        <div class="dash" id="dash-messages"></div>
+        <div class="dash" id="dash-settings"></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script src="assets/brand-config.js"></script>
+<script>
+  const state = { role: 'client', lang: 'ar', mode: 'login', page: 'overview', user: null };
+  const languageCopy = {
+    ar: {
+      navPlatform:'المنصة', navTools:'الأدوات', navSecurity:'الأمان', navAuth:'تسجيل الدخول', start:'ابدأ الآن',
+      eyebrow:'مساحة عمل عربية تنمو معك', heroTitle:'حوّل شغلك إلى <span>نظام واضح.</span>', heroCopy:'تسعيرة تجمع أدوات التسعير، عروض الأسعار، الفواتير، العملاء، الرسائل، والتحليلات في مكان واحد — بهوية تعرفها وبطريقة عمل تناسب فريقك.',
+      createCta:'أنشئ مساحة عملك', demoCta:'استعرض تجربة العميل', heroNote:'تجربة العرض لا تنشئ حساباً ولا ترسل بيانات إلى أي خدمة خارجية.',
+      toolsEyebrow:'كل ما تحتاجه في مساحة واحدة', toolsTitle:'أدوات تصنع فرقاً', toolsCopy:'ابدأ بالحاسبة التي تعرفها، ثم وسّع عملك إلى نظام متكامل بدون أن تفقد التفاصيل المهمة.',
+      securityEyebrow:'أمان من البداية', securityTitle:'بياناتك ليست تفصيلاً ثانوياً.', securityCopy:'جلسات محمية، طبقة API منفصلة، متغيرات بيئة للأسرار، وتجهيز لـ WebAuthn وPIN وOTP دون تخزين كلمات مرور أو مفاتيح داخل الواجهة.',
+      growthEyebrow:'طريق واضح للنمو', growthTitle:'ابدأ بخطوة ووسّعها بذكاء', growthCopy:'الهيكل مصمم ليقبل إضافاتك لاحقاً من لوحة الإدارة، مع بقاء التجربة بسيطة أمام العميل.'
+    },
+    en: {
+      navPlatform:'Platform', navTools:'Tools', navSecurity:'Security', navAuth:'Sign in', start:'Get started',
+      eyebrow:'An Arabic workspace that grows with you', heroTitle:'Turn your work into a <span>clear system.</span>', heroCopy:'Tas3eerah brings pricing tools, quotes, invoices, customers, messages, and insights into one focused workspace — with a brand you know and workflows that fit your team.',
+      createCta:'Create your workspace', demoCta:'Preview the client experience', heroNote:'Preview mode creates no account and sends no data to external services.',
+      toolsEyebrow:'Everything you need in one place', toolsTitle:'Tools that make a difference', toolsCopy:'Start with the calculator you know, then grow into a complete system without losing the details that matter.',
+      securityEyebrow:'Secure from the start', securityTitle:'Your data is not an afterthought.', securityCopy:'Protected sessions, a separated API layer, environment-based secrets, and WebAuthn, PIN, and OTP readiness without storing passwords or keys in the interface.',
+      growthEyebrow:'A clear path to growth', growthTitle:'Start small. Expand intelligently.', growthCopy:'The structure is built for future additions from the admin console while keeping the client experience simple.'
+    }
+  };
+  const roleLabels = {client:'العميل', employee:'الموظف', admin:'الإدارة'};
+  const navByRole = {
+    client:[['overview','نظرة عامة'],['tools','أدواتك'],['quotes','عروضك وفواتيرك'],['messages','تواصلك'],['settings','الأمان والإعدادات']],
+    employee:[['overview','مركز العمل'],['tools','الأدوات المتاحة'],['quotes','العملاء والعروض'],['messages','الرسائل الداخلية'],['settings','ملفي وصلاحياتي']],
+    admin:[['overview','مؤشرات النظام'],['tools','إدارة الأدوات'],['quotes','العروض والاشتراكات'],['messages','صندوق الرسائل'],['settings','الربط والإعدادات']]
+  };
+  const $ = (selector) => document.querySelector(selector);
+  const $$ = (selector) => [...document.querySelectorAll(selector)];
+  $$('[data-brand-logo]').forEach((image)=>{ image.src=window.TAS3EERAH_BRAND.logo; });
+  function escapeHtml(value){return String(value).replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function toggleLanguage(){
+    state.lang=state.lang==='ar'?'en':'ar';
+    const copy=languageCopy[state.lang];
+    document.documentElement.lang=state.lang;
+    document.documentElement.dir=state.lang==='ar'?'rtl':'ltr';
+    document.querySelector('[data-action="toggle-language"]').textContent=state.lang==='ar'?'EN':'عربي';
+    document.querySelector('[data-nav="platform"]').textContent=copy.navPlatform;
+    document.querySelector('[data-nav="tools"]').textContent=copy.navTools;
+    document.querySelector('[data-nav="security"]').textContent=copy.navSecurity;
+    document.querySelector('[data-auth-nav]').textContent=copy.navAuth;
+    document.querySelector('.top-actions .outline').textContent=copy.start;
+    $$('[data-copy]').forEach(el=>{const key=el.dataset.copy;if(copy[key]!==undefined)el.innerHTML=copy[key];});
+  }
+  function openAuth(){ $('#auth-overlay').classList.add('open'); $('#auth-email').focus(); }
+  function closeAuth(){ $('#auth-overlay').classList.remove('open'); }
+  function setAuthMode(mode){
+    state.mode=mode;
+    $$('[data-auth-mode]').forEach(b=>b.classList.toggle('active',b.dataset.authMode===mode));
+    $$('.register-only').forEach(el=>el.hidden=mode!=='register');
+    $('#auth-title').textContent=mode==='register'?'أنشئ مساحة عملك':'أهلاً بك';
+    $('#auth-status').textContent='';
+  }
+  function openApp(role='client'){
+    state.role=role; state.page='overview'; state.user={name:role==='client'?'حساب العميل التجريبي':role==='employee'?'سارة · فريق التشغيل':'حساب الإدارة التجريبي',email:'preview@tas3eerah.local'};
+    closeAuth(); $('#app-overlay').classList.add('open'); renderApp();
+  }
+  function closeApp(){ $('#app-overlay').classList.remove('open'); }
+  function logout(){ state.user=null; closeApp(); }
+  function renderApp(){
+    const role=state.role; const nav=$('#side-nav');
+    nav.innerHTML=navByRole[role].map(([key,label])=>`<button type="button" class="${state.page===key?'active':''}" data-page="${key}">${label}</button>`).join('');
+    $('#workspace-title').textContent=role==='admin'?'لوحة الإدارة':role==='employee'?'لوحة الموظف':'لوحة العميل';
+    $('#workspace-subtitle').textContent=role==='admin'?'رؤية واضحة لكل حركة داخل النظام.':role==='employee'?'مساحة عملك اليومية وملفاتك المخصصة.':'كل ما تحتاجه لإدارة عملك بهدوء.';
+    $('#profile-name').textContent=state.user?.name||'حساب العرض'; $('#avatar').textContent=(state.user?.name||'ت').slice(0,1);
+    ['overview','tools','quotes','messages','settings'].forEach(key=>$('#dash-'+key).classList.toggle('active',state.page===key));
+    renderPage();
+  }
+  function renderPage(){
+    const role=state.role;
+    $('#dash-overview').innerHTML=`<div class="welcome"><div><h3>${role==='admin'?'الصورة الكاملة تحت سيطرتك':role==='employee'?'صباحك أخف مع مركز عمل واضح':'خلّ شغلك يمشي معك، مو عكسك'}</h3><p>${role==='admin'?'تابع النشاط، الاشتراكات، التكاملات، ومسار العمل من مكان واحد.':role==='employee'?'أنجز ما عليك، تابع عملاءك، وخلّ كل محادثة في مكانها.':'أدواتك، عروضك، وفواتيرك جاهزة في مساحة واحدة.'}</p></div><button class="primary" type="button" data-page-jump="tools">افتح مركز الأدوات</button></div>
+      <div class="metric-grid">${metrics(role).map(m=>`<div class="metric"><small>${m[0]}</small><strong>${m[1]}</strong><em>${m[2]}</em></div>`).join('')}</div>
+      <div class="panel-grid"><div class="panel"><h3>${role==='admin'?'آخر نشاط في النظام':'آخر الأعمال'}</h3><div class="list">${activity(role).map(row=>`<div class="list-row"><div><b>${row[0]}</b><small>${row[1]}</small></div><span class="status ${row[2]?'pending':''}">${row[2]||'مكتمل'}</span></div>`).join('')}</div></div><div class="panel"><h3>مساحتك تنمو معك</h3><div class="notice">أنت في وضع العرض الآمن. البيانات هنا تجريبية ولا تُرسل إلى MongoDB أو البريد أو الذكاء الاصطناعي.</div><div class="empty">يمكنك ربط الحساب الحقيقي من إعدادات البيئة عند جاهزية الإنتاج.</div></div></div>`;
+    $('#dash-tools').innerHTML=`<div class="section-head"><div><div class="eyebrow">مساحة الأدوات</div><h2>اختر أداتك التالية</h2></div><p>الحاسبة الحالية متاحة بالكامل، وباقي المساحات مجهزة لتكبر مع نظامك.</p></div><div class="tool-grid">
+      <article class="tool"><div class="tool-tag">الأداة الأساسية</div><h3>تسعير الخدمات والمشاريع</h3><p>كل منطق التسعير الحالي في نسخة مستقلة قابلة للاستخدام الآن.</p><a href="legacy-calculator.html" target="_blank">فتح الأداة كاملة ←</a></article>
+      <article class="tool"><div class="tool-tag">المبيعات</div><h3>الباقات والاشتراكات</h3><p>صمّم باقاتك، قارن القيمة، واستعد للربط مع الدفع.</p><button type="button" data-page-jump="quotes">فتح المساحة ←</button></article>
+      <article class="tool"><div class="tool-tag">المحاسبة</div><h3>القوائم والفواتير</h3><p>سجل المنتجات والخدمات واستخرج مستندات عربية بهويتك.</p><button type="button" data-page-jump="quotes">فتح المساحة ←</button></article>
+      <article class="tool"><div class="tool-tag">الفريق</div><h3>إدارة العملاء</h3><p>ملفات عملاء، حالات، ملاحظات، وتواصل منظم.</p><button type="button" data-page-jump="messages">فتح المساحة ←</button></article>
+      <article class="tool"><div class="tool-tag">الذكاء</div><h3>المساعد الذكي</h3><p>نقطة جاهزة لردود بلغات ولهجات متعددة بعد ربط مزود الذكاء.</p><button type="button" data-page-jump="settings">عرض الحالة ←</button></article>
+      <article class="tool"><div class="tool-tag">التقارير</div><h3>رؤية الإدارة</h3><p>تتبّع الدخول والخروج والاشتراكات والتحويلات في لوحة واحدة.</p><button type="button" data-page-jump="overview">عرض المؤشرات ←</button></article></div>`;
+    $('#dash-quotes').innerHTML=`<div class="section-head"><div><div class="eyebrow">الوثائق التجارية</div><h2>عروض الأسعار والفواتير</h2></div><p>هذه المساحة جاهزة لتصبح مركز مستنداتك الرسمي.</p></div><div class="panel"><div class="notice">تصدير PDF العربي والهوية المركزية محفوظان كجزء من بنية المنتج. اربط MongoDB قبل استخدام بيانات حقيقية.</div><div class="list">${[['عرض سعر #1042','عميل جديد · منذ ساعتين','مراجعة'],['فاتورة #2088','مشروع هوية بصرية · هذا الأسبوع','مُرسلة'],['طلب اشتراك جديد','الباقة الاحترافية · اليوم','جديد']].map(r=>`<div class="list-row"><div><b>${r[0]}</b><small>${r[1]}</small></div><span class="status pending">${r[2]}</span></div>`).join('')}</div></div>`;
+    $('#dash-messages').innerHTML=`<div class="section-head"><div><div class="eyebrow">التواصل</div><h2>${role==='admin'?'صندوق الرسائل':'رسائلك الداخلية'}</h2></div><p>محادثات واضحة، مع مساحة للرد البشري قبل أي رد آلي.</p></div><div class="panel"><div class="notice">المساعد الآلي لا يرسل أي رسالة في وضع العرض. بعد الربط ستتمكن من فصل الردود الآلية عن البشرية وإظهار مؤقت الانتظار.</div><div class="empty">لا توجد محادثات حقيقية بعد.<br><button class="outline" style="margin-top:14px;color:#168ca0;border-color:#168ca0" type="button">إنشاء رسالة جديدة</button></div></div>`;
+    $('#dash-settings').innerHTML=`<div class="section-head"><div><div class="eyebrow">الإعدادات</div><h2>${role==='admin'?'الربط والإعدادات':'الأمان والخصوصية'}</h2></div><p>كل تكامل له حالة واضحة، ولا يتم تشغيله بصمت.</p></div><div class="security-grid">${settings(role).map(s=>`<div class="security-item"><div><b>${s[0]}</b><p>${s[1]}</p></div><span class="switch ${s[2]?'on':''}"></span></div>`).join('')}</div>`;
+  }
+  function metrics(role){return role==='admin'?[['المستخدمون النشطون','1,248','+12%'],['الاشتراكات الحالية','184','+8%'],['رسائل تحتاج متابعة','23','اليوم'],['صحة التكاملات','جاهزة','آمن']]:role==='employee'?[['المهام المفتوحة','18','هذا الأسبوع'],['عملاء نشطون','42','+6%'],['عروض بانتظارك','7','جديد'],['إنجاز الشهر','87%','مستقر']]:[['العروض المحفوظة','12','هذا الشهر'],['الفواتير المفتوحة','4','تحتاج متابعة'],['أدواتك المستخدمة','8','متاحة'],['مساحة العمل','جاهزة','آمن']];}
+  function activity(role){return role==='admin'?[['دخول جديد','عميل · قبل 4 دقائق'],['طلب اشتراك','الباقة الاحترافية · قبل 11 دقيقة','معلّق'],['موظف عدّل عرضاً','فريق المبيعات · قبل 23 دقيقة'],['تسجيل خروج','موظف الدعم · قبل ساعة']]:role==='employee'?[['عرض سعر #1042','مؤسسة مدار · قبل ساعتين'],['رسالة من عميل','شركة نواة · قبل 4 ساعات','معلّق'],['مهمة مكتملة','تحديث ملف العميل · أمس'],['فاتورة جاهزة','مشروع الهوية · أمس']]:[['عرض سعر #1042','تحديث آخر · قبل ساعتين'],['فاتورة #2088','تم الإرسال · قبل يوم'],['حفظ مشروع','حاسبة تسعير الخدمات · قبل يومين'],['اقتراح أداة','نحن نعمل على طلبك · هذا الأسبوع']];}
+  function settings(role){return role==='admin'?[['MongoDB','حفظ المستخدمين، الأدوار، المستندات وسجل النشاط.',false],['البريد عبر SMTP','إرسال OTP والتنبيهات من نطاقك.',false],['Moonshot AI','ردود المساعد من صفحات النظام بعد إضافة المفتاح.',false],['WhatsApp Web','جلسة ربط الإدارة عبر QR بعد إعداد الخدمة.',false],['Giddya','بوابة الدفع جاهزة لاستقبال إعدادات التاجر.',false],['WebAuthn / Passkey','تسجيل دخول مقاوم للتصيد مع عداد حماية.',false]]:[['تسجيل الدخول الآمن','جلسة محمية ولا يتم حفظ السر في المتصفح.',true],['Passkey','أضف بصمة أو مفتاح مرور من جهازك.',false],['التحقق المزدوج','OTP عبر البريد بعد تفعيل SMTP.',false],['لغة الواجهة','العربية والإنجليزية جاهزتان للتبديل.',true]];}
+  document.addEventListener('click',(event)=>{
+    const action=event.target.closest('[data-action]')?.dataset.action;
+    if(action==='open-auth') openAuth(); if(action==='close-auth') closeAuth(); if(action==='close-app') closeApp(); if(action==='logout') logout(); if(action==='demo') openApp(event.target.closest('[data-action]').dataset.role); if(action==='toggle-language') toggleLanguage();
+    const page=event.target.closest('[data-page]')?.dataset.page||event.target.closest('[data-page-jump]')?.dataset.pageJump;
+    if(page){state.page=page;renderApp();}
+    const authMode=event.target.closest('[data-auth-mode]')?.dataset.authMode; if(authMode) setAuthMode(authMode);
+  });
+  $('#auth-form').addEventListener('submit',async(event)=>{
+    event.preventDefault(); const status=$('#auth-status'); const data=Object.fromEntries(new FormData(event.target).entries());
+    if(state.mode==='register'&&!data.terms){status.textContent='وافق على الشروط للمتابعة.';return;}
+    status.textContent='جارٍ التحقق من جاهزية الحساب...';
+    try{const response=await fetch(`api/index.php?action=${state.mode}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const result=await response.json();status.textContent=result.message||'لم تكتمل العملية.';}catch(error){status.textContent='الخدمة غير متاحة حالياً. يمكنك فتح تجربة العرض بدون إنشاء حساب.';}
+  });
+  window.addEventListener('keydown',(event)=>{if(event.key==='Escape'){closeAuth();closeApp();}});
+</script>
+</body>
+</html>
