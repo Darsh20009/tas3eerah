@@ -128,7 +128,7 @@ function teaserOverlay(): string {
 <!-- ═══ MAIN ═══ -->
 <div class="main-area">
   <div class="topbar">
-    <div style="display:flex;align-items:center;gap:10px;min-width:0">
+    <div class="topbar-left">
       <button class="hamburger" id="hamburgerBtn" onclick="openSidebar()" aria-label="القائمة">
         <span></span><span></span><span></span>
       </button>

@@ -26,13 +26,13 @@ if ($user) { header('Location: /dashboard'); exit; }
 
 <!-- NAV -->
 <nav class="land-nav">
-  <div class="land-brand">
+  <a class="land-brand" href="/">
     <img src="/assets/brand-logo-transparent.png" alt="تسعيرة">
     <div>
       <strong data-ar="تسعيرة" data-en="Tas3eerah">تسعيرة</strong>
       <span data-ar="السعر العادل لكل مشروع" data-en="Fair price for every project">السعر العادل لكل مشروع</span>
     </div>
-  </div>
+  </a>
   <div class="land-nav-links flex gap-8">
     <a href="#features" data-ar="المميزات"  data-en="Features">المميزات</a>
     <a href="#pricing"  data-ar="الأسعار"   data-en="Pricing">الأسعار</a>
@@ -43,8 +43,23 @@ if ($user) { header('Location: /dashboard'); exit; }
     <button class="lang-toggle" onclick="toggleLang()" id="langBtn">EN</button>
     <button class="btn btn-outline" onclick="showAuth('login')" data-ar="تسجيل الدخول" data-en="Sign In">تسجيل الدخول</button>
     <button class="btn btn-primary" onclick="showAuth('register')" data-ar="ابدأ مجاناً" data-en="Start Free">ابدأ مجاناً</button>
+    <button class="land-hamburger" id="landHamburger" onclick="toggleLandMenu()" aria-label="القائمة">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </nav>
+
+<!-- MOBILE MENU (landing) -->
+<div class="land-mobile-menu" id="landMobileMenu">
+  <a href="#features" onclick="closeLandMenu()" data-ar="المميزات" data-en="Features">المميزات</a>
+  <a href="#pricing"  onclick="closeLandMenu()" data-ar="الأسعار"  data-en="Pricing">الأسعار</a>
+  <a href="#about"    onclick="closeLandMenu()" data-ar="من نحن"   data-en="About">من نحن</a>
+  <a href="#contact"  onclick="closeLandMenu()" data-ar="تواصل معنا" data-en="Contact">تواصل معنا</a>
+  <div class="lmm-actions">
+    <button class="btn btn-outline lmm-btn" onclick="closeLandMenu();showAuth('login')" data-ar="تسجيل الدخول" data-en="Sign In">تسجيل الدخول</button>
+    <button class="btn btn-primary" onclick="closeLandMenu();showAuth('register')" data-ar="ابدأ مجاناً" data-en="Start Free">ابدأ مجاناً</button>
+  </div>
+</div>
 
 <!-- HERO -->
 <section>
@@ -105,44 +120,42 @@ if ($user) { header('Location: /dashboard'); exit; }
 </section>
 
 <!-- ABOUT -->
-<section id="about" style="background:var(--ink);color:white">
-  <div style="max-width:1160px;margin:auto;padding:70px 30px;display:grid;grid-template-columns:1.2fr .8fr;gap:60px;align-items:center">
+<section id="about" class="about-section">
+  <div class="about-inner">
     <div>
-      <p style="color:var(--orange);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px" data-ar="من نحن" data-en="About Us">من نحن</p>
-      <h2 style="font-size:clamp(26px,4vw,40px);font-weight:900;line-height:1.15;margin-bottom:18px" data-ar="منصة تسعيرة — بُنيت لأصحاب المشاريع العربية" data-en="Tas3eerah — Built for Arabic business owners">منصة تسعيرة — بُنيت لأصحاب المشاريع العربية</h2>
-      <p style="color:rgba(255,255,255,.65);font-size:15px;line-height:2;margin-bottom:20px" data-ar="تسعيرة مبادرة من Qirox Studio Group لتمكين أصحاب المشاريع والفرق العربية من إدارة أعمالهم باحترافية — من أول لحظة تسعير للخدمة حتى إرسال الفاتورة وتسجيل المدفوعات. نؤمن أن كل مشروع عربي يستحق أدواتٍ حديثة وواضحة تتكلم لغته." data-en="Tas3eerah is an initiative by Qirox Studio Group to empower Arabic business owners and teams to manage their work professionally — from the first pricing moment to sending invoices and recording payments.">
+      <p class="hero-eyebrow" data-ar="من نحن" data-en="About Us">من نحن</p>
+      <h2 style="font-size:clamp(24px,4vw,38px);font-weight:900;line-height:1.15;margin-bottom:16px;color:white" data-ar="منصة تسعيرة — بُنيت لأصحاب المشاريع العربية" data-en="Tas3eerah — Built for Arabic business owners">منصة تسعيرة — بُنيت لأصحاب المشاريع العربية</h2>
+      <p style="color:rgba(255,255,255,.65);font-size:15px;line-height:2;margin-bottom:0">
         تسعيرة مبادرة من <strong style="color:var(--orange)">Qirox Studio Group</strong> لتمكين أصحاب المشاريع والفرق العربية من إدارة أعمالهم باحترافية — من أول لحظة تسعير للخدمة حتى إرسال الفاتورة وتسجيل المدفوعات.
-        <br><br>
-        نؤمن أن كل مشروع عربي يستحق أدواتٍ حديثة وواضحة تتكلم لغته.
       </p>
-      <div style="display:flex;gap:20px;flex-wrap:wrap">
+      <div class="about-stats">
         <div>
-          <div style="font-size:26px;font-weight:900;color:var(--orange)">١٠٠٪</div>
-          <div style="font-size:12px;color:rgba(255,255,255,.5)" data-ar="عربي كامل RTL" data-en="Full Arabic RTL">عربي كامل RTL</div>
+          <div class="about-stat-num" style="color:var(--orange)">١٠٠٪</div>
+          <div class="about-stat-lbl" data-ar="عربي كامل RTL" data-en="Full Arabic RTL">عربي كامل RTL</div>
         </div>
         <div>
-          <div style="font-size:26px;font-weight:900;color:var(--gold)">٣</div>
-          <div style="font-size:12px;color:rgba(255,255,255,.5)" data-ar="خطط اشتراك مرنة" data-en="Flexible subscription plans">خطط اشتراك مرنة</div>
+          <div class="about-stat-num" style="color:var(--gold)">٣</div>
+          <div class="about-stat-lbl" data-ar="خطط اشتراك مرنة" data-en="Flexible plans">خطط اشتراك</div>
         </div>
         <div>
-          <div style="font-size:26px;font-weight:900;color:var(--success)">٥</div>
-          <div style="font-size:12px;color:rgba(255,255,255,.5)" data-ar="أدوات تسعير متخصصة" data-en="Specialized pricing tools">أدوات تسعير متخصصة</div>
+          <div class="about-stat-num" style="color:var(--success)">٥</div>
+          <div class="about-stat-lbl" data-ar="أدوات تسعير متخصصة" data-en="Pricing tools">أدوات تسعير</div>
         </div>
       </div>
     </div>
-    <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:26px">
-      <div style="font-size:13px;font-weight:800;color:var(--orange);margin-bottom:16px" data-ar="قيمنا" data-en="Our Values">قيمنا</div>
+    <div class="about-values">
+      <div class="about-values-title" data-ar="قيمنا" data-en="Our Values">قيمنا</div>
       <?php $values = [
         ['الشفافية','نقدم أدوات تسعير مبنية على منهجية واضحة — لا أرقام عشوائية.'],
         ['الاحترافية','واجهة عربية محترفة تعكس هوية عملك أمام عملائك.'],
         ['البساطة','نظام واحد يجمع كل احتياجاتك بدون تعقيد أو تشتت.'],
       ];
       foreach ($values as [$t, $d]): ?>
-      <div style="border-bottom:1px solid rgba(255,255,255,.07);padding:12px 0;display:flex;gap:12px;align-items:flex-start">
-        <div style="width:6px;height:6px;border-radius:50%;background:var(--orange);margin-top:6px;flex-shrink:0"></div>
+      <div class="about-value-item">
+        <div class="about-value-dot"></div>
         <div>
-          <div style="font-weight:700;font-size:13px;margin-bottom:3px"><?= $t ?></div>
-          <div style="color:rgba(255,255,255,.5);font-size:12px;line-height:1.7"><?= $d ?></div>
+          <strong><?= $t ?></strong>
+          <span><?= $d ?></span>
         </div>
       </div>
       <?php endforeach; ?>
@@ -194,29 +207,27 @@ if ($user) { header('Location: /dashboard'); exit; }
 </div>
 
 <!-- CONTACT -->
-<section id="contact" style="max-width:1160px;margin:auto;padding:70px 30px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start">
+<section id="contact" class="contact-section">
   <div>
-    <p style="color:var(--orange);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px">تواصل معنا</p>
-    <h2 style="font-size:28px;font-weight:900;margin-bottom:14px">لديك سؤال أو اقتراح؟</h2>
-    <p style="color:var(--muted);font-size:14px;line-height:2;margin-bottom:22px">فريقنا يرد خلال يوم عمل واحد. يمكنك التواصل معنا عبر النموذج أو مباشرةً عبر البريد.</p>
-    <div style="display:flex;flex-direction:column;gap:12px">
-      <div style="display:flex;align-items:center;gap:12px;padding:14px;background:white;border:1px solid var(--line);border-radius:10px">
-        <div style="width:36px;height:36px;border-radius:8px;background:rgba(121,213,230,.12);display:flex;align-items:center;justify-content:center;font-size:16px">✉</div>
-        <div>
-          <div style="font-size:11px;color:var(--muted)">البريد الإلكتروني</div>
-          <div style="font-weight:700;font-size:14px;direction:ltr">info@qirox.online</div>
-        </div>
+    <p class="hero-eyebrow">تواصل معنا</p>
+    <h2 style="font-size:clamp(20px,3vw,28px);font-weight:900;margin-bottom:12px">لديك سؤال أو اقتراح؟</h2>
+    <p style="color:var(--muted);font-size:14px;line-height:2;margin-bottom:20px">فريقنا يرد خلال يوم عمل واحد. يمكنك التواصل معنا عبر النموذج أو مباشرةً عبر البريد.</p>
+    <div class="contact-info-item">
+      <div class="contact-info-icon" style="background:rgba(242,98,7,.1)">✉</div>
+      <div>
+        <div style="font-size:11px;color:var(--muted)">البريد الإلكتروني</div>
+        <div style="font-weight:700;font-size:14px;direction:ltr">info@qirox.online</div>
       </div>
-      <div style="display:flex;align-items:center;gap:12px;padding:14px;background:white;border:1px solid var(--line);border-radius:10px">
-        <div style="width:36px;height:36px;border-radius:8px;background:rgba(215,174,97,.12);display:flex;align-items:center;justify-content:center;font-size:16px">◎</div>
-        <div>
-          <div style="font-size:11px;color:var(--muted)">الموقع الرسمي</div>
-          <div style="font-weight:700;font-size:14px"><a href="https://qiroxstudio.online" target="_blank" rel="noopener" style="color:var(--ink)">qiroxstudio.online</a></div>
-        </div>
+    </div>
+    <div class="contact-info-item">
+      <div class="contact-info-icon" style="background:rgba(245,158,11,.1)">◎</div>
+      <div>
+        <div style="font-size:11px;color:var(--muted)">الموقع الرسمي</div>
+        <div style="font-weight:700;font-size:14px"><a href="https://qiroxstudio.online" target="_blank" rel="noopener" style="color:var(--ink)">qiroxstudio.online</a></div>
       </div>
     </div>
   </div>
-  <div style="background:white;border:1px solid var(--line);border-radius:16px;padding:26px;box-shadow:var(--shadow)">
+  <div class="contact-form">
     <h3 style="font-size:16px;font-weight:800;margin-bottom:18px">أرسل رسالة</h3>
     <div style="display:flex;flex-direction:column;gap:12px">
       <div class="form-group" style="margin:0"><label>الاسم</label><input type="text" class="form-control" id="ctName" placeholder="اسمك الكريم"></div>
@@ -230,47 +241,48 @@ if ($user) { header('Location: /dashboard'); exit; }
 </section>
 
 <!-- FOOTER -->
-<footer style="background:var(--ink2);color:rgba(255,255,255,.55)">
-  <div style="max-width:1160px;margin:auto;padding:50px 30px 24px">
-    <!-- Top row -->
-    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px">
+<footer class="land-footer">
+  <div class="footer-inner">
+    <div class="footer-grid">
       <div>
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-          <img src="/assets/brand-logo-transparent.png" style="width:34px" alt="تسعيرة">
-          <div><strong style="color:white;font-size:16px">تسعيرة</strong><div style="font-size:10px;color:var(--orange)">Tas3eerah</div></div>
+        <div class="footer-brand">
+          <img src="/assets/brand-logo-transparent.png" alt="تسعيرة">
+          <div>
+            <strong>تسعيرة</strong>
+            <span>Tas3eerah</span>
+          </div>
         </div>
         <p style="font-size:12px;line-height:1.9;max-width:280px">منصة عربية متكاملة لإدارة التسعير، عروض الأسعار، الفواتير، والتواصل مع العملاء — بُنيت بقيم الوضوح والاحترافية.</p>
-        <div style="margin-top:14px;font-size:12px">صُنع بـ <a href="https://qiroxstudio.online" target="_blank" rel="noopener" style="color:var(--orange)">Qirox Studio Group</a></div>
+        <p style="margin-top:12px;font-size:12px">صُنع بـ <a href="https://qiroxstudio.online" target="_blank" rel="noopener" style="color:var(--orange)">Qirox Studio Group</a></p>
       </div>
       <div>
-        <div style="color:white;font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px">المنصة</div>
-        <div style="display:flex;flex-direction:column;gap:9px;font-size:13px">
-          <a href="#features" style="color:inherit;transition:.15s" onmouseover="this.style.color='white'" onmouseout="this.style.color=''">المميزات</a>
-          <a href="#pricing"  style="color:inherit;transition:.15s" onmouseover="this.style.color='white'" onmouseout="this.style.color=''">الأسعار</a>
-          <a href="#about"    style="color:inherit;transition:.15s" onmouseover="this.style.color='white'" onmouseout="this.style.color=''">من نحن</a>
-          <a href="#contact"  style="color:inherit;transition:.15s" onmouseover="this.style.color='white'" onmouseout="this.style.color=''">تواصل معنا</a>
+        <div class="footer-col-title">المنصة</div>
+        <div class="footer-links">
+          <a href="#features">المميزات</a>
+          <a href="#pricing">الأسعار</a>
+          <a href="#about">من نحن</a>
+          <a href="#contact">تواصل معنا</a>
         </div>
       </div>
       <div>
-        <div style="color:white;font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px">الحساب</div>
-        <div style="display:flex;flex-direction:column;gap:9px;font-size:13px">
-          <span style="cursor:pointer;transition:.15s" onclick="showAuth('login')"   onmouseover="this.style.color='white'" onmouseout="this.style.color=''">تسجيل الدخول</span>
-          <span style="cursor:pointer;transition:.15s" onclick="showAuth('register')" onmouseover="this.style.color='white'" onmouseout="this.style.color=''">إنشاء حساب</span>
-          <span style="cursor:pointer;transition:.15s" onclick="showAuth('demo')"    onmouseover="this.style.color='white'" onmouseout="this.style.color=''">تجربة النظام</span>
+        <div class="footer-col-title">الحساب</div>
+        <div class="footer-links">
+          <span onclick="showAuth('login')">تسجيل الدخول</span>
+          <span onclick="showAuth('register')">إنشاء حساب</span>
+          <span onclick="showAuth('demo')">تجربة النظام</span>
         </div>
       </div>
       <div>
-        <div style="color:white;font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px">القانوني</div>
-        <div style="display:flex;flex-direction:column;gap:9px;font-size:13px">
-          <span style="cursor:pointer;transition:.15s" onclick="showPolicy('privacy')"    onmouseover="this.style.color='white'" onmouseout="this.style.color=''">سياسة الخصوصية</span>
-          <span style="cursor:pointer;transition:.15s" onclick="showPolicy('terms')"      onmouseover="this.style.color='white'" onmouseout="this.style.color=''">شروط الاستخدام</span>
-          <span style="cursor:pointer;transition:.15s" onclick="showPolicy('refund')"     onmouseover="this.style.color='white'" onmouseout="this.style.color=''">سياسة الإلغاء</span>
-          <span style="cursor:pointer;transition:.15s" onclick="showPolicy('cookies')"    onmouseover="this.style.color='white'" onmouseout="this.style.color=''">سياسة الكوكيز</span>
+        <div class="footer-col-title">القانوني</div>
+        <div class="footer-links">
+          <span onclick="showPolicy('privacy')">سياسة الخصوصية</span>
+          <span onclick="showPolicy('terms')">شروط الاستخدام</span>
+          <span onclick="showPolicy('refund')">سياسة الإلغاء</span>
+          <span onclick="showPolicy('cookies')">سياسة الكوكيز</span>
         </div>
       </div>
     </div>
-    <!-- Bottom row -->
-    <div style="border-top:1px solid rgba(255,255,255,.08);padding-top:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-size:12px">
+    <div class="footer-bottom">
       <span>© <?= date('Y') ?> تسعيرة · جميع الحقوق محفوظة</span>
       <span>المملكة العربية السعودية · منصة عربية</span>
     </div>
@@ -344,6 +356,34 @@ if ($user) { header('Location: /dashboard'); exit; }
 
 <script>
 const lang = { current: 'ar' };
+
+// ─── MOBILE MENU (landing) ───────────────
+function toggleLandMenu() {
+  const menu = document.getElementById('landMobileMenu');
+  const btn   = document.getElementById('landHamburger');
+  const open  = menu.classList.toggle('open');
+  document.body.style.overflow = open ? 'hidden' : '';
+  // Animate hamburger → X
+  const spans = btn.querySelectorAll('span');
+  if (open) {
+    spans[0].style.transform = 'translateY(7px) rotate(45deg)';
+    spans[1].style.opacity   = '0';
+    spans[2].style.transform = 'translateY(-7px) rotate(-45deg)';
+  } else {
+    spans[0].style.transform = '';
+    spans[1].style.opacity   = '';
+    spans[2].style.transform = '';
+  }
+}
+function closeLandMenu() {
+  const menu = document.getElementById('landMobileMenu');
+  const btn   = document.getElementById('landHamburger');
+  menu.classList.remove('open');
+  document.body.style.overflow = '';
+  btn.querySelectorAll('span').forEach(s => { s.style.transform = ''; s.style.opacity = ''; });
+}
+// Close on resize to desktop
+window.addEventListener('resize', () => { if (window.innerWidth > 768) closeLandMenu(); });
 
 function toggleLang() {
   lang.current = lang.current === 'ar' ? 'en' : 'ar';
