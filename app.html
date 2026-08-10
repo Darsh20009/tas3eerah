@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="تسعيرة — مساحة عمل عربية ذكية للتسعير وإدارة عروض الأسعار والفواتير والعملاء.">
+  <meta name="description" content="تسعيرة — مساحة عمل عربية للتسعير وعروض الأسعار والفواتير وإدارة الفريق والعملاء.">
   <meta name="theme-color" content="#071a2e">
   <meta property="og:type" content="website">
   <meta property="og:title" content="تسعيرة | مساحة عملك للنمو">
@@ -13,346 +13,1240 @@
   <link rel="icon" type="image/png" href="assets/brand-logo-transparent.png">
   <link rel="canonical" href="https://presentation.thanarah.com">
   <title>تسعيرة | مساحة عملك للنمو</title>
-  <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"SoftwareApplication","name":"تسعيرة","alternateName":"Tas3eerah","applicationCategory":"BusinessApplication","operatingSystem":"Web","url":"https://presentation.thanarah.com","description":"مساحة عمل عربية للتسعير وإدارة عروض الأسعار والفواتير والعملاء.","publisher":{"@type":"Organization","name":"Qirox Studio Group","url":"https://qiroxstudio.online"}}
-  </script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"تسعيرة","alternateName":"Tas3eerah","applicationCategory":"BusinessApplication","operatingSystem":"Web","url":"https://presentation.thanarah.com","description":"مساحة عمل عربية للتسعير وإدارة عروض الأسعار والفواتير والعملاء.","publisher":{"@type":"Organization","name":"Qirox Studio Group","url":"https://qiroxstudio.online"}}</script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
-    :root{--ink:#071a2e;--ink-2:#0d2945;--cyan:#79d5e6;--cyan-2:#b9f3f0;--paper:#f6f4ef;--gold:#d7ae61;--muted:#7890a6;--line:rgba(121,163,183,.22);--danger:#d86b72;--success:#6fd0ac}
+    :root{
+      --ink:#071a2e;--ink2:#0d2945;--cyan:#79d5e6;--cyan2:#b9f3f0;
+      --paper:#f6f4ef;--gold:#d7ae61;--muted:#7890a6;--line:rgba(121,163,183,.2);
+      --danger:#d86b72;--success:#6fd0ac;--warn:#e8b84b;--purple:#8b7cf8;
+      --card:#ffffff;--sidebar:#071a2e;--sidebar-text:#a6bdc9;--sidebar-active:rgba(121,213,230,.13);
+    }
     *{box-sizing:border-box;margin:0;padding:0}
     html{scroll-behavior:smooth}
     body{font-family:'Tajawal',Arial,sans-serif;background:var(--paper);color:var(--ink);min-height:100vh}
-    button,input,textarea,select{font:inherit}
+    button,input,textarea,select{font:inherit;color:inherit}
     button{cursor:pointer}
     a{color:inherit;text-decoration:none}
-    .shell{min-height:100vh;background:radial-gradient(circle at 75% -10%,rgba(121,213,230,.16),transparent 34%),var(--paper)}
-    .topbar{height:78px;background:rgba(7,26,46,.96);color:white;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(18px,5vw,72px);position:sticky;top:0;z-index:20;border-bottom:1px solid rgba(185,243,240,.14);backdrop-filter:blur(16px)}
+
+    /* ═══ LANDING ═══ */
+    .shell{min-height:100vh;background:radial-gradient(circle at 75% -10%,rgba(121,213,230,.15),transparent 34%),var(--paper)}
+    .topbar{height:76px;background:rgba(7,26,46,.97);color:white;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(18px,5vw,72px);position:sticky;top:0;z-index:30;border-bottom:1px solid rgba(185,243,240,.12);backdrop-filter:blur(16px)}
     .brand{display:flex;align-items:center;gap:12px}
-    .brand img{width:44px;height:44px;object-fit:contain;filter:drop-shadow(0 4px 10px rgba(0,0,0,.25))}
-    .brand strong{font-size:20px;letter-spacing:.3px}
-    .brand span{display:block;color:var(--cyan);font-size:11px;margin-top:1px}
-    .nav{display:flex;align-items:center;gap:6px}
-    .nav button,.nav a{border:0;background:transparent;color:#d9e8f0;padding:10px 12px;border-radius:9px;font-size:13px}
-    .nav button:hover,.nav a:hover{background:rgba(255,255,255,.08);color:white}
-    .top-actions{display:flex;gap:9px;align-items:center}
-    .lang{color:var(--cyan)!important}
-    .outline,.primary{padding:11px 18px;border-radius:9px;border:1px solid var(--cyan);background:transparent;color:var(--cyan);font-weight:700;font-size:13px}
-    .primary{background:var(--cyan);color:var(--ink);border-color:var(--cyan)}
-    .primary:hover{background:var(--cyan-2);border-color:var(--cyan-2)}
-    .outline:hover{background:rgba(121,213,230,.12)}
-    .hero{max-width:1220px;margin:0 auto;padding:95px 30px 70px;display:grid;grid-template-columns:1.06fr .94fr;gap:70px;align-items:center}
-    .eyebrow{color:#168ca0;font-weight:800;font-size:13px;letter-spacing:.2px;margin-bottom:17px}
-    h1{font-size:clamp(38px,6vw,72px);line-height:1.06;letter-spacing:-2px}
-    h1 span{color:#168ca0;display:block}
-    .hero-copy{font-size:18px;line-height:1.9;color:#526b80;max-width:560px;margin:24px 0 30px}
-    .hero-buttons{display:flex;gap:10px;flex-wrap:wrap}
-    .hero-buttons .primary,.hero-buttons .outline{padding:14px 22px}
-    .hero-note{font-size:11px;color:#7890a6;margin-top:18px}
-    .hero-art{position:relative;min-height:420px;display:flex;align-items:center;justify-content:center}
-    .hero-glow{position:absolute;width:350px;height:350px;background:radial-gradient(circle,rgba(121,213,230,.3),transparent 67%);filter:blur(8px)}
-    .hero-logo{position:relative;width:min(68%,350px);filter:drop-shadow(0 24px 24px rgba(7,26,46,.18))}
-    .float-card{position:absolute;background:rgba(255,255,255,.85);border:1px solid white;border-radius:14px;padding:16px 18px;box-shadow:0 16px 40px rgba(7,26,46,.11);backdrop-filter:blur(12px);min-width:170px}
-    .float-card small{display:block;color:var(--muted);font-size:11px;margin-bottom:7px}
-    .float-card b{font-size:22px}
-    .float-card.right{right:2%;top:21%;border-right:3px solid var(--cyan)}
-    .float-card.left{left:0;bottom:17%;border-right:3px solid var(--gold)}
-    .section{max-width:1220px;margin:auto;padding:70px 30px}
-    .section-head{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:28px}
-    .section-head h2{font-size:30px}
-    .section-head p{color:var(--muted);font-size:14px;max-width:460px;line-height:1.8}
-    .feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
-    .feature{background:white;border:1px solid var(--line);border-radius:16px;padding:24px;min-height:180px;transition:.22s}
-    .feature:hover{transform:translateY(-4px);box-shadow:0 16px 32px rgba(7,26,46,.08);border-color:rgba(22,140,160,.35)}
-    .feature .label{color:#168ca0;font-weight:900;font-size:12px;margin-bottom:25px}
-    .feature h3{font-size:20px;margin-bottom:9px}
-    .feature p{color:var(--muted);font-size:13px;line-height:1.8}
-    .trust{background:var(--ink);color:white}
-    .trust .section{display:flex;justify-content:space-between;align-items:center;gap:30px}
-    .trust h2{font-size:29px}
-    .trust p{color:#abc2d1;line-height:1.9;font-size:14px;max-width:570px;margin-top:12px}
-    .trust-stat{display:flex;gap:30px;flex-shrink:0}
-    .stat strong{font-size:30px;color:var(--cyan);display:block}
-    .stat span{color:#9bb5c5;font-size:12px}
-    .footer{background:#061424;color:#8ea7b7;padding:28px 30px;text-align:center;font-size:12px}
-    .footer a{color:var(--cyan)}
-    .auth-overlay,.app-overlay{position:fixed;inset:0;background:rgba(3,14,27,.72);z-index:50;display:none;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(8px)}
-    .auth-overlay.open,.app-overlay.open{display:flex}
-    .auth-card{width:min(100%,470px);background:var(--paper);border-radius:18px;padding:28px;border:1px solid rgba(185,243,240,.4);box-shadow:0 30px 80px rgba(0,0,0,.3)}
-    .close{border:0;background:transparent;color:var(--muted);font-size:22px;float:left}
-    .auth-card h2{font-size:26px;margin-bottom:7px}
-    .auth-card>p{color:var(--muted);font-size:13px;line-height:1.8;margin-bottom:20px}
-    .auth-switch{display:flex;gap:6px;background:#e7e9e7;padding:4px;border-radius:9px;margin-bottom:18px}
-    .auth-switch button{flex:1;border:0;border-radius:7px;padding:9px;background:transparent;color:var(--muted);font-weight:700}
-    .auth-switch button.active{background:white;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08)}
-    .field{display:flex;flex-direction:column;gap:6px;margin:12px 0}
-    .field label{font-size:12px;font-weight:700;color:#4e677a}
-    .field input,.field textarea,.field select{background:white;border:1px solid var(--line);border-radius:9px;padding:12px 13px;outline:0;color:var(--ink)}
-    .field input:focus,.field textarea:focus{border-color:#168ca0;box-shadow:0 0 0 3px rgba(22,140,160,.1)}
-    .auth-card .primary{width:100%;margin-top:8px}
-    .demo-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}
-    .demo-row button{border:1px solid var(--line);background:white;color:var(--ink);border-radius:8px;padding:8px 4px;font-size:11px}
-    .demo-row button:hover{border-color:#168ca0;color:#168ca0}
-    .form-status{min-height:20px;font-size:12px;line-height:1.6;margin-top:10px;color:var(--danger)}
-    .app-overlay{align-items:stretch;padding:0;background:var(--paper);backdrop-filter:none}
-    .app-shell{width:100%;display:grid;grid-template-columns:250px 1fr;direction:ltr}
-    .side{background:var(--ink);color:white;padding:24px 15px;direction:rtl;display:flex;flex-direction:column}
-    .side .brand{padding:0 10px 24px;border-bottom:1px solid rgba(255,255,255,.1)}
-    .side .brand img{width:38px;height:38px}
-    .side nav{display:flex;flex-direction:column;gap:3px;margin-top:22px}
-    .side nav button{text-align:right;border:0;background:transparent;color:#a6bdc9;padding:12px 13px;border-radius:8px;font-size:13px}
-    .side nav button.active,.side nav button:hover{background:rgba(121,213,230,.13);color:var(--cyan)}
-    .side-bottom{margin-top:auto;border-top:1px solid rgba(255,255,255,.1);padding-top:15px}
-    .side-bottom button{width:100%;border:0;background:transparent;color:#a6bdc9;padding:11px;text-align:right}
-    .workspace{direction:rtl;overflow:auto;background:#f4f6f4}
-    .workspace-top{height:80px;background:white;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 34px}
-    .workspace-top h2{font-size:20px}
-    .workspace-top p{font-size:12px;color:var(--muted);margin-top:4px}
-    .profile-chip{display:flex;gap:10px;align-items:center;border:1px solid var(--line);padding:7px 10px;border-radius:9px;font-size:12px}
-    .avatar{width:31px;height:31px;border-radius:50%;background:var(--ink);color:var(--cyan);display:grid;place-items:center;font-weight:900}
-    .workspace-content{padding:30px 34px;max-width:1300px}
+    .brand img{width:42px;height:42px;object-fit:contain}
+    .brand strong{font-size:19px;letter-spacing:.3px}
+    .brand span{display:block;color:var(--cyan);font-size:10px;margin-top:1px}
+    .topnav{display:flex;align-items:center;gap:4px}
+    .topnav a,.topnav button{border:0;background:transparent;color:#c8dde8;padding:9px 12px;border-radius:8px;font-size:13px;transition:.18s}
+    .topnav a:hover,.topnav button:hover{background:rgba(255,255,255,.08);color:white}
+    .top-actions{display:flex;gap:8px;align-items:center}
+    .lang-btn{border:0;background:transparent;color:var(--cyan);font-weight:700;font-size:13px;padding:7px}
+    .btn-outline,.btn-primary{padding:10px 18px;border-radius:9px;border:1.5px solid var(--cyan);background:transparent;color:var(--cyan);font-weight:700;font-size:13px;transition:.18s}
+    .btn-primary{background:var(--cyan);color:var(--ink);border-color:var(--cyan)}
+    .btn-primary:hover{background:var(--cyan2);border-color:var(--cyan2)}
+    .btn-outline:hover{background:rgba(121,213,230,.1)}
+
+    /* Hero */
+    .hero{max-width:1200px;margin:0 auto;padding:90px 30px 70px;display:grid;grid-template-columns:1.1fr .9fr;gap:60px;align-items:center}
+    .eyebrow{color:#1a9bb5;font-weight:800;font-size:12px;letter-spacing:.5px;margin-bottom:16px;text-transform:uppercase}
+    h1{font-size:clamp(36px,5.5vw,68px);line-height:1.06;letter-spacing:-2px}
+    h1 em{color:#1a9bb5;font-style:normal;display:block}
+    .hero-copy{font-size:17px;line-height:1.95;color:#4e6a7e;max-width:540px;margin:22px 0 28px}
+    .hero-btns{display:flex;gap:10px;flex-wrap:wrap}
+    .hero-btns .btn-primary,.hero-btns .btn-outline{padding:13px 22px;font-size:14px}
+    .hero-note{font-size:11px;color:#8fa5b5;margin-top:16px}
+    .hero-art{position:relative;min-height:440px;display:flex;align-items:center;justify-content:center}
+    .hero-glow{position:absolute;width:380px;height:380px;background:radial-gradient(circle,rgba(121,213,230,.28),transparent 67%);filter:blur(10px)}
+    .hero-logo-img{position:relative;width:min(65%,330px);filter:drop-shadow(0 22px 22px rgba(7,26,46,.16))}
+    .float-card{position:absolute;background:rgba(255,255,255,.88);border:1px solid white;border-radius:13px;padding:14px 17px;box-shadow:0 14px 36px rgba(7,26,46,.1);backdrop-filter:blur(12px);min-width:158px}
+    .float-card small{display:block;color:var(--muted);font-size:10px;margin-bottom:6px}
+    .float-card b{font-size:21px}
+    .float-card.r{right:1%;top:20%;border-right:3px solid var(--cyan)}
+    .float-card.l{left:0;bottom:18%;border-right:3px solid var(--gold)}
+
+    /* Sections */
+    .section{max-width:1200px;margin:auto;padding:65px 30px}
+    .sh{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:26px}
+    .sh h2{font-size:28px}
+    .sh p{color:var(--muted);font-size:13.5px;max-width:440px;line-height:1.8}
+    .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .feat{background:white;border:1px solid var(--line);border-radius:15px;padding:22px;transition:.22s;min-height:170px}
+    .feat:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(7,26,46,.07);border-color:rgba(26,155,181,.3)}
+    .feat .lbl{color:#1a9bb5;font-weight:900;font-size:11px;margin-bottom:22px;text-transform:uppercase}
+    .feat h3{font-size:19px;margin-bottom:8px}
+    .feat p{color:var(--muted);font-size:12.5px;line-height:1.8}
+    .trust-strip{background:var(--ink);color:white}
+    .trust-strip .section{display:flex;justify-content:space-between;align-items:center;gap:30px}
+    .trust-strip h2{font-size:27px}
+    .trust-strip p{color:#abc2d1;line-height:1.9;font-size:13.5px;max-width:560px;margin-top:10px}
+    .stats{display:flex;gap:28px;flex-shrink:0}
+    .stat strong{font-size:28px;color:var(--cyan);display:block}
+    .stat span{color:#9bb5c5;font-size:11px}
+    footer{background:#061424;color:#8ea7b7;padding:26px 30px;text-align:center;font-size:12px;border-top:1px solid rgba(121,213,230,.1)}
+    footer a{color:var(--cyan)}
+    footer img.flogo{width:26px;height:26px;object-fit:contain;vertical-align:middle;margin-left:6px}
+
+    /* ═══ AUTH OVERLAY ═══ */
+    .overlay{position:fixed;inset:0;background:rgba(3,14,27,.75);z-index:60;display:none;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(10px)}
+    .overlay.open{display:flex}
+    .auth-card{width:min(100%,460px);background:var(--paper);border-radius:18px;padding:26px;border:1px solid rgba(185,243,240,.35);box-shadow:0 28px 70px rgba(0,0,0,.28)}
+    .auth-card .close{float:left;border:0;background:transparent;color:var(--muted);font-size:22px;line-height:1;padding:0 4px}
+    .auth-switch{display:flex;gap:5px;background:#e4e7e4;padding:4px;border-radius:9px;margin:14px 0}
+    .auth-switch button{flex:1;border:0;border-radius:7px;padding:9px;background:transparent;color:var(--muted);font-weight:700;font-size:13px;transition:.18s}
+    .auth-switch button.on{background:white;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08)}
+    .field{display:flex;flex-direction:column;gap:5px;margin:10px 0}
+    .field label{font-size:11.5px;font-weight:700;color:#4a647a}
+    .field input,.field textarea,.field select{background:white;border:1px solid var(--line);border-radius:9px;padding:11px 12px;outline:0;font-size:14px}
+    .field input:focus,.field textarea:focus,.field select:focus{border-color:#1a9bb5;box-shadow:0 0 0 3px rgba(26,155,181,.1)}
+    .social-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+    .social-btn{border:1.5px solid var(--line);background:white;border-radius:9px;padding:10px 8px;display:flex;align-items:center;justify-content:center;gap:7px;font-size:12.5px;font-weight:700;transition:.18s}
+    .social-btn:hover{border-color:#1a9bb5;background:#f0f8fa}
+    .social-btn svg{width:18px;height:18px;flex-shrink:0}
+    .divider{text-align:center;color:var(--muted);font-size:11px;margin:12px 0;position:relative}
+    .divider::before,.divider::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:var(--line)}
+    .divider::before{right:0}.divider::after{left:0}
+    .form-status{min-height:18px;font-size:12px;margin-top:8px;color:var(--danger)}
+    .form-status.ok{color:var(--success)}
+    .demo-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+    .demo-strip button{border:1px solid var(--line);background:white;border-radius:8px;padding:8px 4px;font-size:11px;transition:.18s}
+    .demo-strip button:hover{border-color:#1a9bb5;color:#1a9bb5}
+
+    /* ═══ APP SHELL ═══ */
+    .app-overlay{background:var(--paper);backdrop-filter:none;align-items:stretch;padding:0}
+    .app-shell{width:100%;min-height:100vh;display:grid;grid-template-columns:248px 1fr;direction:ltr}
+    .sidebar{background:var(--sidebar);color:var(--sidebar-text);padding:22px 14px;direction:rtl;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+    .sidebar .sbrand{display:flex;align-items:center;gap:10px;padding:0 8px 22px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:18px}
+    .sidebar .sbrand img{width:36px;height:36px;object-fit:contain}
+    .sidebar .sbrand strong{font-size:16px;color:white}
+    .sidebar .sbrand span{display:block;color:var(--cyan);font-size:10px}
+    .sidenav{display:flex;flex-direction:column;gap:2px}
+    .sidenav button{text-align:right;border:0;background:transparent;color:var(--sidebar-text);padding:11px 12px;border-radius:8px;font-size:13px;transition:.18s;display:flex;align-items:center;gap:8px}
+    .sidenav button .ni{width:16px;height:16px;opacity:.6;flex-shrink:0}
+    .sidenav button.on,.sidenav button:hover{background:var(--sidebar-active);color:var(--cyan)}
+    .sidenav button.on .ni{opacity:1}
+    .side-section{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:#4a6070;padding:16px 12px 6px;margin-top:6px}
+    .side-bottom{margin-top:auto;border-top:1px solid rgba(255,255,255,.08);padding-top:14px;display:flex;flex-direction:column;gap:2px}
+    .side-bottom button{text-align:right;border:0;background:transparent;color:var(--sidebar-text);padding:10px 12px;border-radius:8px;font-size:12px;transition:.18s}
+    .side-bottom button:hover{background:rgba(255,255,255,.06);color:white}
+
+    /* Workspace */
+    .workspace{direction:rtl;overflow-y:auto;background:#f0f2f0;min-height:100vh}
+    .wtop{height:76px;background:white;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 30px;position:sticky;top:0;z-index:10}
+    .wtop-left h2{font-size:19px}
+    .wtop-left p{font-size:12px;color:var(--muted);margin-top:3px}
+    .profile-chip{display:flex;gap:9px;align-items:center;border:1px solid var(--line);padding:7px 10px;border-radius:9px;background:white;font-size:12px;cursor:pointer;transition:.18s}
+    .profile-chip:hover{border-color:#1a9bb5}
+    .avatar{width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--cyan);display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
+    .wcontent{padding:26px 28px;max-width:1280px}
+
+    /* Dash panels */
     .dash{display:none}
-    .dash.active{display:block}
-    .welcome{background:linear-gradient(105deg,var(--ink),#0e4860);color:white;border-radius:16px;padding:27px 29px;display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:18px}
-    .welcome h3{font-size:22px;margin-bottom:7px}
-    .welcome p{color:#c3e3e5;font-size:13px}
-    .welcome .primary{background:var(--gold);border-color:var(--gold);color:var(--ink);white-space:nowrap}
-    .metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
-    .metric,.panel{background:white;border:1px solid var(--line);border-radius:13px;padding:19px}
-    .metric small{color:var(--muted);font-size:11px;display:block;margin-bottom:12px}
-    .metric strong{font-size:25px}
-    .metric em{font-style:normal;color:var(--success);font-size:11px;margin-right:8px}
-    .panel-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:15px}
-    .panel h3{font-size:16px;margin-bottom:15px}
-    .list{display:flex;flex-direction:column;gap:9px}
-    .list-row{display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid #edf1ef;padding:10px 0;font-size:12px}
-    .list-row:last-child{border-bottom:0}
-    .list-row small{color:var(--muted);display:block;margin-top:4px}
-    .status{font-size:10px;border-radius:20px;padding:4px 8px;background:#e6f7f0;color:#27845f;white-space:nowrap}
-    .status.pending{background:#fff5dd;color:#9a6b15}
-    .tool-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
-    .tool{background:white;border:1px solid var(--line);border-radius:14px;padding:20px;min-height:175px;display:flex;flex-direction:column;transition:.2s}
-    .tool:hover{border-color:#168ca0;transform:translateY(-3px);box-shadow:0 12px 28px rgba(7,26,46,.07)}
-    .tool-tag{font-size:10px;color:#168ca0;font-weight:800;margin-bottom:24px}
-    .tool h3{font-size:17px;margin-bottom:7px}
-    .tool p{color:var(--muted);font-size:12px;line-height:1.7}
-    .tool a,.tool button{margin-top:auto;align-self:flex-start;color:#168ca0;font-size:12px;font-weight:800;background:none;border:0;padding-top:18px}
-    .notice{background:#fff8e6;border:1px solid #efd79e;color:#73551a;border-radius:11px;padding:13px 15px;font-size:12px;line-height:1.8;margin-bottom:16px}
-    .security-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-    .security-item{background:white;border:1px solid var(--line);border-radius:12px;padding:17px;display:flex;justify-content:space-between;gap:15px;align-items:start}
-    .security-item b{font-size:13px}.security-item p{font-size:11px;color:var(--muted);line-height:1.7;margin-top:6px}
-    .switch{width:38px;height:22px;border-radius:20px;background:#ccd6d7;position:relative;flex-shrink:0}
-    .switch:after{content:'';position:absolute;top:3px;right:3px;width:16px;height:16px;background:white;border-radius:50%}
-    .switch.on{background:#168ca0}.switch.on:after{right:19px}
-    .empty{padding:34px;text-align:center;color:var(--muted);font-size:13px;border:1px dashed #cbd9d9;border-radius:11px}
-    @media(max-width:900px){.hero{grid-template-columns:1fr;gap:15px;padding-top:60px}.hero-art{min-height:330px}.feature-grid{grid-template-columns:1fr 1fr}.trust .section{flex-direction:column;align-items:start}.app-shell{grid-template-columns:1fr}.side{display:none}.metric-grid{grid-template-columns:repeat(2,1fr)}.tool-grid{grid-template-columns:repeat(2,1fr)}}
-    @media(max-width:620px){.topbar{height:auto;min-height:70px;padding:12px 17px;gap:7px}.nav{display:none}.top-actions .outline{display:none}.hero{padding-left:20px;padding-right:20px}.hero-copy{font-size:16px}.hero-art{min-height:290px}.float-card{transform:scale(.84)}.section{padding:48px 20px}.feature-grid,.panel-grid,.tool-grid,.security-grid{grid-template-columns:1fr}.section-head{display:block}.section-head p{margin-top:8px}.workspace-top{padding:0 18px}.workspace-content{padding:20px 16px}.welcome{display:block}.welcome .primary{margin-top:18px}.metric-grid{gap:8px}.metric{padding:14px}.metric strong{font-size:21px}.profile-chip span{display:none}}
+    .dash.on{display:block}
+    .welcome-bar{background:linear-gradient(105deg,#071a2e,#0e4860);color:white;border-radius:15px;padding:24px 26px;display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:16px}
+    .welcome-bar h3{font-size:21px;margin-bottom:6px}
+    .welcome-bar p{color:#c3e3e5;font-size:13px;line-height:1.7}
+    .welcome-bar .btn-primary{background:var(--gold);border-color:var(--gold);color:var(--ink);white-space:nowrap;flex-shrink:0}
+    .mets{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:16px}
+    .met{background:white;border:1px solid var(--line);border-radius:12px;padding:18px}
+    .met small{color:var(--muted);font-size:11px;display:block;margin-bottom:10px}
+    .met strong{font-size:24px}
+    .met em{font-style:normal;color:var(--success);font-size:11px;margin-right:6px}
+    .met em.warn{color:var(--warn)}
+    .panel2{display:grid;grid-template-columns:1.45fr 1fr;gap:14px}
+    .panel{background:white;border:1px solid var(--line);border-radius:13px;padding:19px}
+    .panel h3{font-size:15px;margin-bottom:13px;display:flex;align-items:center;justify-content:space-between}
+    .panel h3 button{font-size:11px;color:#1a9bb5;border:0;background:transparent;font-weight:700}
+    .list .row{display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid #eef2ee;padding:9px 0;font-size:12px}
+    .list .row:last-child{border-bottom:0}
+    .list .row small{color:var(--muted);display:block;margin-top:3px}
+    .list .row .left{flex:1;min-width:0}
+    .badge{font-size:10px;border-radius:20px;padding:3px 9px;background:#e4f5ee;color:#27845f;white-space:nowrap;flex-shrink:0}
+    .badge.pend{background:#fff4dc;color:#9a6b15}
+    .badge.danger{background:#fde8e8;color:#a33}
+    .badge.info{background:#e4f0ff;color:#2057b5}
+    .notice{background:#fffceb;border:1px solid #edd88a;color:#7a5a12;border-radius:10px;padding:11px 14px;font-size:12px;line-height:1.8;margin-bottom:14px}
+    .notice.info{background:#e8f6ff;border-color:#a0d0f0;color:#1a4a6a}
+    .empty-state{padding:30px;text-align:center;color:var(--muted);font-size:13px;border:1px dashed #c8d8d8;border-radius:11px;line-height:1.8}
+
+    /* Tools grid */
+    .tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .tcard{background:white;border:1px solid var(--line);border-radius:13px;padding:19px;display:flex;flex-direction:column;transition:.2s;min-height:172px}
+    .tcard:hover{border-color:#1a9bb5;transform:translateY(-3px);box-shadow:0 10px 26px rgba(7,26,46,.06)}
+    .tcard .ttag{font-size:10px;color:#1a9bb5;font-weight:800;margin-bottom:20px;text-transform:uppercase;letter-spacing:.4px}
+    .tcard h3{font-size:16px;margin-bottom:7px}
+    .tcard p{color:var(--muted);font-size:12px;line-height:1.7}
+    .tcard a,.tcard .tlink{margin-top:auto;align-self:flex-start;color:#1a9bb5;font-size:12px;font-weight:800;background:none;border:0;padding-top:15px;cursor:pointer}
+
+    /* Quotes / Invoices */
+    .doc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+    .doc-header h2{font-size:21px}
+    .tabs-row{display:flex;gap:5px;background:#e8ebe8;padding:4px;border-radius:9px;margin-bottom:18px;width:fit-content}
+    .tabs-row button{border:0;background:transparent;border-radius:7px;padding:8px 16px;font-size:13px;color:var(--muted);font-weight:700;transition:.18s}
+    .tabs-row button.on{background:white;color:var(--ink);box-shadow:0 2px 6px rgba(0,0,0,.08)}
+    .doc-list{display:flex;flex-direction:column;gap:10px}
+    .doc-item{background:white;border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:14px;transition:.18s}
+    .doc-item:hover{border-color:#1a9bb5;box-shadow:0 4px 12px rgba(0,0,0,.05)}
+    .doc-num{font-size:13px;font-weight:700;min-width:80px}
+    .doc-client{flex:1;min-width:0}
+    .doc-client b{font-size:13px;display:block}
+    .doc-client small{color:var(--muted);font-size:11px}
+    .doc-amount{font-size:17px;font-weight:900;color:#1a4a6a;min-width:120px;text-align:center}
+    .doc-actions{display:flex;gap:6px}
+    .doc-actions button{border:1px solid var(--line);background:white;border-radius:7px;padding:6px 10px;font-size:11px;font-weight:700;transition:.18s}
+    .doc-actions button:hover{border-color:#1a9bb5;color:#1a9bb5}
+    .doc-actions button.danger{border-color:var(--danger);color:var(--danger)}
+    .new-doc-form{background:white;border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:18px;display:none}
+    .new-doc-form.show{display:block}
+    .form-title{font-size:17px;font-weight:800;margin-bottom:16px}
+    .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+    .line-items{margin:14px 0}
+    .line-head{display:grid;grid-template-columns:3fr 1.2fr 1.2fr 1fr 36px;gap:8px;font-size:11px;font-weight:700;color:var(--muted);padding:0 4px;margin-bottom:6px}
+    .line-row{display:grid;grid-template-columns:3fr 1.2fr 1.2fr 1fr 36px;gap:8px;margin-bottom:6px;align-items:center}
+    .line-row input{background:#f7f9f7;border:1px solid var(--line);border-radius:7px;padding:8px 10px;font-size:13px;outline:0;width:100%}
+    .line-row input:focus{border-color:#1a9bb5}
+    .line-row .del-line{border:0;background:transparent;color:var(--muted);font-size:18px;padding:0;line-height:1;transition:.18s}
+    .line-row .del-line:hover{color:var(--danger)}
+    .doc-totals{background:#f7f9f7;border-radius:10px;padding:14px 16px;margin-top:10px}
+    .tot-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0}
+    .tot-row.big{font-size:17px;font-weight:900;border-top:2px solid var(--ink);margin-top:6px;padding-top:10px}
+    .form-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+    .form-actions button{padding:10px 18px;border-radius:9px;font-weight:700;font-size:13px;border:1px solid var(--line);background:white;transition:.18s}
+    .form-actions button.save{background:#1a9bb5;color:white;border-color:#1a9bb5}
+    .form-actions button.print-pdf{background:var(--ink);color:white;border-color:var(--ink)}
+    .form-actions button:hover{opacity:.9}
+
+    /* Messages */
+    .msg-shell{display:grid;grid-template-columns:280px 1fr;gap:0;background:white;border:1px solid var(--line);border-radius:14px;overflow:hidden;height:560px}
+    .msg-list{border-left:1px solid var(--line);overflow-y:auto;direction:rtl}
+    .msg-list-header{padding:14px 16px;border-bottom:1px solid var(--line);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:space-between}
+    .msg-list-header button{border:0;background:transparent;color:#1a9bb5;font-size:12px;font-weight:700}
+    .msg-item{padding:12px 14px;border-bottom:1px solid var(--line);cursor:pointer;transition:.15s;direction:rtl}
+    .msg-item:hover,.msg-item.on{background:#f0f8fa}
+    .msg-item b{font-size:13px;display:flex;align-items:center;gap:6px}
+    .unread-dot{width:7px;height:7px;border-radius:50%;background:#1a9bb5;flex-shrink:0}
+    .msg-item small{color:var(--muted);font-size:11px;display:block;margin-top:3px}
+    .msg-item .preview{font-size:11px;color:#6a8090;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .msg-body{display:flex;flex-direction:column;direction:rtl}
+    .msg-body-header{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+    .msg-body-header .av{width:36px;height:36px;border-radius:50%;background:var(--ink);color:var(--cyan);display:grid;place-items:center;font-weight:900;font-size:15px;flex-shrink:0}
+    .msg-body-header h4{font-size:14px}
+    .msg-body-header small{color:var(--muted);font-size:11px}
+    .msg-body-header .ai-badge{margin-right:auto;font-size:10px;background:#e8f0ff;color:#2057b5;border-radius:20px;padding:3px 9px;font-weight:700}
+    .msg-body-actions{margin-right:auto;display:flex;gap:5px}
+    .msg-body-actions button{border:1px solid var(--line);background:white;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700}
+    .msg-chat{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:10px;direction:rtl}
+    .bubble{max-width:70%;padding:10px 13px;border-radius:12px;font-size:13px;line-height:1.7;word-break:break-word}
+    .bubble.in{background:#f0f5f7;border-radius:12px 12px 3px 12px;align-self:flex-start}
+    .bubble.out{background:#1a9bb5;color:white;border-radius:12px 12px 12px 3px;align-self:flex-end}
+    .bubble.ai{background:#e8f0ff;border-right:3px solid var(--purple);border-radius:12px 3px 12px 12px;align-self:flex-start}
+    .bubble-time{font-size:10px;color:var(--muted);padding:0 4px}
+    .msg-input-row{padding:12px 16px;border-top:1px solid var(--line);display:flex;gap:8px;align-items:flex-end}
+    .msg-input-row textarea{flex:1;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:13px;resize:none;outline:0;max-height:100px}
+    .msg-input-row textarea:focus{border-color:#1a9bb5}
+    .msg-send{border:0;background:#1a9bb5;color:white;border-radius:9px;padding:10px 16px;font-weight:700;font-size:13px;flex-shrink:0}
+    .msg-actions{padding:8px 16px;display:flex;gap:6px;border-top:1px solid var(--line)}
+    .msg-actions button{border:1px solid var(--line);background:white;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;transition:.18s}
+    .msg-actions button:hover{border-color:#1a9bb5;color:#1a9bb5}
+    .ai-toggle{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);padding:4px 0}
+    .toggle-switch{width:34px;height:20px;border-radius:20px;background:#c8d8da;position:relative;cursor:pointer;flex-shrink:0;transition:.2s}
+    .toggle-switch:after{content:'';position:absolute;top:3px;right:3px;width:14px;height:14px;background:white;border-radius:50%;transition:.2s}
+    .toggle-switch.on{background:#1a9bb5}
+    .toggle-switch.on:after{right:17px}
+
+    /* Admin */
+    .atabs{display:flex;gap:5px;background:#e8ebe8;padding:4px;border-radius:9px;margin-bottom:18px;width:fit-content;flex-wrap:wrap}
+    .atabs button{border:0;background:transparent;border-radius:7px;padding:8px 14px;font-size:12px;color:var(--muted);font-weight:700;transition:.18s;white-space:nowrap}
+    .atabs button.on{background:white;color:var(--ink);box-shadow:0 2px 6px rgba(0,0,0,.08)}
+    .table-wrap{background:white;border:1px solid var(--line);border-radius:13px;overflow:hidden}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th{background:#f5f7f5;padding:11px 14px;text-align:right;font-weight:700;color:var(--muted);font-size:11px;border-bottom:1px solid var(--line)}
+    td{padding:11px 14px;border-bottom:1px solid #f0f2f0;vertical-align:middle}
+    tr:last-child td{border-bottom:0}
+    tr:hover td{background:#fafcfa}
+    .user-av{width:28px;height:28px;border-radius:50%;background:var(--ink);color:var(--cyan);display:inline-grid;place-items:center;font-weight:900;font-size:12px;margin-left:8px;vertical-align:middle}
+
+    /* Integration cards */
+    .int-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .int-card{background:white;border:1px solid var(--line);border-radius:12px;padding:17px;display:flex;justify-content:space-between;align-items:start;gap:14px}
+    .int-card .int-info{flex:1}
+    .int-card .int-name{font-weight:800;font-size:14px;margin-bottom:5px}
+    .int-card .int-desc{color:var(--muted);font-size:12px;line-height:1.7}
+    .int-card .int-status{font-size:10px;border-radius:20px;padding:3px 9px;background:#fde8e8;color:#a33;white-space:nowrap;flex-shrink:0;font-weight:700}
+    .int-card .int-status.ok{background:#e4f5ee;color:#27845f}
+    .int-card .int-status.partial{background:#fff4dc;color:#9a6b15}
+    .wa-box{background:white;border:1px solid var(--line);border-radius:13px;padding:22px;text-align:center;max-width:360px;margin:0 auto}
+    .wa-box h3{font-size:17px;margin-bottom:8px}
+    .wa-box p{color:var(--muted);font-size:13px;line-height:1.7;margin-bottom:18px}
+    .wa-qr{width:180px;height:180px;background:#f0f5f5;border:2px dashed #9bbcc0;border-radius:12px;display:grid;place-items:center;margin:0 auto 16px;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;transition:.2s}
+    .wa-qr:hover{border-color:#1a9bb5;background:#e8f7fa}
+    .wa-status{font-size:12px;color:var(--muted);margin-top:10px}
+
+    /* Settings / Security */
+    .sec-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}
+    .sec-item{background:white;border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;justify-content:space-between;align-items:start;gap:14px}
+    .sec-item .sec-body{flex:1}
+    .sec-item .sec-name{font-weight:800;font-size:13px;margin-bottom:4px}
+    .sec-item .sec-desc{color:var(--muted);font-size:11.5px;line-height:1.7}
+    .sec-item .sec-toggle{width:36px;height:21px;border-radius:20px;background:#c8d8da;position:relative;flex-shrink:0;cursor:pointer;transition:.2s}
+    .sec-item .sec-toggle:after{content:'';position:absolute;top:3px;right:3px;width:15px;height:15px;background:white;border-radius:50%;transition:.2s}
+    .sec-item .sec-toggle.on{background:#1a9bb5}
+    .sec-item .sec-toggle.on:after{right:18px}
+
+    /* PDF PRINT */
+    .pdf-preview{position:fixed;inset:0;background:rgba(3,14,27,.8);z-index:70;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)}
+    .pdf-preview.open{display:flex}
+    .pdf-doc{width:min(100%,700px);max-height:90vh;overflow-y:auto;background:white;border-radius:4px;font-family:'Tajawal',Arial,sans-serif;direction:rtl;color:#1a1a2e;box-shadow:0 24px 60px rgba(0,0,0,.35)}
+    .pdf-toolbar{position:sticky;top:0;background:white;border-bottom:1px solid #eee;padding:12px 18px;display:flex;gap:8px;justify-content:flex-start;z-index:2}
+    .pdf-toolbar button{border:1px solid var(--line);background:white;border-radius:7px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer}
+    .pdf-toolbar button.do-print{background:var(--ink);color:white;border-color:var(--ink)}
+    .pdf-body{padding:36px 44px}
+    .pdf-logo-row{display:flex;justify-content:space-between;align-items:start;margin-bottom:32px}
+    .pdf-logo-row img{width:80px;height:80px;object-fit:contain}
+    .pdf-doc-info{text-align:left}
+    .pdf-doc-info .doc-type{font-size:22px;font-weight:900;color:#071a2e;margin-bottom:4px}
+    .pdf-doc-info .doc-no{color:#7890a6;font-size:13px}
+    .pdf-parties{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;padding:18px;background:#f7f9f7;border-radius:10px}
+    .pdf-parties h4{font-size:11px;font-weight:700;color:#7890a6;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+    .pdf-parties p{font-size:13px;line-height:1.7}
+    .pdf-table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:13px}
+    .pdf-table th{background:#071a2e;color:white;padding:10px 14px;text-align:right}
+    .pdf-table td{padding:10px 14px;border-bottom:1px solid #eee}
+    .pdf-table tr:nth-child(even) td{background:#f9faf9}
+    .pdf-totals{margin-left:0;margin-right:auto;width:280px;padding:14px 0}
+    .pdf-tot-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0}
+    .pdf-tot-row.final{font-size:17px;font-weight:900;border-top:2px solid #071a2e;margin-top:6px;padding-top:10px}
+    .pdf-footer{margin-top:30px;padding-top:16px;border-top:1px solid #eee;font-size:11px;color:#9aa;text-align:center}
+    @media print{.pdf-toolbar{display:none}.pdf-preview{position:static;background:white;padding:0}.pdf-doc{box-shadow:none;max-height:none;border-radius:0}}
+
+    /* Responsive */
+    @media(max-width:960px){
+      .hero{grid-template-columns:1fr;padding-top:55px;gap:20px}
+      .hero-art{min-height:320px}
+      .grid3{grid-template-columns:1fr 1fr}
+      .trust-strip .section{flex-direction:column;align-items:start}
+      .app-shell{grid-template-columns:1fr}
+      .sidebar{display:none}
+      .mets{grid-template-columns:repeat(2,1fr)}
+      .panel2{grid-template-columns:1fr}
+      .tgrid{grid-template-columns:1fr 1fr}
+      .int-grid,.sec-grid{grid-template-columns:1fr}
+      .msg-shell{grid-template-columns:1fr;height:auto;flex-direction:column}
+      .msg-list{display:none}
+    }
+    @media(max-width:620px){
+      .topnav{display:none}
+      .hero{padding-left:18px;padding-right:18px}
+      h1{letter-spacing:-1px}
+      .section{padding:44px 18px}
+      .grid3{grid-template-columns:1fr}
+      .mets{grid-template-columns:1fr 1fr}
+      .tgrid{grid-template-columns:1fr}
+      .g2,.g3{grid-template-columns:1fr}
+      .wtop{padding:0 16px}
+      .wcontent{padding:18px 14px}
+      .welcome-bar{display:block}
+      .welcome-bar .btn-primary{margin-top:16px}
+      .doc-actions{flex-direction:column}
+      .line-head,.line-row{grid-template-columns:3fr 1fr 36px}
+      .line-head span:nth-child(2),.line-row input:nth-child(2),.line-head span:nth-child(3),.line-row input:nth-child(3){display:none}
+    }
   </style>
 </head>
 <body>
-<div class="shell">
+
+<!-- ═══ LANDING PAGE ═══ -->
+<div class="shell" id="landing">
   <header class="topbar">
-    <a class="brand" href="#">
-      <img data-brand-logo alt="شعار تسعيرة">
+    <a class="brand" href="/">
+      <img data-brand-logo alt="تسعيرة">
       <div><strong>Tas3eerah</strong><span>السعر العادل لكل مشروع</span></div>
     </a>
-    <nav class="nav">
-      <a data-nav="platform" href="#platform">المنصة</a>
-      <a data-nav="tools" href="#tools">الأدوات</a>
-      <a data-nav="security" href="#security">الأمان</a>
-      <button type="button" data-action="open-auth" data-auth-nav>تسجيل الدخول</button>
+    <nav class="topnav">
+      <a href="#platform">المنصة</a>
+      <a href="#tools-sec">الأدوات</a>
+      <a href="#security-sec">الأمان</a>
+      <button type="button" data-act="open-auth">تسجيل الدخول</button>
     </nav>
     <div class="top-actions">
-      <button class="lang" type="button" data-action="toggle-language">EN</button>
-      <button class="outline" type="button" data-action="open-auth">ابدأ الآن</button>
+      <button class="lang-btn" type="button" data-act="toggle-lang">EN</button>
+      <button class="btn-outline" type="button" data-act="open-auth">ابدأ الآن</button>
     </div>
   </header>
 
   <main>
     <section class="hero" id="platform">
       <div>
-        <div class="eyebrow" data-copy="eyebrow">مساحة عمل عربية تنمو معك</div>
-        <h1 data-copy="heroTitle">حوّل شغلك إلى <span>نظام واضح.</span></h1>
-        <p class="hero-copy" data-copy="heroCopy">تسعيرة تجمع أدوات التسعير، عروض الأسعار، الفواتير، العملاء، الرسائل، والتحليلات في مكان واحد — بهوية تعرفها وبطريقة عمل تناسب فريقك.</p>
-        <div class="hero-buttons">
-          <button class="primary" type="button" data-action="open-auth" data-copy="createCta">أنشئ مساحة عملك</button>
-          <button class="outline" type="button" data-action="demo" data-role="client" data-copy="demoCta">استعرض تجربة العميل</button>
+        <div class="eyebrow" data-c="eyebrow">مساحة عمل عربية تنمو معك</div>
+        <h1 data-c="heroTitle">حوّل شغلك إلى<em>نظام واضح.</em></h1>
+        <p class="hero-copy" data-c="heroCopy">تسعيرة تجمع أدوات التسعير، عروض الأسعار، الفواتير، العملاء، الرسائل، والتحليلات في مكان واحد — بهوية تعرفها وبطريقة عمل تناسب فريقك.</p>
+        <div class="hero-btns">
+          <button class="btn-primary" type="button" data-act="open-auth" data-c="createCta">أنشئ مساحة عملك</button>
+          <button class="btn-outline" type="button" data-act="demo" data-role="client" data-c="demoCta">استعرض تجربة العميل</button>
         </div>
-        <div class="hero-note" data-copy="heroNote">تجربة العرض لا تنشئ حساباً ولا ترسل بيانات إلى أي خدمة خارجية.</div>
+        <div class="hero-note" data-c="heroNote">تجربة العرض لا تنشئ حساباً ولا ترسل بيانات إلى أي خدمة خارجية.</div>
       </div>
-      <div class="hero-art" aria-label="هوية تسعيرة">
+      <div class="hero-art">
         <div class="hero-glow"></div>
-        <img class="hero-logo" data-brand-logo alt="Tas3eerah">
-        <div class="float-card right"><small>قيمة الأعمال هذا الشهر</small><b>١٢٨,٤٠٠ ر.س</b></div>
-        <div class="float-card left"><small>معدل إنجاز الفريق</small><b>٨٧٪</b></div>
+        <img class="hero-logo-img" data-brand-logo alt="Tas3eerah">
+        <div class="float-card r"><small>قيمة الأعمال هذا الشهر</small><b>١٢٨,٤٠٠ ر.س</b></div>
+        <div class="float-card l"><small>معدل إنجاز الفريق</small><b>٨٧٪</b></div>
       </div>
     </section>
 
-    <section class="section" id="tools">
-      <div class="section-head"><div><div class="eyebrow" data-copy="toolsEyebrow">كل ما تحتاجه في مساحة واحدة</div><h2 data-copy="toolsTitle">أدوات تصنع فرقاً</h2></div><p data-copy="toolsCopy">ابدأ بالحاسبة التي تعرفها، ثم وسّع عملك إلى نظام متكامل بدون أن تفقد التفاصيل المهمة.</p></div>
-      <div class="feature-grid">
-        <article class="feature"><div class="label">تسعير</div><h3>قرار سعر أذكى</h3><p>احتفظ بكل أدوات التسعير الحالية داخل مركز أدوات واضح يصلح للخدمات والمنتجات والباقات.</p></article>
-        <article class="feature"><div class="label">تشغيل</div><h3>من العرض إلى الفاتورة</h3><p>ابنِ عرض سعر، شاركه، تابع حالته، وحوّله إلى فاتورة من نفس مساحة العميل.</p></article>
-        <article class="feature"><div class="label">فريق</div><h3>كل شخص يعرف دوره</h3><p>لوحات منفصلة للعملاء والموظفين والإدارة مع صلاحيات واضحة وسجل نشاط قابل للمراجعة.</p></article>
+    <section class="section" id="tools-sec">
+      <div class="sh"><div><div class="eyebrow">كل ما تحتاجه في مساحة واحدة</div><h2>أدوات تصنع فرقاً</h2></div><p>ابدأ بالحاسبة التي تعرفها، ثم وسّع عملك إلى نظام متكامل بدون أن تفقد التفاصيل المهمة.</p></div>
+      <div class="grid3">
+        <article class="feat"><div class="lbl">تسعير</div><h3>قرار سعر أذكى</h3><p>حاسبات التسعير للخدمات، الباقات، المطاعم، والجملة والتجزئة في مساحة واحدة.</p></article>
+        <article class="feat"><div class="lbl">تشغيل</div><h3>من العرض إلى الفاتورة</h3><p>ابنِ عرض سعر، شاركه، وحوّله إلى فاتورة عربية بـ PDF بهويتك.</p></article>
+        <article class="feat"><div class="lbl">فريق</div><h3>كل شخص يعرف دوره</h3><p>لوحات منفصلة للعملاء والموظفين والإدارة مع صلاحيات واضحة.</p></article>
+        <article class="feat"><div class="lbl">ذكاء</div><h3>مساعد يردّ بلهجتك</h3><p>الذكاء الاصطناعي يرد على العملاء بعد دقيقة من غيابك بنفس اللهجة التي يكلمونك بها.</p></article>
+        <article class="feat"><div class="lbl">واتساب</div><h3>ربط واتساب ويب</h3><p>مسح QR من لوحة الإدارة وربط النظام — ردود آلية وذكية من بياناتك.</p></article>
+        <article class="feat"><div class="lbl">دفع</div><h3>بوابة الدفع Giddya</h3><p>ربط جاهز لاستقبال مدفوعات العملاء مباشرة من صفحة العرض أو الفاتورة.</p></article>
       </div>
     </section>
-    <div class="trust" id="security">
+
+    <div class="trust-strip" id="security-sec">
       <section class="section">
-        <div><div class="eyebrow" data-copy="securityEyebrow">أمان من البداية</div><h2 data-copy="securityTitle">بياناتك ليست تفصيلاً ثانوياً.</h2><p data-copy="securityCopy">جلسات محمية، طبقة API منفصلة، متغيرات بيئة للأسرار، وتجهيز لـ WebAuthn وPIN وOTP دون تخزين كلمات مرور أو مفاتيح داخل الواجهة.</p></div>
-        <div class="trust-stat"><div class="stat"><strong>٣</strong><span>أدوار رئيسية</span></div><div class="stat"><strong>١</strong><span>هوية مركزية</span></div><div class="stat"><strong>٠</strong><span>أسرار في الواجهة</span></div></div>
+        <div><div class="eyebrow">أمان من البداية</div><h2>بياناتك ليست تفصيلاً ثانوياً.</h2><p>جلسات محمية، API منفصلة، متغيرات بيئة للأسرار، وWebAuthn / Passkey جاهزة — صفر أسرار مكتوبة في الواجهة.</p></div>
+        <div class="stats">
+          <div class="stat"><strong>٣</strong><span>أدوار رئيسية</span></div>
+          <div class="stat"><strong>١</strong><span>هوية مركزية</span></div>
+          <div class="stat"><strong>٠</strong><span>أسرار في الواجهة</span></div>
+        </div>
       </section>
     </div>
+
     <section class="section">
-      <div class="section-head"><div><div class="eyebrow" data-copy="growthEyebrow">طريق واضح للنمو</div><h2 data-copy="growthTitle">ابدأ بخطوة ووسّعها بذكاء</h2></div><p data-copy="growthCopy">الهيكل مصمم ليقبل إضافاتك لاحقاً من لوحة الإدارة، مع بقاء التجربة بسيطة أمام العميل.</p></div>
-      <div class="feature-grid">
-        <article class="feature"><div class="label">للعميل</div><h3>مساحة يفهمها فوراً</h3><p>يشاهد أدواته، عروضه، فواتيره، تواصله، وسجل أعماله من لوحة واحدة.</p></article>
-        <article class="feature"><div class="label">للموظف</div><h3>عمل يومي بلا تشتت</h3><p>مهام، عملاء، رسائل، تحويلات، وتقارير في مساحة موظف مستقلة على النطاق المخصص.</p></article>
-        <article class="feature"><div class="label">للإدارة</div><h3>الصورة الكاملة</h3><p>نشاط الدخول والخروج، الاشتراكات، الإيرادات، صحة التكاملات، وإدارة المحتوى من الواجهة.</p></article>
+      <div class="sh"><div><div class="eyebrow">خطة النمو</div><h2>ابدأ بخطوة ووسّعها بذكاء</h2></div><p>الهيكل مصمم ليقبل إضافاتك لاحقاً من لوحة الإدارة دون أي تدخل برمجي.</p></div>
+      <div class="grid3">
+        <article class="feat"><div class="lbl">للعميل</div><h3>مساحة يفهمها فوراً</h3><p>أدوات، عروض، فواتير، تواصل، وسجل أعمال من لوحة واحدة بنطاق مخصص.</p></article>
+        <article class="feat"><div class="lbl">للموظف</div><h3>عمل يومي بلا تشتت</h3><p>مهام، عملاء، رسائل، تحويلات، وتقارير في مساحة موظف مستقلة.</p></article>
+        <article class="feat"><div class="lbl">للإدارة</div><h3>الصورة الكاملة</h3><p>نشاط الدخول، الاشتراكات، الإيرادات، صحة التكاملات، وإدارة كل شيء من الواجهة.</p></article>
       </div>
     </section>
   </main>
-  <footer class="footer">صنع عبر <a href="https://qiroxstudio.online" target="_blank" rel="noopener">Qirox Studio Group</a> · <a href="https://presentation.thanarah.com" target="_blank" rel="noopener">presentation.thanarah.com</a></footer>
+
+  <footer>
+    <img class="flogo" data-brand-logo alt="">
+    صنع عبر <a href="https://qiroxstudio.online" target="_blank" rel="noopener">Qirox Studio Group</a>
+    &nbsp;·&nbsp;
+    <a href="https://presentation.thanarah.com" target="_blank" rel="noopener">presentation.thanarah.com</a>
+  </footer>
 </div>
 
-<div class="auth-overlay" id="auth-overlay" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+<!-- ═══ AUTH OVERLAY ═══ -->
+<div class="overlay" id="auth-overlay" role="dialog" aria-modal="true">
   <div class="auth-card">
-    <button class="close" type="button" data-action="close-auth" aria-label="إغلاق">×</button>
-    <div class="eyebrow">تسعيرة · مساحة العمل</div>
-    <h2 id="auth-title">أهلاً بك</h2>
-    <p>أنشئ حساباً للبدء. الحسابات الحقيقية ستُحفظ في MongoDB بعد ضبط بيئة الإنتاج، أما تجربة العرض فهي متاحة الآن بدون بيانات حقيقية.</p>
-    <div class="auth-switch"><button class="active" type="button" data-auth-mode="login">تسجيل الدخول</button><button type="button" data-auth-mode="register">إنشاء حساب</button></div>
+    <button class="close" type="button" data-act="close-auth" aria-label="إغلاق">×</button>
+    <div class="eyebrow" style="margin-bottom:8px">تسعيرة · مساحة العمل</div>
+    <h2 id="auth-h2">أهلاً بك</h2>
+    <p style="font-size:12.5px;color:var(--muted);line-height:1.7;margin:6px 0 12px">الحسابات الحقيقية تُحفظ في MongoDB بعد ضبط بيئة الإنتاج. تجربة العرض متاحة الآن.</p>
+    <div class="auth-switch">
+      <button class="on" type="button" data-auth-mode="login">تسجيل الدخول</button>
+      <button type="button" data-auth-mode="register">إنشاء حساب</button>
+    </div>
+    <div class="social-row">
+      <button class="social-btn" type="button" data-act="social-google">
+        <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Google
+      </button>
+      <button class="social-btn" type="button" data-act="social-apple">
+        <svg viewBox="0 0 24 24"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.7 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.39-1.32 2.76-2.53 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
+        Apple
+      </button>
+    </div>
+    <div class="divider">أو بالبريد</div>
     <form id="auth-form">
-      <div class="field register-only" hidden><label for="auth-name">الاسم أو اسم المنشأة</label><input id="auth-name" name="name" autocomplete="name"></div>
-      <div class="field"><label for="auth-email">البريد الإلكتروني</label><input id="auth-email" name="email" type="email" autocomplete="email" required></div>
-      <div class="field"><label for="auth-password">كلمة المرور</label><input id="auth-password" name="password" type="password" autocomplete="current-password" required minlength="8"></div>
-      <div class="field register-only" hidden><label><input type="checkbox" name="terms"> أوافق على الشروط وسياسة الخصوصية</label></div>
-      <button class="primary" type="submit">متابعة آمنة</button>
+      <div class="field ro" hidden><label>الاسم أو المنشأة</label><input name="name" autocomplete="name"></div>
+      <div class="field"><label>البريد الإلكتروني</label><input id="auth-email" name="email" type="email" autocomplete="email" required></div>
+      <div class="field"><label>كلمة المرور</label><input name="password" type="password" autocomplete="current-password" required minlength="8"></div>
+      <div class="field ro" hidden><label><input type="checkbox" name="terms" style="margin-left:6px"> أوافق على الشروط وسياسة الخصوصية</label></div>
+      <button class="btn-primary" type="submit" style="width:100%;margin-top:10px">متابعة آمنة</button>
       <div class="form-status" id="auth-status" role="status"></div>
     </form>
-    <div class="demo-row"><button type="button" data-action="demo" data-role="client">عرض عميل</button><button type="button" data-action="demo" data-role="employee">عرض موظف</button><button type="button" data-action="demo" data-role="admin">عرض إدارة</button></div>
+    <div class="demo-strip">
+      <button type="button" data-act="demo" data-role="client">عرض عميل</button>
+      <button type="button" data-act="demo" data-role="employee">عرض موظف</button>
+      <button type="button" data-act="demo" data-role="admin">عرض إدارة</button>
+    </div>
   </div>
 </div>
 
-<div class="app-overlay" id="app-overlay" role="dialog" aria-modal="true">
+<!-- ═══ APP SHELL ═══ -->
+<div class="overlay app-overlay" id="app-overlay" role="main">
   <div class="app-shell">
-    <aside class="side">
-      <a class="brand" href="#"><img data-brand-logo alt="شعار تسعيرة"><div><strong>Tas3eerah</strong><span>مساحة عملك</span></div></a>
-      <nav id="side-nav"></nav>
-      <div class="side-bottom"><button type="button" data-action="close-app">العودة للواجهة العامة</button><button type="button" data-action="logout">تسجيل الخروج</button></div>
+    <aside class="sidebar">
+      <div class="sbrand">
+        <img data-brand-logo alt="">
+        <div><strong>Tas3eerah</strong><span id="role-label">مساحة العمل</span></div>
+      </div>
+      <nav class="sidenav" id="sidenav"></nav>
+      <div class="side-bottom">
+        <button type="button" data-act="close-app">الواجهة العامة</button>
+        <button type="button" data-act="logout">تسجيل الخروج</button>
+      </div>
     </aside>
+
     <section class="workspace">
-      <header class="workspace-top"><div><h2 id="workspace-title">لوحة العميل</h2><p id="workspace-subtitle">كل ما تحتاجه لإدارة عملك بهدوء.</p></div><div class="profile-chip"><div class="avatar" id="avatar">ع</div><span id="profile-name">حساب العرض</span></div></header>
-      <div class="workspace-content">
-        <div class="dash active" id="dash-overview"></div>
-        <div class="dash" id="dash-tools"></div>
-        <div class="dash" id="dash-quotes"></div>
-        <div class="dash" id="dash-messages"></div>
-        <div class="dash" id="dash-settings"></div>
+      <header class="wtop">
+        <div class="wtop-left">
+          <h2 id="workspace-title">لوحة العميل</h2>
+          <p id="workspace-sub">كل ما تحتاجه لإدارة عملك بهدوء.</p>
+        </div>
+        <div class="profile-chip" data-act="open-profile">
+          <div class="avatar" id="av">ع</div>
+          <span id="pname">حساب العرض</span>
+        </div>
+      </header>
+      <div class="wcontent">
+        <!-- Client dashboards -->
+        <div class="dash" id="d-overview"></div>
+        <div class="dash" id="d-tools"></div>
+        <div class="dash" id="d-quotes"></div>
+        <div class="dash" id="d-messages"></div>
+        <div class="dash" id="d-settings"></div>
+        <!-- Employee extras -->
+        <div class="dash" id="d-customers"></div>
+        <div class="dash" id="d-payments"></div>
+        <!-- Admin extras -->
+        <div class="dash" id="d-users"></div>
+        <div class="dash" id="d-integrations"></div>
+        <div class="dash" id="d-activity"></div>
       </div>
     </section>
+  </div>
+</div>
+
+<!-- PDF Preview Overlay -->
+<div class="pdf-preview" id="pdf-overlay">
+  <div class="pdf-doc" id="pdf-doc">
+    <div class="pdf-toolbar">
+      <button class="do-print" onclick="window.print()">طباعة / PDF</button>
+      <button onclick="closePDF()">إغلاق</button>
+    </div>
+    <div class="pdf-body" id="pdf-body"></div>
   </div>
 </div>
 
 <script src="assets/brand-config.js"></script>
 <script>
-  const state = { role: 'client', lang: 'ar', mode: 'login', page: 'overview', user: null };
-  const languageCopy = {
-    ar: {
-      navPlatform:'المنصة', navTools:'الأدوات', navSecurity:'الأمان', navAuth:'تسجيل الدخول', start:'ابدأ الآن',
-      eyebrow:'مساحة عمل عربية تنمو معك', heroTitle:'حوّل شغلك إلى <span>نظام واضح.</span>', heroCopy:'تسعيرة تجمع أدوات التسعير، عروض الأسعار، الفواتير، العملاء، الرسائل، والتحليلات في مكان واحد — بهوية تعرفها وبطريقة عمل تناسب فريقك.',
-      createCta:'أنشئ مساحة عملك', demoCta:'استعرض تجربة العميل', heroNote:'تجربة العرض لا تنشئ حساباً ولا ترسل بيانات إلى أي خدمة خارجية.',
-      toolsEyebrow:'كل ما تحتاجه في مساحة واحدة', toolsTitle:'أدوات تصنع فرقاً', toolsCopy:'ابدأ بالحاسبة التي تعرفها، ثم وسّع عملك إلى نظام متكامل بدون أن تفقد التفاصيل المهمة.',
-      securityEyebrow:'أمان من البداية', securityTitle:'بياناتك ليست تفصيلاً ثانوياً.', securityCopy:'جلسات محمية، طبقة API منفصلة، متغيرات بيئة للأسرار، وتجهيز لـ WebAuthn وPIN وOTP دون تخزين كلمات مرور أو مفاتيح داخل الواجهة.',
-      growthEyebrow:'طريق واضح للنمو', growthTitle:'ابدأ بخطوة ووسّعها بذكاء', growthCopy:'الهيكل مصمم ليقبل إضافاتك لاحقاً من لوحة الإدارة، مع بقاء التجربة بسيطة أمام العميل.'
-    },
-    en: {
-      navPlatform:'Platform', navTools:'Tools', navSecurity:'Security', navAuth:'Sign in', start:'Get started',
-      eyebrow:'An Arabic workspace that grows with you', heroTitle:'Turn your work into a <span>clear system.</span>', heroCopy:'Tas3eerah brings pricing tools, quotes, invoices, customers, messages, and insights into one focused workspace — with a brand you know and workflows that fit your team.',
-      createCta:'Create your workspace', demoCta:'Preview the client experience', heroNote:'Preview mode creates no account and sends no data to external services.',
-      toolsEyebrow:'Everything you need in one place', toolsTitle:'Tools that make a difference', toolsCopy:'Start with the calculator you know, then grow into a complete system without losing the details that matter.',
-      securityEyebrow:'Secure from the start', securityTitle:'Your data is not an afterthought.', securityCopy:'Protected sessions, a separated API layer, environment-based secrets, and WebAuthn, PIN, and OTP readiness without storing passwords or keys in the interface.',
-      growthEyebrow:'A clear path to growth', growthTitle:'Start small. Expand intelligently.', growthCopy:'The structure is built for future additions from the admin console while keeping the client experience simple.'
-    }
-  };
-  const roleLabels = {client:'العميل', employee:'الموظف', admin:'الإدارة'};
-  const navByRole = {
-    client:[['overview','نظرة عامة'],['tools','أدواتك'],['quotes','عروضك وفواتيرك'],['messages','تواصلك'],['settings','الأمان والإعدادات']],
-    employee:[['overview','مركز العمل'],['tools','الأدوات المتاحة'],['quotes','العملاء والعروض'],['messages','الرسائل الداخلية'],['settings','ملفي وصلاحياتي']],
-    admin:[['overview','مؤشرات النظام'],['tools','إدارة الأدوات'],['quotes','العروض والاشتراكات'],['messages','صندوق الرسائل'],['settings','الربط والإعدادات']]
-  };
-  const $ = (selector) => document.querySelector(selector);
-  const $$ = (selector) => [...document.querySelectorAll(selector)];
-  $$('[data-brand-logo]').forEach((image)=>{ image.src=window.TAS3EERAH_BRAND.logo; });
-  function escapeHtml(value){return String(value).replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-  function toggleLanguage(){
-    state.lang=state.lang==='ar'?'en':'ar';
-    const copy=languageCopy[state.lang];
-    document.documentElement.lang=state.lang;
-    document.documentElement.dir=state.lang==='ar'?'rtl':'ltr';
-    document.querySelector('[data-action="toggle-language"]').textContent=state.lang==='ar'?'EN':'عربي';
-    document.querySelector('[data-nav="platform"]').textContent=copy.navPlatform;
-    document.querySelector('[data-nav="tools"]').textContent=copy.navTools;
-    document.querySelector('[data-nav="security"]').textContent=copy.navSecurity;
-    document.querySelector('[data-auth-nav]').textContent=copy.navAuth;
-    document.querySelector('.top-actions .outline').textContent=copy.start;
-    $$('[data-copy]').forEach(el=>{const key=el.dataset.copy;if(copy[key]!==undefined)el.innerHTML=copy[key];});
+/* ═══════════════════════════════════════════
+   BRAND INIT
+═══════════════════════════════════════════ */
+document.querySelectorAll('[data-brand-logo]').forEach(el=>{ el.src = TAS3EERAH_BRAND.logo; });
+
+/* ═══════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════ */
+const S = {
+  role: 'client',
+  lang: 'ar',
+  mode: 'login',
+  page: 'overview',
+  user: null,
+  // Demo data
+  quotes: [
+    {id:'QT-1042',client:'مؤسسة مدار',date:'2026-08-08',amount:18500,vat:2775,status:'مراجعة',type:'quote',items:[{desc:'تصميم هوية بصرية',qty:1,unit:12000,total:12000},{desc:'إنشاء موقع إلكتروني',qty:1,unit:6500,total:6500}]},
+    {id:'QT-1039',client:'شركة نواة',date:'2026-08-05',amount:9200,vat:1380,status:'مقبول',type:'quote',items:[{desc:'تصوير منتجات',qty:2,unit:3000,total:6000},{desc:'تعديلات',qty:1,unit:3200,total:3200}]},
+    {id:'INV-2088',client:'مؤسسة مدار',date:'2026-08-01',amount:18500,vat:2775,status:'مُرسلة',type:'invoice',items:[{desc:'تصميم هوية بصرية',qty:1,unit:12000,total:12000},{desc:'إنشاء موقع إلكتروني',qty:1,unit:6500,total:6500}]},
+    {id:'INV-2085',client:'مطعم الأصيل',date:'2026-07-28',amount:4800,vat:720,status:'مدفوعة',type:'invoice',items:[{desc:'تسعيرة قائمة طعام كاملة',qty:1,unit:4800,total:4800}]},
+  ],
+  messages: [
+    {id:1,from:'محمد العتيبي',preview:'السلام عليكم، متى يمكن إرسال العرض؟',time:'منذ 4 دقائق',unread:true,thread:[
+      {dir:'in',text:'السلام عليكم، متى يمكن إرسال عرض السعر لمشروع الهوية؟',time:'10:22'},
+    ]},
+    {id:2,from:'سارة المطيري',preview:'شكراً جزيلاً، تم استلام الفاتورة',time:'منذ ساعة',unread:false,thread:[
+      {dir:'out',text:'أهلاً سارة، هذا رابط الفاتورة #2085',time:'09:15'},
+      {dir:'in',text:'شكراً جزيلاً، تم استلام الفاتورة بنجاح',time:'09:20'},
+    ]},
+    {id:3,from:'شركة نواة',preview:'نحتاج تعديل بند واحد في العرض',time:'أمس',unread:true,thread:[
+      {dir:'in',text:'نحتاج تعديل بند التصوير في عرض #1039',time:'أمس 14:30'},
+    ]},
+  ],
+  activeMsgId: 1,
+  aiEnabled: true,
+  newDoc: { type:'quote', items:[] },
+  adminTab: 'users',
+};
+
+/* ═══════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════ */
+const q = s => document.querySelector(s);
+const qa = s => [...document.querySelectorAll(s)];
+const esc = v => String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const fmt = n => Number(n||0).toLocaleString('ar-SA');
+const fmtDate = d => d ? new Date(d).toLocaleDateString('ar-SA',{year:'numeric',month:'long',day:'numeric'}) : '';
+function toast(msg,ok=false){ const t=document.createElement('div'); t.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:${ok?'#1a9bb5':'#d86b72'};color:white;padding:11px 22px;border-radius:10px;font-size:13px;font-weight:700;z-index:99;box-shadow:0 8px 24px rgba(0,0,0,.2)`; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2800); }
+
+/* ═══════════════════════════════════════════
+   LANGUAGE
+═══════════════════════════════════════════ */
+const COPY = {
+  ar:{ eyebrow:'مساحة عمل عربية تنمو معك', heroTitle:'حوّل شغلك إلى<em>نظام واضح.</em>', heroCopy:'تسعيرة تجمع أدوات التسعير، عروض الأسعار، الفواتير، العملاء، الرسائل، والتحليلات في مكان واحد.', createCta:'أنشئ مساحة عملك', demoCta:'استعرض تجربة العميل', heroNote:'تجربة العرض لا تنشئ حساباً ولا ترسل بيانات.' },
+  en:{ eyebrow:'An Arabic workspace that grows with you', heroTitle:'Turn your work into<em>a clear system.</em>', heroCopy:'Tas3eerah unifies pricing, quotes, invoices, customers, and messages in one Arabic-first workspace.', createCta:'Create your workspace', demoCta:'Preview the client experience', heroNote:'Preview mode creates no account and sends no data.' }
+};
+function toggleLang(){
+  S.lang = S.lang==='ar'?'en':'ar';
+  document.documentElement.lang=S.lang;
+  document.documentElement.dir=S.lang==='ar'?'rtl':'ltr';
+  q('[data-act="toggle-lang"]').textContent=S.lang==='ar'?'EN':'عربي';
+  const c=COPY[S.lang];
+  qa('[data-c]').forEach(el=>{ const k=el.dataset.c; if(c[k]) el.innerHTML=c[k]; });
+}
+
+/* ═══════════════════════════════════════════
+   AUTH
+═══════════════════════════════════════════ */
+function openAuth(){ q('#auth-overlay').classList.add('open'); q('#auth-email').focus(); }
+function closeAuth(){ q('#auth-overlay').classList.remove('open'); }
+function setAuthMode(m){
+  S.mode=m;
+  qa('[data-auth-mode]').forEach(b=>b.classList.toggle('on',b.dataset.authMode===m));
+  qa('.ro').forEach(el=>el.hidden=m!=='register');
+  q('#auth-h2').textContent=m==='register'?'أنشئ مساحة عملك':'أهلاً بك';
+  q('#auth-status').textContent='';
+}
+function socialAuth(provider){
+  const s=q('#auth-status');
+  s.className='form-status';
+  s.textContent=`${provider==='google'?'Google':'Apple'} OAuth يحتاج ضبط CLIENT_ID في بيئة الإنتاج. استخدم تجربة العرض الآن.`;
+}
+q('#auth-form').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const st=q('#auth-status'); st.className='form-status'; st.textContent='جارٍ التحقق...';
+  const data=Object.fromEntries(new FormData(e.target));
+  if(S.mode==='register'&&!data.terms){ st.textContent='وافق على الشروط للمتابعة.'; return; }
+  try{
+    const r=await fetch(`api/index.php?action=${S.mode}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    const j=await r.json();
+    if(j.ok){ openApp('client'); return; }
+    st.textContent=j.message||'لم تكتمل العملية.';
+  }catch{ st.textContent='الخدمة غير متاحة. استخدم تجربة العرض.'; }
+});
+
+/* ═══════════════════════════════════════════
+   APP OPEN / CLOSE
+═══════════════════════════════════════════ */
+const navByRole = {
+  client:[
+    ['overview','نظرة عامة'],['tools','مركز الأدوات'],['quotes','عروضي وفواتيري'],
+    ['messages','التواصل والرسائل'],['settings','الأمان والإعدادات']
+  ],
+  employee:[
+    ['overview','مركز العمل'],['tools','الأدوات المتاحة'],['customers','إدارة العملاء'],
+    ['quotes','العروض والفواتير'],['messages','الرسائل الداخلية'],
+    ['payments','التحويلات والمدفوعات'],['settings','ملفي وصلاحياتي']
+  ],
+  admin:[
+    ['overview','مؤشرات النظام'],['users','إدارة المستخدمين'],['quotes','العروض والاشتراكات'],
+    ['messages','صندوق الرسائل'],['activity','سجل النشاط'],
+    ['integrations','الربط والتكاملات'],['settings','الإعدادات']
+  ]
+};
+const roleNames={client:'العميل',employee:'الموظف',admin:'الإدارة'};
+const roleSubtitles={
+  client:'كل ما تحتاجه لإدارة عملك بهدوء.',
+  employee:'مساحة عملك اليومية وملفاتك المخصصة.',
+  admin:'رؤية واضحة لكل حركة داخل النظام.'
+};
+const roleTitles={client:'لوحة العميل',employee:'لوحة الموظف',admin:'لوحة الإدارة'};
+const demoUsers={
+  client:{name:'حساب العميل التجريبي',email:'client@tas3eerah.local'},
+  employee:{name:'سارة · فريق التشغيل',email:'employee@tas3eerah.local'},
+  admin:{name:'حساب الإدارة',email:'admin@tas3eerah.local'}
+};
+
+function openApp(role='client'){
+  S.role=role;
+  S.page=navByRole[role][0][0];
+  S.user=demoUsers[role];
+  closeAuth();
+  q('#app-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  renderApp();
+}
+function closeApp(){
+  q('#app-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function logout(){ S.user=null; closeApp(); }
+
+function renderApp(){
+  const role=S.role;
+  q('#role-label').textContent=roleNames[role];
+  q('#workspace-title').textContent=roleTitles[role];
+  q('#workspace-sub').textContent=roleSubtitles[role];
+  q('#pname').textContent=S.user?.name||'حساب العرض';
+  q('#av').textContent=(S.user?.name||'ت')[0];
+  // Sidebar nav
+  q('#sidenav').innerHTML=navByRole[role].map(([k,l])=>`<button type="button" class="${S.page===k?'on':''}" data-page="${k}">${l}</button>`).join('');
+  // Show correct dash
+  qa('.dash').forEach(d=>d.classList.remove('on'));
+  const el=q('#d-'+S.page);
+  if(el){ el.classList.add('on'); renderPage(); }
+  // Scroll to top
+  q('.workspace').scrollTop=0;
+}
+
+/* ═══════════════════════════════════════════
+   PAGE RENDERERS
+═══════════════════════════════════════════ */
+function renderPage(){
+  const r=S.role, p=S.page;
+  if(p==='overview') renderOverview();
+  else if(p==='tools') renderTools();
+  else if(p==='quotes') renderQuotes();
+  else if(p==='messages') renderMessages();
+  else if(p==='settings') renderSettings();
+  else if(p==='customers') renderCustomers();
+  else if(p==='payments') renderPayments();
+  else if(p==='users') renderUsers();
+  else if(p==='integrations') renderIntegrations();
+  else if(p==='activity') renderActivity();
+}
+
+/* — Overview — */
+function renderOverview(){
+  const r=S.role;
+  const mets=r==='admin'?[
+    ['المستخدمون النشطون','١,٢٤٨','<em>+١٢٪</em>'],
+    ['الاشتراكات الحالية','١٨٤','<em>+٨٪</em>'],
+    ['رسائل تحتاج متابعة','٢٣','<em class="warn">اليوم</em>'],
+    ['صحة التكاملات','⬤ جاهز','<em>آمن</em>']
+  ]:r==='employee'?[
+    ['مهامي المفتوحة','١٨','<em class="warn">هذا الأسبوع</em>'],
+    ['عملاء نشطون','٤٢','<em>+٦٪</em>'],
+    ['عروض بانتظاري','٧','<em class="warn">جديد</em>'],
+    ['إنجاز الشهر','٨٧٪','<em>مستقر</em>']
+  ]:[
+    ['عروضي المحفوظة','١٢','<em>هذا الشهر</em>'],
+    ['الفواتير المفتوحة','٤','<em class="warn">تحتاج متابعة</em>'],
+    ['الأدوات المستخدمة','٨','<em>متاحة</em>'],
+    ['مساحة العمل','جاهزة','<em>آمن</em>']
+  ];
+  const acts=r==='admin'?[
+    {t:'دخول جديد',s:'عميل · قبل 4 دقائق',b:''},
+    {t:'طلب اشتراك',s:'الباقة الاحترافية · قبل 11 دقيقة',b:'pend'},
+    {t:'موظف عدّل عرضاً',s:'فريق المبيعات · قبل 23 دقيقة',b:''},
+    {t:'تسجيل خروج',s:'موظف الدعم · قبل ساعة',b:''},
+  ]:r==='employee'?[
+    {t:'عرض سعر #1042',s:'مؤسسة مدار · قبل ساعتين',b:'pend'},
+    {t:'رسالة من عميل',s:'شركة نواة · قبل 4 ساعات',b:'pend'},
+    {t:'مهمة مكتملة',s:'تحديث ملف العميل · أمس',b:''},
+    {t:'فاتورة جاهزة',s:'مشروع الهوية · أمس',b:''},
+  ]:[
+    {t:'عرض سعر #1042',s:'تحديث آخر · قبل ساعتين',b:'pend'},
+    {t:'فاتورة #2088',s:'تم الإرسال · قبل يوم',b:''},
+    {t:'حفظ مشروع',s:'حاسبة تسعير · قبل يومين',b:''},
+    {t:'اقتراح أداة',s:'قيد المعالجة · هذا الأسبوع',b:'info'},
+  ];
+  const welcome=r==='admin'?'الصورة الكاملة تحت سيطرتك':r==='employee'?'صباحك أخف مع مركز عمل واضح':'خلّ شغلك يمشي معك، مو عكسك';
+  const welsub=r==='admin'?'تابع النشاط، الاشتراكات، التكاملات ومسار العمل.':r==='employee'?'أنجز ما عليك، تابع عملاءك، وخلّ كل محادثة في مكانها.':'أدواتك، عروضك، وفواتيرك جاهزة في مساحة واحدة.';
+  q('#d-overview').innerHTML=`
+    <div class="welcome-bar">
+      <div><h3>${esc(welcome)}</h3><p>${esc(welsub)}</p></div>
+      <button class="btn-primary" type="button" data-page="tools">افتح مركز الأدوات</button>
+    </div>
+    <div class="mets">${mets.map(m=>`<div class="met"><small>${m[0]}</small><strong>${m[1]}</strong>${m[2]}</div>`).join('')}</div>
+    <div class="panel2">
+      <div class="panel"><h3>آخر الأنشطة<button type="button" data-page="${r==='admin'?'activity':'quotes'}">عرض الكل</button></h3>
+        <div class="list">${acts.map(a=>`<div class="row"><div class="left"><b>${esc(a.t)}</b><small>${esc(a.s)}</small></div><span class="badge ${a.b}">${a.b==='pend'?'معلّق':a.b==='info'?'قيد المعالجة':'مكتمل'}</span></div>`).join('')}</div>
+      </div>
+      <div class="panel"><h3>حالة النظام</h3>
+        <div class="notice info">أنت في وضع العرض الآمن. البيانات تجريبية ولا تُرسل لأي خدمة خارجية.</div>
+        <div class="list">
+          <div class="row"><div class="left"><b>خادم PHP</b><small>المنفذ 5000</small></div><span class="badge">شغّال</span></div>
+          <div class="row"><div class="left"><b>MongoDB</b><small>في انتظار MONGODB_URI</small></div><span class="badge pend">غير مفعّل</span></div>
+          <div class="row"><div class="left"><b>Moonshot AI</b><small>في انتظار المفتاح</small></div><span class="badge pend">غير مفعّل</span></div>
+          <div class="row"><div class="left"><b>WhatsApp</b><small>في انتظار QR</small></div><span class="badge pend">غير مرتبط</span></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+/* — Tools — */
+function renderTools(){
+  const r=S.role;
+  const tools=[
+    {tag:'الأداة الأساسية',title:'تسعير الخدمات والمشاريع',desc:'كل منطق التسعير الحالي في نسخة مستقلة جاهزة للاستخدام الآن.',link:'legacy-calculator.html',ext:true},
+    {tag:'المبيعات',title:'الباقات والاشتراكات',desc:'صمّم باقاتك وقارن القيمة واستعد للربط مع بوابة الدفع.',page:'quotes'},
+    {tag:'المحاسبة',title:'عروض الأسعار والفواتير',desc:'أنشئ مستندات عربية بهويتك وصدّرها PDF بضغطة.',page:'quotes'},
+    {tag:'الفريق',title:'إدارة العملاء',desc:'ملفات عملاء، حالات، ملاحظات، وتواصل منظم.',page:r==='employee'?'customers':'messages'},
+    {tag:'الذكاء',title:'المساعد الذكي',desc:'ردود بلهجات ولغات متعددة بعد ربط مزود Moonshot AI.',page:'settings'},
+    {tag:'التقارير',title:'رؤية الإدارة',desc:'تتبّع الدخول والاشتراكات والتحويلات في لوحة واحدة.',page:'overview'},
+  ];
+  q('#d-tools').innerHTML=`
+    <div class="doc-header"><h2>مركز الأدوات</h2><span class="badge">كل الأدوات مجانية</span></div>
+    <div class="tgrid">${tools.map(t=>`<article class="tcard"><div class="ttag">${t.tag}</div><h3>${t.title}</h3><p>${t.desc}</p>${t.ext?`<a href="${t.link}" target="_blank" class="tlink">فتح الأداة كاملة ←</a>`:`<button class="tlink" type="button" data-page="${t.page}">فتح المساحة ←</button>`}</article>`).join('')}</div>`;
+}
+
+/* — Quotes — */
+function renderQuotes(){
+  const r=S.role;
+  const docTypeFilter=q('#doc-type-filter')?q('#doc-type-filter').value:'all';
+  const filtered=S.quotes.filter(d=>docTypeFilter==='all'||d.type===docTypeFilter);
+  q('#d-quotes').innerHTML=`
+    <div class="doc-header"><h2>${r==='admin'?'العروض والاشتراكات':'عروضي وفواتيري'}</h2>
+      <button class="btn-primary" type="button" onclick="openNewDoc()">إنشاء وثيقة جديدة</button>
+    </div>
+    <div class="new-doc-form" id="new-doc-form">
+      <div class="form-title">وثيقة جديدة</div>
+      <div class="g2">
+        <div class="field"><label>نوع الوثيقة</label><select id="nd-type" onchange="S.newDoc.type=this.value">
+          <option value="quote">عرض سعر</option><option value="invoice">فاتورة</option>
+        </select></div>
+        <div class="field"><label>اسم العميل</label><input id="nd-client" placeholder="اسم العميل أو المنشأة"></div>
+        <div class="field"><label>البريد الإلكتروني للعميل</label><input id="nd-email" type="email" placeholder="email@example.com"></div>
+        <div class="field"><label>نسبة الضريبة (٪)</label><input id="nd-vat" type="number" value="15" min="0" max="100"></div>
+      </div>
+      <div class="field"><label>ملاحظات (اختياري)</label><textarea id="nd-notes" rows="2" placeholder="ملاحظات تظهر في الوثيقة..."></textarea></div>
+      <div class="line-items">
+        <div class="line-head"><span>البند</span><span>الكمية</span><span>السعر</span><span>الإجمالي</span><span></span></div>
+        <div id="line-rows"></div>
+        <button class="btn-outline" style="margin-top:8px;font-size:12px;padding:7px 14px" type="button" onclick="addLineItem()">إضافة بند</button>
+      </div>
+      <div class="doc-totals">
+        <div class="tot-row"><span>المجموع الفرعي</span><span id="nd-sub">٠ ر.س</span></div>
+        <div class="tot-row"><span>الضريبة</span><span id="nd-tax">٠ ر.س</span></div>
+        <div class="tot-row big"><span>الإجمالي</span><span id="nd-total">٠ ر.س</span></div>
+      </div>
+      <div class="form-actions">
+        <button class="save" onclick="saveDoc()">حفظ الوثيقة</button>
+        <button class="print-pdf" onclick="previewPDF()">معاينة PDF</button>
+        <button type="button" onclick="closeNewDoc()">إلغاء</button>
+      </div>
+    </div>
+    <div class="tabs-row">
+      <button class="on" type="button" onclick="filterDocs('all',this)">الكل (${S.quotes.length})</button>
+      <button type="button" onclick="filterDocs('quote',this)">عروض الأسعار (${S.quotes.filter(d=>d.type==='quote').length})</button>
+      <button type="button" onclick="filterDocs('invoice',this)">الفواتير (${S.quotes.filter(d=>d.type==='invoice').length})</button>
+    </div>
+    <div class="doc-list" id="doc-list">
+      ${S.quotes.map(doc=>docHTML(doc)).join('')}
+    </div>`;
+  renderLineRows();
+  updateDocTotals();
+}
+function docHTML(doc){
+  const st=doc.status==='مدفوعة'?'':'pend';
+  const stBadge=doc.status==='مدفوعة'?'':doc.status==='مقبول'?'':doc.status==='مُرسلة'?'info':'pend';
+  return `<div class="doc-item">
+    <div class="doc-num">${esc(doc.id)}</div>
+    <div class="doc-client"><b>${esc(doc.client)}</b><small>${fmtDate(doc.date)}</small></div>
+    <div class="doc-amount">${fmt(doc.amount)} ر.س</div>
+    <span class="badge ${stBadge}">${esc(doc.status)}</span>
+    <div class="doc-actions">
+      <button type="button" onclick="viewDocPDF('${doc.id}')">عرض PDF</button>
+      <button type="button">تعديل</button>
+    </div>
+  </div>`;
+}
+function filterDocs(type,btn){
+  qa('.tabs-row button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const list=q('#doc-list');
+  if(list) list.innerHTML=S.quotes.filter(d=>type==='all'||d.type===type).map(d=>docHTML(d)).join('');
+}
+function openNewDoc(){
+  const f=q('#new-doc-form');
+  if(f){ f.classList.add('show'); f.scrollIntoView({behavior:'smooth',block:'start'}); }
+}
+function closeNewDoc(){ const f=q('#new-doc-form'); if(f) f.classList.remove('show'); }
+let lineIdx=2;
+function addLineItem(desc='',qty=1,unit=0){
+  const n=lineIdx++;
+  S.newDoc.items.push({id:n,desc,qty,unit,total:qty*unit});
+  renderLineRows(); updateDocTotals();
+}
+function renderLineRows(){
+  const c=q('#line-rows'); if(!c) return;
+  c.innerHTML=S.newDoc.items.map(item=>`
+    <div class="line-row" id="lr-${item.id}">
+      <input value="${esc(item.desc)}" placeholder="وصف البند" oninput="updLine(${item.id},'desc',this.value)">
+      <input type="number" value="${item.qty}" min="1" style="text-align:center" oninput="updLine(${item.id},'qty',+this.value)">
+      <input type="number" value="${item.unit}" min="0" oninput="updLine(${item.id},'unit',+this.value)">
+      <input value="${fmt(item.total)}" readonly>
+      <button class="del-line" onclick="delLine(${item.id})">×</button>
+    </div>`).join('');
+}
+function updLine(id,field,val){
+  const item=S.newDoc.items.find(i=>i.id===id); if(!item) return;
+  item[field]=val; item.total=item.qty*item.unit;
+  const inputs=q(`#lr-${id}`)?.querySelectorAll('input');
+  if(inputs) inputs[3].value=fmt(item.total);
+  updateDocTotals();
+}
+function delLine(id){ S.newDoc.items=S.newDoc.items.filter(i=>i.id!==id); renderLineRows(); updateDocTotals(); }
+function updateDocTotals(){
+  const sub=S.newDoc.items.reduce((a,i)=>a+i.total,0);
+  const vat=+(q('#nd-vat')?.value||15)/100;
+  const tax=sub*vat; const tot=sub+tax;
+  const s=q('#nd-sub'),t=q('#nd-tax'),tt=q('#nd-total');
+  if(s) s.textContent=fmt(Math.round(sub))+' ر.س';
+  if(t) t.textContent=fmt(Math.round(tax))+' ر.س';
+  if(tt) tt.textContent=fmt(Math.round(tot))+' ر.س';
+}
+function saveDoc(){
+  const client=q('#nd-client')?.value?.trim();
+  if(!client){ toast('أدخل اسم العميل'); return; }
+  if(!S.newDoc.items.length){ toast('أضف بنداً واحداً على الأقل'); return; }
+  const sub=S.newDoc.items.reduce((a,i)=>a+i.total,0);
+  const vat=+(q('#nd-vat')?.value||15)/100;
+  const now=new Date().toISOString().slice(0,10);
+  const type=q('#nd-type')?.value||'quote';
+  const prefix=type==='quote'?'QT':'INV';
+  const id=`${prefix}-${1000+S.quotes.length+1}`;
+  S.quotes.unshift({id,client,date:now,amount:Math.round(sub),vat:Math.round(sub*vat),status:type==='quote'?'مسودة':'مُنشأة',type,items:[...S.newDoc.items]});
+  S.newDoc={type:'quote',items:[]}; lineIdx=2;
+  closeNewDoc(); renderQuotes();
+  toast('تم حفظ الوثيقة بنجاح',true);
+}
+function viewDocPDF(id){ const doc=S.quotes.find(d=>d.id===id); if(doc) showPDF(doc); }
+function previewPDF(){
+  const client=q('#nd-client')?.value?.trim()||'(غير محدد)';
+  const type=q('#nd-type')?.value||'quote';
+  const sub=S.newDoc.items.reduce((a,i)=>a+i.total,0);
+  const vat=+(q('#nd-vat')?.value||15)/100;
+  const doc={id:'مسودة',client,date:new Date().toISOString().slice(0,10),amount:Math.round(sub),vat:Math.round(sub*vat),status:'مسودة',type,items:[...S.newDoc.items]};
+  showPDF(doc);
+}
+function showPDF(doc){
+  const sub=doc.amount; const vatAmt=doc.vat; const total=sub+vatAmt;
+  const typeLabel=doc.type==='invoice'?'فاتورة ضريبية':'عرض سعر';
+  q('#pdf-body').innerHTML=`
+    <div class="pdf-logo-row">
+      <img src="${TAS3EERAH_BRAND.logo}" alt="تسعيرة" style="width:75px;height:75px;object-fit:contain">
+      <div class="pdf-doc-info"><div class="doc-type">${typeLabel}</div><div class="doc-no">رقم: ${esc(doc.id)}</div><div class="doc-no">التاريخ: ${fmtDate(doc.date)}</div></div>
+    </div>
+    <div class="pdf-parties">
+      <div><h4>من</h4><p><strong>Tas3eerah</strong><br>تسعيرة — مساحة العمل العربية<br>presentation.thanarah.com</p></div>
+      <div><h4>إلى</h4><p><strong>${esc(doc.client)}</strong></p></div>
+    </div>
+    <table class="pdf-table">
+      <thead><tr><th>#</th><th>البند</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead>
+      <tbody>${(doc.items.length?doc.items:[{desc:'بند تجريبي',qty:1,unit:doc.amount,total:doc.amount}]).map((it,i)=>`<tr><td>${i+1}</td><td>${esc(it.desc||'بند')}</td><td>${it.qty||1}</td><td>${fmt(it.unit||it.total)} ر.س</td><td>${fmt(it.total)} ر.س</td></tr>`).join('')}</tbody>
+    </table>
+    <div style="display:flex;justify-content:flex-end">
+      <div class="pdf-totals">
+        <div class="pdf-tot-row"><span>المجموع الفرعي</span><span>${fmt(sub)} ر.س</span></div>
+        <div class="pdf-tot-row"><span>ضريبة القيمة المضافة (١٥٪)</span><span>${fmt(vatAmt)} ر.س</span></div>
+        <div class="pdf-tot-row final"><span>الإجمالي</span><span>${fmt(total)} ر.س</span></div>
+      </div>
+    </div>
+    <div class="pdf-footer">
+      <img src="${TAS3EERAH_BRAND.logo}" style="width:22px;height:22px;vertical-align:middle;margin-left:5px" alt="">
+      تسعيرة — presentation.thanarah.com &nbsp;·&nbsp; صنع عبر Qirox Studio Group<br>
+      <small>هذا المستند تجريبي في وضع العرض الآمن. لا يُعتمد كوثيقة ضريبية رسمية.</small>
+    </div>`;
+  q('#pdf-overlay').classList.add('open');
+}
+function closePDF(){ q('#pdf-overlay').classList.remove('open'); }
+
+/* — Messages — */
+function renderMessages(){
+  const convs=S.messages;
+  const active=convs.find(m=>m.id===S.activeMsgId)||convs[0];
+  q('#d-messages').innerHTML=`
+    <div class="doc-header"><h2>${S.role==='admin'?'صندوق الرسائل':'التواصل والرسائل'}</h2></div>
+    <div class="msg-shell">
+      <div class="msg-list">
+        <div class="msg-list-header">المحادثات<button type="button" onclick="newConv()">رسالة جديدة</button></div>
+        ${convs.map(m=>`<div class="msg-item ${m.id===S.activeMsgId?'on':''}" onclick="selectConv(${m.id})">
+          <b>${m.unread?'<span class="unread-dot"></span>':''}${esc(m.from)}</b>
+          <small>${m.time}</small>
+          <div class="preview">${esc(m.preview)}</div>
+        </div>`).join('')}
+      </div>
+      <div class="msg-body">
+        <div class="msg-body-header">
+          <div class="av">${active.from[0]}</div>
+          <div><h4>${esc(active.from)}</h4><small>محادثة نشطة</small></div>
+          <div class="msg-body-actions">
+            <button type="button" onclick="sendQuoteLink()">إرسال رابط عرض</button>
+            <button type="button" onclick="sendInvCode()">رمز تحقق</button>
+          </div>
+          <span class="ai-badge">Moonshot AI</span>
+        </div>
+        <div class="msg-chat" id="msg-chat">${renderBubbles(active.thread)}</div>
+        <div class="msg-actions">
+          <div class="ai-toggle">
+            <div class="toggle-switch ${S.aiEnabled?'on':''}" id="ai-toggle" onclick="toggleAI()"></div>
+            رد آلي ذكي (بعد دقيقة غياب)
+          </div>
+        </div>
+        <div class="msg-input-row">
+          <textarea id="msg-input" rows="2" placeholder="اكتب رسالتك..." onkeydown="msgKey(event)"></textarea>
+          <button class="msg-send" onclick="sendMsg()">إرسال</button>
+        </div>
+      </div>
+    </div>`;
+  scrollChat();
+}
+function renderBubbles(thread){
+  return thread.map(b=>`<div style="display:flex;flex-direction:column;align-items:${b.dir==='out'?'flex-end':b.dir==='ai'?'flex-start':'flex-start'}">
+    <div class="bubble ${b.dir}">${esc(b.text)}</div>
+    <div class="bubble-time">${esc(b.time)}</div>
+  </div>`).join('');
+}
+function scrollChat(){ const c=q('#msg-chat'); if(c) setTimeout(()=>{ c.scrollTop=c.scrollHeight; },50); }
+function selectConv(id){
+  S.activeMsgId=id;
+  const m=S.messages.find(x=>x.id===id);
+  if(m) m.unread=false;
+  renderMessages();
+}
+function sendMsg(){
+  const inp=q('#msg-input'); if(!inp) return;
+  const text=inp.value.trim(); if(!text) return;
+  const now=new Date().toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'});
+  const m=S.messages.find(x=>x.id===S.activeMsgId); if(!m) return;
+  m.thread.push({dir:'out',text,time:now});
+  inp.value='';
+  const chat=q('#msg-chat');
+  if(chat){ chat.innerHTML=renderBubbles(m.thread); scrollChat(); }
+  if(S.aiEnabled) simulateAIReply(m);
+}
+function simulateAIReply(conv){
+  setTimeout(()=>{
+    const replies=[
+      'أهلاً وسهلاً! كيف أقدر أساعدك؟',
+      'شكراً لتواصلك. سيرد فريقنا قريباً.',
+      'وصل استفسارك، سنتواصل معك في أقرب وقت.',
+    ];
+    const now=new Date().toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'});
+    conv.thread.push({dir:'ai',text:replies[Math.floor(Math.random()*replies.length)],time:now+' (مساعد تسعيرة)'});
+    const chat=q('#msg-chat');
+    if(chat){ chat.innerHTML=renderBubbles(conv.thread); scrollChat(); }
+  },1500);
+}
+function toggleAI(){
+  S.aiEnabled=!S.aiEnabled;
+  const t=q('#ai-toggle'); if(t) t.classList.toggle('on',S.aiEnabled);
+}
+function msgKey(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMsg(); } }
+function newConv(){ toast('لإنشاء محادثات حقيقية يجب ربط MongoDB',false); }
+function sendQuoteLink(){ const m=S.messages.find(x=>x.id===S.activeMsgId); if(!m) return; const now=new Date().toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'}); m.thread.push({dir:'out',text:`🔗 رابط عرض السعر: presentation.thanarah.com/q/${m.id}042`,time:now}); const c=q('#msg-chat'); if(c){ c.innerHTML=renderBubbles(m.thread); scrollChat(); } }
+function sendInvCode(){ const m=S.messages.find(x=>x.id===S.activeMsgId); if(!m) return; const code=Math.floor(100000+Math.random()*900000); const now=new Date().toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'}); m.thread.push({dir:'out',text:`🔑 رمز التحقق الخاص بك: ${code}`,time:now}); const c=q('#msg-chat'); if(c){ c.innerHTML=renderBubbles(m.thread); scrollChat(); } }
+
+/* — Settings — */
+function renderSettings(){
+  const r=S.role;
+  if(r==='admin'){
+    q('#d-settings').innerHTML=`
+      <div class="doc-header"><h2>الإعدادات</h2></div>
+      <div class="atabs" id="settings-tabs">
+        <button class="on" type="button" data-stab="security" onclick="switchStab(this,'security')">الأمان</button>
+        <button type="button" data-stab="whatsapp" onclick="switchStab(this,'whatsapp')">واتساب</button>
+        <button type="button" data-stab="brand" onclick="switchStab(this,'brand')">الهوية</button>
+      </div>
+      <div id="stab-security">${secCards(r)}</div>
+      <div id="stab-whatsapp" hidden>${waSection()}</div>
+      <div id="stab-brand" hidden>${brandSection()}</div>`;
+  } else {
+    q('#d-settings').innerHTML=`<div class="doc-header"><h2>${r==='employee'?'ملفي وصلاحياتي':'الأمان والإعدادات'}</h2></div>${secCards(r)}`;
   }
-  function openAuth(){ $('#auth-overlay').classList.add('open'); $('#auth-email').focus(); }
-  function closeAuth(){ $('#auth-overlay').classList.remove('open'); }
-  function setAuthMode(mode){
-    state.mode=mode;
-    $$('[data-auth-mode]').forEach(b=>b.classList.toggle('active',b.dataset.authMode===mode));
-    $$('.register-only').forEach(el=>el.hidden=mode!=='register');
-    $('#auth-title').textContent=mode==='register'?'أنشئ مساحة عملك':'أهلاً بك';
-    $('#auth-status').textContent='';
+}
+function switchStab(btn,tab){
+  qa('#settings-tabs button').forEach(b=>b.classList.remove('on')); btn.classList.add('on');
+  ['security','whatsapp','brand'].forEach(t=>{ const el=q('#stab-'+t); if(el) el.hidden=t!==tab; });
+}
+function secCards(r){
+  const items=r==='admin'?[
+    {n:'MongoDB',d:'حفظ الحسابات، الأدوار، المستندات وسجل النشاط. يتطلب MONGODB_URI.',on:false},
+    {n:'SMTP (البريد)',d:'إرسال OTP وإشعارات البريد من نطاقك. يتطلب إعدادات الخادم.',on:false},
+    {n:'Moonshot AI',d:'ردود المساعد الذكي متعدد اللهجات. يتطلب MOONSHOT_API_KEY.',on:false},
+    {n:'Giddya (الدفع)',d:'بوابة الدفع — استقبال مدفوعات عبر بطاقات ومحافظ سعودية.',on:false},
+    {n:'WebAuthn / Passkey',d:'تسجيل دخول بالبصمة أو Face ID مع عداد حماية من الاعتراض.',on:false},
+    {n:'Push Notifications',d:'إشعارات ويب حتى بعد إغلاق المتصفح (Service Worker جاهز).',on:false},
+  ]:[
+    {n:'جلسة آمنة',d:'كوكيز HttpOnly مشفرة، تنتهي تلقائياً عند الخروج.',on:true},
+    {n:'Passkey / بصمة',d:'سجّل الدخول ببصمتك أو Face ID دون كلمة مرور.',on:false},
+    {n:'التحقق المزدوج (OTP)',d:'رمز لمرة واحدة عبر بريدك الإلكتروني بعد تفعيل SMTP.',on:false},
+    {n:'لغة الواجهة',d:'العربية والإنجليزية جاهزتان للتبديل من شريط التنقل.',on:true},
+  ];
+  return `<div class="sec-grid">${items.map(i=>`<div class="sec-item"><div class="sec-body"><div class="sec-name">${esc(i.n)}</div><div class="sec-desc">${esc(i.d)}</div></div><div class="sec-toggle ${i.on?'on':''}" onclick="toggleSec(this)"></div></div>`).join('')}</div>`;
+}
+function waSection(){
+  return `<div class="wa-box">
+    <h3>ربط واتساب ويب</h3>
+    <p>امسح الباركود من هاتفك لربط جلسة واتساب ويب بالنظام. بعد الربط يمكن للمساعد الذكي الرد التلقائي وأنت بعيد.</p>
+    <div class="wa-qr" id="wa-qr-box" onclick="generateWaQR()">
+      اضغط لتوليد<br>كود QR الربط
+    </div>
+    <button class="btn-primary" type="button" onclick="generateWaQR()">توليد كود QR جديد</button>
+    <div class="wa-status" id="wa-status">لا يوجد اتصال نشط · أضف WHATSAPP_SESSION_SECRET لتفعيل الجلسة الحقيقية</div>
+  </div>`;
+}
+function generateWaQR(){
+  const box=q('#wa-qr-box'); const st=q('#wa-status'); if(!box) return;
+  box.innerHTML='<svg width="120" height="120" viewBox="0 0 21 21"><rect width="21" height="21" fill="white"/><g fill="black">'+
+    [0,1,2,3,4,5,6].map(x=>[0,1,2,3,4,5,6].map(y=>(x<7&&y<7)||(x>13&&y<7)||(x<7&&y>13)?`<rect x="${x}" y="${y}" width="1" height="1"/>`:Math.random()>.5?`<rect x="${x+7}" y="${y}" width="1" height="1"/>`:'')).join('')+'</g></svg>';
+  box.style.background='white'; box.style.border='2px solid #1a9bb5'; box.style.padding='14px';
+  if(st) st.textContent='كود QR جديد — افتح واتساب > الأجهزة المرتبطة > إضافة جهاز. (وضع العرض: الاتصال الحقيقي يحتاج WHATSAPP_SESSION_SECRET)';
+}
+function brandSection(){
+  return `<div class="panel" style="max-width:480px">
+    <h3>هوية النظام المركزية</h3>
+    <div class="notice info">الشعار والهوية مرتبطان بـ <code>assets/brand-config.js</code>. عدّل المسار أو الملف وستنعكس التغييرات في كل مكان.</div>
+    <div class="field"><label>مسار الشعار الحالي</label><input value="${TAS3EERAH_BRAND.logo}" readonly></div>
+    <div class="field"><label>اسم المنصة</label><input value="${TAS3EERAH_BRAND.name}" readonly></div>
+    <div class="field"><label>رابط العرض التقديمي</label><input value="${TAS3EERAH_BRAND.presentationUrl}" readonly></div>
+    <div style="margin-top:12px"><img src="${TAS3EERAH_BRAND.logo}" style="height:70px;object-fit:contain;border:1px solid var(--line);border-radius:10px;padding:10px" alt="الشعار الحالي"></div>
+  </div>`;
+}
+function toggleSec(el){ el.classList.toggle('on'); }
+
+/* — Customers (employee) — */
+function renderCustomers(){
+  const clients=[
+    {name:'مؤسسة مدار',email:'madar@email.sa',status:'نشط',balance:'١٨,٥٠٠'},
+    {name:'شركة نواة',email:'nawah@email.sa',status:'نشط',balance:'٩,٢٠٠'},
+    {name:'مطعم الأصيل',email:'aseel@email.sa',status:'مكتمل',balance:'٤,٨٠٠'},
+    {name:'مشغل رانيا',email:'rania@email.sa',status:'معلّق',balance:'٠'},
+  ];
+  q('#d-customers').innerHTML=`
+    <div class="doc-header"><h2>إدارة العملاء</h2><button class="btn-primary" type="button" onclick="toast('ربط MongoDB مطلوب لإضافة عملاء حقيقيين')">إضافة عميل</button></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>العميل</th><th>البريد</th><th>الحالة</th><th>الرصيد</th><th>إجراء</th></tr></thead>
+      <tbody>${clients.map(c=>`<tr>
+        <td><span class="user-av">${c.name[0]}</span>${esc(c.name)}</td>
+        <td>${esc(c.email)}</td>
+        <td><span class="badge ${c.status==='معلّق'?'pend':c.status==='مكتمل'?'info':''}">${c.status}</span></td>
+        <td>${c.balance} ر.س</td>
+        <td><button style="border:1px solid var(--line);background:white;border-radius:7px;padding:5px 10px;font-size:11px" onclick="toast('فتح ملف العميل — يحتاج MongoDB للبيانات الحقيقية')">ملف العميل</button></td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+}
+
+/* — Payments (employee) — */
+function renderPayments(){
+  const pays=[
+    {id:'PAY-001',from:'مؤسسة مدار',amount:'١٨,٥٠٠',method:'تحويل بنكي',date:'٢٠٢٦-٠٨-٠٧',status:'مستلم'},
+    {id:'PAY-002',from:'شركة نواة',amount:'٩,٢٠٠',method:'بطاقة Giddya',date:'٢٠٢٦-٠٨-٠٥',status:'مستلم'},
+    {id:'PAY-003',from:'مطعم الأصيل',amount:'٤,٨٠٠',method:'تحويل بنكي',date:'٢٠٢٦-٠٧-٢٨',status:'مستلم'},
+    {id:'PAY-004',from:'مشغل رانيا',amount:'٠',method:'—',date:'—',status:'معلّق'},
+  ];
+  q('#d-payments').innerHTML=`
+    <div class="doc-header"><h2>التحويلات والمدفوعات</h2></div>
+    <div class="mets">
+      <div class="met"><small>إجمالي المستلم</small><strong>٣٢,٥٠٠</strong><em>ر.س</em></div>
+      <div class="met"><small>هذا الشهر</small><strong>٢٧,٧٠٠</strong><em>ر.س</em></div>
+      <div class="met"><small>في الانتظار</small><strong>٠</strong><em class="warn">ر.س</em></div>
+      <div class="met"><small>عمليات</small><strong>٣</strong><em>مكتملة</em></div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>رقم العملية</th><th>العميل</th><th>المبلغ</th><th>الطريقة</th><th>التاريخ</th><th>الحالة</th></tr></thead>
+      <tbody>${pays.map(p=>`<tr>
+        <td>${esc(p.id)}</td><td>${esc(p.from)}</td>
+        <td style="font-weight:700">${p.amount} ر.س</td>
+        <td>${esc(p.method)}</td><td>${p.date}</td>
+        <td><span class="badge ${p.status==='معلّق'?'pend':''}">${p.status}</span></td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+}
+
+/* — Admin: Users — */
+function renderUsers(){
+  q('#d-users').innerHTML=`
+    <div class="doc-header"><h2>إدارة المستخدمين</h2><button class="btn-primary" onclick="toast('إضافة مستخدمين حقيقيين تحتاج MongoDB')">دعوة مستخدم</button></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>الاسم</th><th>البريد</th><th>الدور</th><th>آخر دخول</th><th>الحالة</th><th>إجراء</th></tr></thead>
+      <tbody>
+        ${[
+          {n:'حساب الإدارة',e:'admin@tas3eerah.local',r:'admin',last:'الآن',s:'نشط'},
+          {n:'سارة الموظفة',e:'sara@tas3eerah.local',r:'employee',last:'منذ ٢ ساعة',s:'نشط'},
+          {n:'محمد العميل',e:'client1@tas3eerah.local',r:'client',last:'منذ يوم',s:'نشط'},
+          {n:'عميل مجمّد',e:'frozen@tas3eerah.local',r:'client',last:'منذ شهر',s:'موقوف'},
+        ].map(u=>`<tr>
+          <td><span class="user-av">${u.n[0]}</span>${esc(u.n)}</td>
+          <td>${esc(u.e)}</td>
+          <td><span class="badge ${u.r==='admin'?'info':u.r==='employee'?'pend':''}">${u.r==='admin'?'إدارة':u.r==='employee'?'موظف':'عميل'}</span></td>
+          <td>${u.last}</td>
+          <td><span class="badge ${u.s==='موقوف'?'danger':''}">${u.s}</span></td>
+          <td><button style="border:1px solid var(--line);background:white;border-radius:7px;padding:5px 10px;font-size:11px" onclick="toast('تعديل المستخدم — يحتاج MongoDB')">تعديل</button></td>
+        </tr>`).join('')}
+      </tbody>
+    </table></div>`;
+}
+
+/* — Admin: Integrations — */
+function renderIntegrations(){
+  q('#d-integrations').innerHTML=`
+    <div class="doc-header"><h2>الربط والتكاملات</h2></div>
+    <div class="notice">جميع التكاملات تحتاج متغيرات بيئة في الإنتاج. لا تُكتب الأسرار في الكود.</div>
+    <div class="int-grid">
+      ${[
+        {n:'MongoDB',d:'قاعدة البيانات الرئيسية — الحسابات، المستندات، سجل النشاط.',s:'غير مفعّل',env:'MONGODB_URI',sk:false},
+        {n:'Moonshot AI',d:'المساعد الذكي متعدد اللهجات — يرد بلهجة المستخدم نفسها.',s:'غير مفعّل',env:'MOONSHOT_API_KEY',sk:false},
+        {n:'SMTP (البريد)',d:'إرسال OTP وإشعارات البريد من نطاق info@qirox.online.',s:'غير مفعّل',env:'CPANEL_SMTP_*',sk:false},
+        {n:'Giddya (الدفع)',d:'بوابة الدفع السعودية — استقبال بطاقات، مدى، Apple Pay.',s:'غير مفعّل',env:'GIDDYA_API_KEY',sk:false},
+        {n:'WhatsApp Web',d:'ربط جلسة واتساب ويب عبر QR — ردود آلية من بياناتك.',s:'غير مرتبط',env:'WHATSAPP_SESSION_SECRET',sk:false},
+        {n:'WebAuthn',d:'تسجيل دخول بالبصمة / Face ID مع عداد حماية ضد الاعتراض.',s:'جاهز (بدون MongoDB)',env:'—',sk:true},
+      ].map(i=>`<div class="int-card">
+        <div class="int-info"><div class="int-name">${i.n}</div><div class="int-desc">${i.d}<br><code style="font-size:10px;color:#7890a6">${i.env}</code></div></div>
+        <span class="int-status ${i.sk?'partial':''}">${i.s}</span>
+      </div>`).join('')}
+    </div>
+    <div style="margin-top:20px">
+      <div class="doc-header"><h2>ربط واتساب</h2></div>
+      ${waSection()}
+    </div>`;
+}
+
+/* — Admin: Activity — */
+function renderActivity(){
+  const log=[
+    {t:'دخول ناجح',u:'admin@tas3eerah.local',role:'admin',ip:'196.x.x.x',time:'الآن'},
+    {t:'إنشاء عرض سعر',u:'sara@tas3eerah.local',role:'employee',ip:'10.x.x.x',time:'قبل ٢ ساعة'},
+    {t:'دخول عميل',u:'client1@tas3eerah.local',role:'client',ip:'37.x.x.x',time:'قبل يوم'},
+    {t:'محاولة دخول فاشلة',u:'unknown@email.com',role:'—',ip:'91.x.x.x',time:'قبل يومين'},
+    {t:'تسجيل عميل جديد',u:'new@email.sa',role:'client',ip:'31.x.x.x',time:'قبل ٣ أيام'},
+  ];
+  q('#d-activity').innerHTML=`
+    <div class="doc-header"><h2>سجل النشاط</h2></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>الحدث</th><th>المستخدم</th><th>الدور</th><th>IP</th><th>الوقت</th></tr></thead>
+      <tbody>${log.map(e=>`<tr>
+        <td>${esc(e.t)}</td><td>${esc(e.u)}</td>
+        <td><span class="badge ${e.role==='admin'?'info':e.role==='employee'?'pend':e.role==='—'?'danger':''}">${e.role}</span></td>
+        <td style="font-family:monospace;font-size:12px">${e.ip}</td>
+        <td>${e.time}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+}
+
+/* ═══════════════════════════════════════════
+   GLOBAL EVENT DELEGATION
+═══════════════════════════════════════════ */
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]');
+  if(el){
+    const act=el.dataset.act;
+    if(act==='open-auth') openAuth();
+    else if(act==='close-auth') closeAuth();
+    else if(act==='close-app') closeApp();
+    else if(act==='logout') logout();
+    else if(act==='demo') openApp(el.dataset.role||'client');
+    else if(act==='toggle-lang') toggleLang();
+    else if(act==='social-google') socialAuth('google');
+    else if(act==='social-apple') socialAuth('apple');
+    else if(act==='open-profile') toast('ملف المستخدم — يحتاج MongoDB للبيانات الحقيقية');
+    return;
   }
-  function openApp(role='client'){
-    state.role=role; state.page='overview'; state.user={name:role==='client'?'حساب العميل التجريبي':role==='employee'?'سارة · فريق التشغيل':'حساب الإدارة التجريبي',email:'preview@tas3eerah.local'};
-    closeAuth(); $('#app-overlay').classList.add('open'); renderApp();
-  }
-  function closeApp(){ $('#app-overlay').classList.remove('open'); }
-  function logout(){ state.user=null; closeApp(); }
-  function renderApp(){
-    const role=state.role; const nav=$('#side-nav');
-    nav.innerHTML=navByRole[role].map(([key,label])=>`<button type="button" class="${state.page===key?'active':''}" data-page="${key}">${label}</button>`).join('');
-    $('#workspace-title').textContent=role==='admin'?'لوحة الإدارة':role==='employee'?'لوحة الموظف':'لوحة العميل';
-    $('#workspace-subtitle').textContent=role==='admin'?'رؤية واضحة لكل حركة داخل النظام.':role==='employee'?'مساحة عملك اليومية وملفاتك المخصصة.':'كل ما تحتاجه لإدارة عملك بهدوء.';
-    $('#profile-name').textContent=state.user?.name||'حساب العرض'; $('#avatar').textContent=(state.user?.name||'ت').slice(0,1);
-    ['overview','tools','quotes','messages','settings'].forEach(key=>$('#dash-'+key).classList.toggle('active',state.page===key));
-    renderPage();
-  }
-  function renderPage(){
-    const role=state.role;
-    $('#dash-overview').innerHTML=`<div class="welcome"><div><h3>${role==='admin'?'الصورة الكاملة تحت سيطرتك':role==='employee'?'صباحك أخف مع مركز عمل واضح':'خلّ شغلك يمشي معك، مو عكسك'}</h3><p>${role==='admin'?'تابع النشاط، الاشتراكات، التكاملات، ومسار العمل من مكان واحد.':role==='employee'?'أنجز ما عليك، تابع عملاءك، وخلّ كل محادثة في مكانها.':'أدواتك، عروضك، وفواتيرك جاهزة في مساحة واحدة.'}</p></div><button class="primary" type="button" data-page-jump="tools">افتح مركز الأدوات</button></div>
-      <div class="metric-grid">${metrics(role).map(m=>`<div class="metric"><small>${m[0]}</small><strong>${m[1]}</strong><em>${m[2]}</em></div>`).join('')}</div>
-      <div class="panel-grid"><div class="panel"><h3>${role==='admin'?'آخر نشاط في النظام':'آخر الأعمال'}</h3><div class="list">${activity(role).map(row=>`<div class="list-row"><div><b>${row[0]}</b><small>${row[1]}</small></div><span class="status ${row[2]?'pending':''}">${row[2]||'مكتمل'}</span></div>`).join('')}</div></div><div class="panel"><h3>مساحتك تنمو معك</h3><div class="notice">أنت في وضع العرض الآمن. البيانات هنا تجريبية ولا تُرسل إلى MongoDB أو البريد أو الذكاء الاصطناعي.</div><div class="empty">يمكنك ربط الحساب الحقيقي من إعدادات البيئة عند جاهزية الإنتاج.</div></div></div>`;
-    $('#dash-tools').innerHTML=`<div class="section-head"><div><div class="eyebrow">مساحة الأدوات</div><h2>اختر أداتك التالية</h2></div><p>الحاسبة الحالية متاحة بالكامل، وباقي المساحات مجهزة لتكبر مع نظامك.</p></div><div class="tool-grid">
-      <article class="tool"><div class="tool-tag">الأداة الأساسية</div><h3>تسعير الخدمات والمشاريع</h3><p>كل منطق التسعير الحالي في نسخة مستقلة قابلة للاستخدام الآن.</p><a href="legacy-calculator.html" target="_blank">فتح الأداة كاملة ←</a></article>
-      <article class="tool"><div class="tool-tag">المبيعات</div><h3>الباقات والاشتراكات</h3><p>صمّم باقاتك، قارن القيمة، واستعد للربط مع الدفع.</p><button type="button" data-page-jump="quotes">فتح المساحة ←</button></article>
-      <article class="tool"><div class="tool-tag">المحاسبة</div><h3>القوائم والفواتير</h3><p>سجل المنتجات والخدمات واستخرج مستندات عربية بهويتك.</p><button type="button" data-page-jump="quotes">فتح المساحة ←</button></article>
-      <article class="tool"><div class="tool-tag">الفريق</div><h3>إدارة العملاء</h3><p>ملفات عملاء، حالات، ملاحظات، وتواصل منظم.</p><button type="button" data-page-jump="messages">فتح المساحة ←</button></article>
-      <article class="tool"><div class="tool-tag">الذكاء</div><h3>المساعد الذكي</h3><p>نقطة جاهزة لردود بلغات ولهجات متعددة بعد ربط مزود الذكاء.</p><button type="button" data-page-jump="settings">عرض الحالة ←</button></article>
-      <article class="tool"><div class="tool-tag">التقارير</div><h3>رؤية الإدارة</h3><p>تتبّع الدخول والخروج والاشتراكات والتحويلات في لوحة واحدة.</p><button type="button" data-page-jump="overview">عرض المؤشرات ←</button></article></div>`;
-    $('#dash-quotes').innerHTML=`<div class="section-head"><div><div class="eyebrow">الوثائق التجارية</div><h2>عروض الأسعار والفواتير</h2></div><p>هذه المساحة جاهزة لتصبح مركز مستنداتك الرسمي.</p></div><div class="panel"><div class="notice">تصدير PDF العربي والهوية المركزية محفوظان كجزء من بنية المنتج. اربط MongoDB قبل استخدام بيانات حقيقية.</div><div class="list">${[['عرض سعر #1042','عميل جديد · منذ ساعتين','مراجعة'],['فاتورة #2088','مشروع هوية بصرية · هذا الأسبوع','مُرسلة'],['طلب اشتراك جديد','الباقة الاحترافية · اليوم','جديد']].map(r=>`<div class="list-row"><div><b>${r[0]}</b><small>${r[1]}</small></div><span class="status pending">${r[2]}</span></div>`).join('')}</div></div>`;
-    $('#dash-messages').innerHTML=`<div class="section-head"><div><div class="eyebrow">التواصل</div><h2>${role==='admin'?'صندوق الرسائل':'رسائلك الداخلية'}</h2></div><p>محادثات واضحة، مع مساحة للرد البشري قبل أي رد آلي.</p></div><div class="panel"><div class="notice">المساعد الآلي لا يرسل أي رسالة في وضع العرض. بعد الربط ستتمكن من فصل الردود الآلية عن البشرية وإظهار مؤقت الانتظار.</div><div class="empty">لا توجد محادثات حقيقية بعد.<br><button class="outline" style="margin-top:14px;color:#168ca0;border-color:#168ca0" type="button">إنشاء رسالة جديدة</button></div></div>`;
-    $('#dash-settings').innerHTML=`<div class="section-head"><div><div class="eyebrow">الإعدادات</div><h2>${role==='admin'?'الربط والإعدادات':'الأمان والخصوصية'}</h2></div><p>كل تكامل له حالة واضحة، ولا يتم تشغيله بصمت.</p></div><div class="security-grid">${settings(role).map(s=>`<div class="security-item"><div><b>${s[0]}</b><p>${s[1]}</p></div><span class="switch ${s[2]?'on':''}"></span></div>`).join('')}</div>`;
-  }
-  function metrics(role){return role==='admin'?[['المستخدمون النشطون','1,248','+12%'],['الاشتراكات الحالية','184','+8%'],['رسائل تحتاج متابعة','23','اليوم'],['صحة التكاملات','جاهزة','آمن']]:role==='employee'?[['المهام المفتوحة','18','هذا الأسبوع'],['عملاء نشطون','42','+6%'],['عروض بانتظارك','7','جديد'],['إنجاز الشهر','87%','مستقر']]:[['العروض المحفوظة','12','هذا الشهر'],['الفواتير المفتوحة','4','تحتاج متابعة'],['أدواتك المستخدمة','8','متاحة'],['مساحة العمل','جاهزة','آمن']];}
-  function activity(role){return role==='admin'?[['دخول جديد','عميل · قبل 4 دقائق'],['طلب اشتراك','الباقة الاحترافية · قبل 11 دقيقة','معلّق'],['موظف عدّل عرضاً','فريق المبيعات · قبل 23 دقيقة'],['تسجيل خروج','موظف الدعم · قبل ساعة']]:role==='employee'?[['عرض سعر #1042','مؤسسة مدار · قبل ساعتين'],['رسالة من عميل','شركة نواة · قبل 4 ساعات','معلّق'],['مهمة مكتملة','تحديث ملف العميل · أمس'],['فاتورة جاهزة','مشروع الهوية · أمس']]:[['عرض سعر #1042','تحديث آخر · قبل ساعتين'],['فاتورة #2088','تم الإرسال · قبل يوم'],['حفظ مشروع','حاسبة تسعير الخدمات · قبل يومين'],['اقتراح أداة','نحن نعمل على طلبك · هذا الأسبوع']];}
-  function settings(role){return role==='admin'?[['MongoDB','حفظ المستخدمين، الأدوار، المستندات وسجل النشاط.',false],['البريد عبر SMTP','إرسال OTP والتنبيهات من نطاقك.',false],['Moonshot AI','ردود المساعد من صفحات النظام بعد إضافة المفتاح.',false],['WhatsApp Web','جلسة ربط الإدارة عبر QR بعد إعداد الخدمة.',false],['Giddya','بوابة الدفع جاهزة لاستقبال إعدادات التاجر.',false],['WebAuthn / Passkey','تسجيل دخول مقاوم للتصيد مع عداد حماية.',false]]:[['تسجيل الدخول الآمن','جلسة محمية ولا يتم حفظ السر في المتصفح.',true],['Passkey','أضف بصمة أو مفتاح مرور من جهازك.',false],['التحقق المزدوج','OTP عبر البريد بعد تفعيل SMTP.',false],['لغة الواجهة','العربية والإنجليزية جاهزتان للتبديل.',true]];}
-  document.addEventListener('click',(event)=>{
-    const action=event.target.closest('[data-action]')?.dataset.action;
-    if(action==='open-auth') openAuth(); if(action==='close-auth') closeAuth(); if(action==='close-app') closeApp(); if(action==='logout') logout(); if(action==='demo') openApp(event.target.closest('[data-action]').dataset.role); if(action==='toggle-language') toggleLanguage();
-    const page=event.target.closest('[data-page]')?.dataset.page||event.target.closest('[data-page-jump]')?.dataset.pageJump;
-    if(page){state.page=page;renderApp();}
-    const authMode=event.target.closest('[data-auth-mode]')?.dataset.authMode; if(authMode) setAuthMode(authMode);
-  });
-  $('#auth-form').addEventListener('submit',async(event)=>{
-    event.preventDefault(); const status=$('#auth-status'); const data=Object.fromEntries(new FormData(event.target).entries());
-    if(state.mode==='register'&&!data.terms){status.textContent='وافق على الشروط للمتابعة.';return;}
-    status.textContent='جارٍ التحقق من جاهزية الحساب...';
-    try{const response=await fetch(`api/index.php?action=${state.mode}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const result=await response.json();status.textContent=result.message||'لم تكتمل العملية.';}catch(error){status.textContent='الخدمة غير متاحة حالياً. يمكنك فتح تجربة العرض بدون إنشاء حساب.';}
-  });
-  window.addEventListener('keydown',(event)=>{if(event.key==='Escape'){closeAuth();closeApp();}});
+  const authMode=e.target.closest('[data-auth-mode]')?.dataset.authMode;
+  if(authMode){ setAuthMode(authMode); return; }
+  const page=e.target.closest('[data-page]')?.dataset.page;
+  if(page){ S.page=page; renderApp(); return; }
+});
+
+window.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){ closePDF(); closeAuth(); if(!q('#pdf-overlay').classList.contains('open')&&!q('#auth-overlay').classList.contains('open')) closeApp(); }
+});
+
+/* Init: pre-load one line item for new doc UX */
+addLineItem('',1,0);
 </script>
 </body>
 </html>
