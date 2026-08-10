@@ -1,0 +1,4 @@
+- [System Architecture](system-arch.md) — PHP 8.4 + SQLite3, هيكل ملفات منفصل، router.php كنقطة دخول واحدة
+- [Auth & Sessions](auth-sessions.md) — PHP sessions بـ bcrypt، 3 حسابات تجريبية محددة، session name: TAS3_SESS
+- [Subscription System](subscriptions.md) — 3 خطط (free/pro/enterprise) في config.php، المدير يغير خطة أي مستخدم من /api/admin
+- [Tools Integration](tools.md) — 5 أدوات تسعير مدمجة داخل dashboard (ليست روابط خارجية)، مقفلة بالخطة
