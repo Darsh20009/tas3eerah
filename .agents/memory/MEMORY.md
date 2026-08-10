@@ -2,3 +2,4 @@
 - [Auth & Sessions](auth-sessions.md) — PHP sessions بـ bcrypt، 3 حسابات تجريبية محددة، session name: TAS3_SESS
 - [Subscription System](subscriptions.md) — 3 خطط (free/pro/enterprise) في config.php، المدير يغير خطة أي مستخدم من /api/admin
 - [Tools Integration](tools.md) — 5 أدوات تسعير مدمجة داخل dashboard (ليست روابط خارجية)، مقفلة بالخطة
+- [Landing Design](landing-design.md) — Clean & Minimal landing page: CSS classes، auth overlay، policy modal، language toggle

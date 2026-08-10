@@ -385,7 +385,7 @@ function teaserOverlay(): string {
           <h3><?= $name ?></h3>
           <p><?= $desc ?></p>
           <?php if (!$locked): ?>
-          <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:12px;color:var(--cyan);font-weight:700">ابدأ التسعير ←</div>
+          <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:12px;color:var(--p);font-weight:700">ابدأ التسعير ←</div>
           <?php endif; ?>
         </div>
         <?php endforeach; ?>
@@ -774,13 +774,13 @@ function teaserOverlay(): string {
         </div>
         <div class="form-group">
           <label>البريد الإلكتروني</label>
-          <input type="email" class="form-control" value="<?= htmlspecialchars($user['email']) ?>" readonly style="background:var(--paper)">
+          <input type="email" class="form-control" value="<?= htmlspecialchars($user['email']) ?>" readonly style="background:var(--surface)">
         </div>
         <div class="form-group">
           <label>الدور</label>
-          <input type="text" class="form-control" value="<?= $roleLabel ?>" readonly style="background:var(--paper)">
+          <input type="text" class="form-control" value="<?= $roleLabel ?>" readonly style="background:var(--surface)">
         </div>
-        <div style="background:var(--paper);border-radius:10px;padding:14px;margin-bottom:16px">
+        <div style="background:var(--surface);border-radius:10px;padding:14px;margin-bottom:16px">
           <div style="font-size:12px;color:var(--muted);margin-bottom:6px">خطة الاشتراك الحالية</div>
           <div style="font-size:18px;font-weight:900"><?= $plan['name_ar'] ?></div>
           <div style="font-size:12px;color:var(--muted);margin-top:4px">
