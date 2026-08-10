@@ -6,6 +6,24 @@
 
 // ─── LANGUAGE ────────────────────────────
 const L = { current: 'ar' };
+// ─── MOBILE SIDEBAR ──────────────────────
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  const ov = document.getElementById('sbOverlay');
+  if (ov) { ov.classList.add('open'); }
+  document.body.style.overflow = 'hidden';
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  const ov = document.getElementById('sbOverlay');
+  if (ov) { ov.classList.remove('open'); }
+  document.body.style.overflow = '';
+}
+// Close sidebar on wider screens if accidentally left open
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 768) closeSidebar();
+});
+
 function toggleLang() {
   L.current = L.current === 'ar' ? 'en' : 'ar';
   document.documentElement.lang = L.current;
@@ -50,6 +68,7 @@ const panelTitles = {
 };
 
 function nav(btn) {
+  closeSidebar(); // close on mobile when navigating
   if (!btn) return;
   const panel = btn.getAttribute('data-panel');
   if (!panel) return;

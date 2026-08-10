@@ -36,8 +36,12 @@ function teaserOverlay(): string {
 <body>
 <div class="app-shell">
 
+<!-- Mobile sidebar overlay -->
+<div class="sb-overlay" id="sbOverlay" onclick="closeSidebar()"></div>
+
 <!-- ═══ SIDEBAR ═══ -->
 <aside class="sidebar" id="sidebar">
+  <button class="sb-close-btn" onclick="closeSidebar()" aria-label="إغلاق القائمة">✕</button>
   <div class="sb-logo">
     <img src="/assets/brand-logo-transparent.png" alt="تسعيرة">
     <div>
@@ -124,12 +128,17 @@ function teaserOverlay(): string {
 <!-- ═══ MAIN ═══ -->
 <div class="main-area">
   <div class="topbar">
-    <div class="topbar-title" id="topbarTitle">نظرة عامة</div>
+    <div style="display:flex;align-items:center;gap:10px;min-width:0">
+      <button class="hamburger" id="hamburgerBtn" onclick="openSidebar()" aria-label="القائمة">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="topbar-title" id="topbarTitle">نظرة عامة</div>
+    </div>
     <div class="topbar-actions">
       <button class="btn btn-ghost btn-sm" onclick="toggleLang()" id="langBtn">EN</button>
       <?php if ($role === 'employee' || $role === 'admin'): ?>
       <button class="btn btn-primary btn-sm" onclick="nav(document.querySelector('[data-panel=quote-new]') || document.querySelector('[data-panel=quotes]'))">
-        + عرض سعر جديد
+        + عرض سعر
       </button>
       <?php endif; ?>
     </div>

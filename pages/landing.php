@@ -108,16 +108,16 @@ if ($user) { header('Location: /dashboard'); exit; }
 <section id="about" style="background:var(--ink);color:white">
   <div style="max-width:1160px;margin:auto;padding:70px 30px;display:grid;grid-template-columns:1.2fr .8fr;gap:60px;align-items:center">
     <div>
-      <p style="color:var(--cyan);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px" data-ar="من نحن" data-en="About Us">من نحن</p>
+      <p style="color:var(--orange);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px" data-ar="من نحن" data-en="About Us">من نحن</p>
       <h2 style="font-size:clamp(26px,4vw,40px);font-weight:900;line-height:1.15;margin-bottom:18px" data-ar="منصة تسعيرة — بُنيت لأصحاب المشاريع العربية" data-en="Tas3eerah — Built for Arabic business owners">منصة تسعيرة — بُنيت لأصحاب المشاريع العربية</h2>
       <p style="color:rgba(255,255,255,.65);font-size:15px;line-height:2;margin-bottom:20px" data-ar="تسعيرة مبادرة من Qirox Studio Group لتمكين أصحاب المشاريع والفرق العربية من إدارة أعمالهم باحترافية — من أول لحظة تسعير للخدمة حتى إرسال الفاتورة وتسجيل المدفوعات. نؤمن أن كل مشروع عربي يستحق أدواتٍ حديثة وواضحة تتكلم لغته." data-en="Tas3eerah is an initiative by Qirox Studio Group to empower Arabic business owners and teams to manage their work professionally — from the first pricing moment to sending invoices and recording payments.">
-        تسعيرة مبادرة من <strong style="color:var(--cyan)">Qirox Studio Group</strong> لتمكين أصحاب المشاريع والفرق العربية من إدارة أعمالهم باحترافية — من أول لحظة تسعير للخدمة حتى إرسال الفاتورة وتسجيل المدفوعات.
+        تسعيرة مبادرة من <strong style="color:var(--orange)">Qirox Studio Group</strong> لتمكين أصحاب المشاريع والفرق العربية من إدارة أعمالهم باحترافية — من أول لحظة تسعير للخدمة حتى إرسال الفاتورة وتسجيل المدفوعات.
         <br><br>
         نؤمن أن كل مشروع عربي يستحق أدواتٍ حديثة وواضحة تتكلم لغته.
       </p>
       <div style="display:flex;gap:20px;flex-wrap:wrap">
         <div>
-          <div style="font-size:26px;font-weight:900;color:var(--cyan)">١٠٠٪</div>
+          <div style="font-size:26px;font-weight:900;color:var(--orange)">١٠٠٪</div>
           <div style="font-size:12px;color:rgba(255,255,255,.5)" data-ar="عربي كامل RTL" data-en="Full Arabic RTL">عربي كامل RTL</div>
         </div>
         <div>
@@ -131,7 +131,7 @@ if ($user) { header('Location: /dashboard'); exit; }
       </div>
     </div>
     <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:26px">
-      <div style="font-size:13px;font-weight:800;color:var(--cyan);margin-bottom:16px" data-ar="قيمنا" data-en="Our Values">قيمنا</div>
+      <div style="font-size:13px;font-weight:800;color:var(--orange);margin-bottom:16px" data-ar="قيمنا" data-en="Our Values">قيمنا</div>
       <?php $values = [
         ['الشفافية','نقدم أدوات تسعير مبنية على منهجية واضحة — لا أرقام عشوائية.'],
         ['الاحترافية','واجهة عربية محترفة تعكس هوية عملك أمام عملائك.'],
@@ -139,7 +139,7 @@ if ($user) { header('Location: /dashboard'); exit; }
       ];
       foreach ($values as [$t, $d]): ?>
       <div style="border-bottom:1px solid rgba(255,255,255,.07);padding:12px 0;display:flex;gap:12px;align-items:flex-start">
-        <div style="width:6px;height:6px;border-radius:50%;background:var(--cyan);margin-top:6px;flex-shrink:0"></div>
+        <div style="width:6px;height:6px;border-radius:50%;background:var(--orange);margin-top:6px;flex-shrink:0"></div>
         <div>
           <div style="font-weight:700;font-size:13px;margin-bottom:3px"><?= $t ?></div>
           <div style="color:rgba(255,255,255,.5);font-size:12px;line-height:1.7"><?= $d ?></div>
@@ -196,7 +196,7 @@ if ($user) { header('Location: /dashboard'); exit; }
 <!-- CONTACT -->
 <section id="contact" style="max-width:1160px;margin:auto;padding:70px 30px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start">
   <div>
-    <p style="color:#1a9bb5;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px">تواصل معنا</p>
+    <p style="color:var(--orange);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px">تواصل معنا</p>
     <h2 style="font-size:28px;font-weight:900;margin-bottom:14px">لديك سؤال أو اقتراح؟</h2>
     <p style="color:var(--muted);font-size:14px;line-height:2;margin-bottom:22px">فريقنا يرد خلال يوم عمل واحد. يمكنك التواصل معنا عبر النموذج أو مباشرةً عبر البريد.</p>
     <div style="display:flex;flex-direction:column;gap:12px">
@@ -237,10 +237,10 @@ if ($user) { header('Location: /dashboard'); exit; }
       <div>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
           <img src="/assets/brand-logo-transparent.png" style="width:34px" alt="تسعيرة">
-          <div><strong style="color:white;font-size:16px">تسعيرة</strong><div style="font-size:10px;color:var(--cyan)">Tas3eerah</div></div>
+          <div><strong style="color:white;font-size:16px">تسعيرة</strong><div style="font-size:10px;color:var(--orange)">Tas3eerah</div></div>
         </div>
         <p style="font-size:12px;line-height:1.9;max-width:280px">منصة عربية متكاملة لإدارة التسعير، عروض الأسعار، الفواتير، والتواصل مع العملاء — بُنيت بقيم الوضوح والاحترافية.</p>
-        <div style="margin-top:14px;font-size:12px">صُنع بـ <a href="https://qiroxstudio.online" target="_blank" rel="noopener" style="color:var(--cyan)">Qirox Studio Group</a></div>
+        <div style="margin-top:14px;font-size:12px">صُنع بـ <a href="https://qiroxstudio.online" target="_blank" rel="noopener" style="color:var(--orange)">Qirox Studio Group</a></div>
       </div>
       <div>
         <div style="color:white;font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px">المنصة</div>
