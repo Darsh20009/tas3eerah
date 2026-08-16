@@ -60,14 +60,11 @@ if ($user) { header('Location: /dashboard'); exit; }
 <section>
   <div class="hero">
     <div class="hero-content">
-      <div class="hero-eyebrow" data-ar="منصة سعودية SaaS للتسعير" data-en="Saudi Platform Pricing SaaS">
-        منصة سعودية SaaS للتسعير
-      </div>
       <h1 data-ar="<em>سعّر</em> بثقة<br><span class='em-gold'>أدِر</span> بذكاء." data-en="<em>Price</em> with confidence,<br><span class='em-gold'>manage</span> with clarity.">
         <em>سعّر</em> بثقة<br><span class="em-gold">أدِر</span> بذكاء.
       </h1>
-      <p class="hero-sub" data-ar="أدوات تسعير احترافية عروض أسعار PDF إدارة عملاء ورسائل داخلية كل شيء في منصة عربية واحدة." data-en="Professional pricing tools, PDF quotes, client management, and internal messaging all in one Arabic platform.">
-        أدوات تسعير احترافية عروض أسعار PDF إدارة عملاء ورسائل داخلية كل شيء في منصة عربية واحدة.
+      <p class="hero-sub" data-ar="أدوات تسعير احترافية · عروض أسعار PDF · إدارة عملاء · رسائل داخلية — كل شيء في منصة عربية واحدة." data-en="Professional pricing tools · PDF quotes · client management · internal messaging — all in one platform.">
+        أدوات تسعير احترافية · عروض أسعار PDF · إدارة عملاء · رسائل داخلية — كل شيء في منصة عربية واحدة.
       </p>
       <div class="hero-btns">
         <button class="btn btn-primary btn-lg" onclick="showAuth('register')" data-ar="جرّب مجاناً" data-en="Try for free">جرّب مجاناً</button>
@@ -75,7 +72,7 @@ if ($user) { header('Location: /dashboard'); exit; }
       </div>
       <p class="hero-note">
         <span>✦</span>
-        <span data-ar="لا يلزم بطاقة ائتمان بيانات آمنة محلياً" data-en="No credit card Data stored locally">لا يلزم بطاقة ائتمان بيانات آمنة محلياً</span>
+        <span data-ar="لا يلزم بطاقة ائتمان · بيانات آمنة محلياً" data-en="No credit card required · Data stored securely">لا يلزم بطاقة ائتمان · بيانات آمنة محلياً</span>
       </p>
     </div>
 
@@ -221,8 +218,10 @@ if ($user) { header('Location: /dashboard'); exit; }
           data-ar="بُنيت لأصحاب المشاريع العربية" data-en="Built for Arabic business owners">
         بُنيت لأصحاب المشاريع العربية
       </h2>
-      <p style="color:var(--muted);font-size:15px;line-height:2;margin-bottom:8px">
-        تسعيرة مبادرة من <strong style="color:var(--text)">Qirox Studio Group</strong> لتمكين أصحاب المشاريع والفرق العربية من إدارة أعمالهم باحترافية من أول لحظة تسعير للخدمة حتى إرسال الفاتورة.
+      <p style="color:var(--muted);font-size:15px;line-height:2;margin-bottom:8px"
+         data-ar="تسعيرة مبادرة من <strong style='color:var(--text)'>Qirox Studio Group</strong> لتمكين أصحاب المشاريع والفرق العربية من إدارة أعمالهم باحترافية — من أول لحظة تسعير حتى إرسال الفاتورة."
+         data-en="Tas3eerah is an initiative by <strong style='color:var(--text)'>Qirox Studio Group</strong> to empower Arabic businesses and teams to manage their work professionally — from the first pricing moment to the final invoice.">
+        تسعيرة مبادرة من <strong style="color:var(--text)">Qirox Studio Group</strong> لتمكين أصحاب المشاريع والفرق العربية من إدارة أعمالهم باحترافية — من أول لحظة تسعير حتى إرسال الفاتورة.
       </p>
       <div class="about-stats">
         <div>
@@ -241,19 +240,27 @@ if ($user) { header('Location: /dashboard'); exit; }
     </div>
     <div class="about-values">
       <div class="about-values-title" data-ar="قيمنا" data-en="Our Values">قيمنا</div>
-      <?php foreach ([
-        ['الشفافية', 'أدوات تسعير مبنية على منهجية واضحة لا أرقام عشوائية.'],
-        ['الاحترافية', 'واجهة عربية تعكس هوية عملك أمام عملائك.'],
-        ['البساطة', 'نظام واحد يجمع كل احتياجاتك بدون تعقيد.'],
-      ] as [$t, $d]): ?>
       <div class="about-value-item">
         <div class="about-value-dot"></div>
         <div>
-          <strong><?= $t ?></strong>
-          <span><?= $d ?></span>
+          <strong data-ar="الشفافية" data-en="Transparency">الشفافية</strong>
+          <span data-ar="أدوات تسعير مبنية على منهجية واضحة — لا أرقام عشوائية." data-en="Pricing tools built on a clear methodology — no random numbers.">أدوات تسعير مبنية على منهجية واضحة — لا أرقام عشوائية.</span>
         </div>
       </div>
-      <?php endforeach; ?>
+      <div class="about-value-item">
+        <div class="about-value-dot"></div>
+        <div>
+          <strong data-ar="الاحترافية" data-en="Professionalism">الاحترافية</strong>
+          <span data-ar="واجهة عربية تعكس هوية عملك أمام عملائك." data-en="An Arabic interface that reflects your brand identity to your clients.">واجهة عربية تعكس هوية عملك أمام عملائك.</span>
+        </div>
+      </div>
+      <div class="about-value-item">
+        <div class="about-value-dot"></div>
+        <div>
+          <strong data-ar="البساطة" data-en="Simplicity">البساطة</strong>
+          <span data-ar="نظام واحد يجمع كل احتياجاتك بدون تعقيد." data-en="One system that brings all your needs together — no complexity.">نظام واحد يجمع كل احتياجاتك بدون تعقيد.</span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -262,9 +269,9 @@ if ($user) { header('Location: /dashboard'); exit; }
 <section id="contact" style="background:var(--surface);border-top:1px solid var(--line)">
   <div class="contact-section">
     <div>
-      <div class="eyebrow" style="display:inline-block">تواصل معنا</div>
-      <h2 style="font-size:clamp(20px,3vw,30px);font-weight:900;margin:14px 0 10px">لديك سؤال</h2>
-      <p style="color:var(--muted);font-size:14px;line-height:2;margin-bottom:22px">فريقنا يرد خلال يوم عمل واحد.</p>
+      <div class="eyebrow" style="display:inline-block" data-ar="تواصل معنا" data-en="Contact Us">تواصل معنا</div>
+      <h2 style="font-size:clamp(20px,3vw,30px);font-weight:900;margin:14px 0 10px" data-ar="لديك سؤال؟" data-en="Have a question?">لديك سؤال؟</h2>
+      <p style="color:var(--muted);font-size:14px;line-height:2;margin-bottom:22px" data-ar="فريقنا يرد خلال يوم عمل واحد." data-en="Our team replies within one business day.">فريقنا يرد خلال يوم عمل واحد.</p>
 
       <div class="contact-info-item">
         <div class="contact-info-icon">✉</div>
@@ -383,15 +390,49 @@ if ($user) { header('Location: /dashboard'); exit; }
       </div>
       <form onsubmit="doLogin();return false;" autocomplete="on">
         <div class="form-group">
-          <label>البريد الإلكتروني</label>
+          <label data-ar="البريد الإلكتروني" data-en="Email">البريد الإلكتروني</label>
           <input type="email" class="form-control" id="loginEmail" name="email" placeholder="you@example.com" dir="ltr" autocomplete="email">
         </div>
         <div class="form-group">
-          <label>كلمة المرور</label>
+          <label data-ar="كلمة المرور" data-en="Password">كلمة المرور</label>
           <input type="password" class="form-control" id="loginPass" name="password" placeholder="••••••" dir="ltr" autocomplete="current-password">
         </div>
-        <button type="submit" class="btn btn-primary w-full">دخول</button>
+        <button type="submit" class="btn btn-primary w-full" data-ar="دخول" data-en="Sign in">دخول</button>
       </form>
+
+      <!-- حسابات تجريبية -->
+      <div style="margin-top:18px;border-top:1px solid var(--line);padding-top:14px">
+        <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:10px;font-weight:700;letter-spacing:.5px"
+             data-ar="حسابات تجريبية — اضغط للملء التلقائي" data-en="Demo accounts — click to auto-fill">
+          حسابات تجريبية — اضغط للملء التلقائي
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <div onclick="fillLogin('admin@tas3eerah.com','Admin@2025')"
+               style="display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:var(--surface);transition:background .15s"
+               onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='var(--surface)'">
+            <span style="background:var(--p);color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:4px;white-space:nowrap"
+                  data-ar="مدير" data-en="Admin">مدير</span>
+            <span style="font-size:12px;direction:ltr;flex:1;color:var(--muted)">admin@tas3eerah.com</span>
+            <span style="font-size:11px;color:var(--muted2);direction:ltr">Admin@2025</span>
+          </div>
+          <div onclick="fillLogin('employee@tas3eerah.com','Demo@2025')"
+               style="display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:var(--surface);transition:background .15s"
+               onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='var(--surface)'">
+            <span style="background:var(--gold);color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:4px;white-space:nowrap"
+                  data-ar="موظف" data-en="Employee">موظف</span>
+            <span style="font-size:12px;direction:ltr;flex:1;color:var(--muted)">employee@tas3eerah.com</span>
+            <span style="font-size:11px;color:var(--muted2);direction:ltr">Demo@2025</span>
+          </div>
+          <div onclick="fillLogin('client@tas3eerah.com','Demo@2025')"
+               style="display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:var(--surface);transition:background .15s"
+               onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='var(--surface)'">
+            <span style="background:var(--green);color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:4px;white-space:nowrap"
+                  data-ar="عميل" data-en="Client">عميل</span>
+            <span style="font-size:12px;direction:ltr;flex:1;color:var(--muted)">client@tas3eerah.com</span>
+            <span style="font-size:11px;color:var(--muted2);direction:ltr">Demo@2025</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- إنشاء حساب -->
@@ -402,18 +443,18 @@ if ($user) { header('Location: /dashboard'); exit; }
       </div>
       <form onsubmit="doRegister();return false;" autocomplete="on">
         <div class="form-group">
-          <label>الاسم الكامل</label>
+          <label data-ar="الاسم الكامل" data-en="Full Name">الاسم الكامل</label>
           <input type="text" class="form-control" id="regName" name="name" placeholder="محمد أحمد" autocomplete="name">
         </div>
         <div class="form-group">
-          <label>البريد الإلكتروني</label>
+          <label data-ar="البريد الإلكتروني" data-en="Email">البريد الإلكتروني</label>
           <input type="email" class="form-control" id="regEmail" name="email" placeholder="you@example.com" dir="ltr" autocomplete="email">
         </div>
         <div class="form-group">
-          <label>كلمة المرور</label>
-          <input type="password" class="form-control" id="regPass" name="password" placeholder="٦ أحرف على الأقل" dir="ltr" autocomplete="new-password">
+          <label data-ar="كلمة المرور" data-en="Password">كلمة المرور</label>
+          <input type="password" class="form-control" id="regPass" name="password" placeholder="6+ characters" dir="ltr" autocomplete="new-password">
         </div>
-        <button type="submit" class="btn btn-primary w-full">إنشاء الحساب</button>
+        <button type="submit" class="btn btn-primary w-full" data-ar="إنشاء الحساب" data-en="Create Account">إنشاء الحساب</button>
       </form>
     </div>
   </div>
@@ -483,6 +524,12 @@ function showErr(msg) {
   const el = document.getElementById('authError');
   el.textContent = msg; el.classList.remove('hidden');
   el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function fillLogin(email, pass) {
+  document.getElementById('loginEmail').value = email;
+  document.getElementById('loginPass').value  = pass;
+  document.getElementById('authError').classList.add('hidden');
 }
 
 async function apiPost(url, data) {
