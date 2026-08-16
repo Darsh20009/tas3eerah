@@ -71,7 +71,7 @@ if ($user) { header('Location: /dashboard'); exit; }
       </p>
       <div class="hero-btns">
         <button class="btn btn-primary btn-lg" onclick="showAuth('register')" data-ar="جرّب مجاناً" data-en="Try for free">جرّب مجاناً</button>
-        <button class="btn btn-ghost   btn-lg" onclick="showAuth('demo')"     data-ar="عرض تجريبي"  data-en="Live demo">عرض تجريبي</button>
+        <button class="btn btn-ghost   btn-lg" onclick="showAuth('login')"    data-ar="تسجيل الدخول" data-en="Sign in">تسجيل الدخول</button>
       </div>
       <p class="hero-note">
         <span>✦</span>
@@ -206,8 +206,8 @@ if ($user) { header('Location: /dashboard'); exit; }
       <p data-ar="سجّل حسابك في أقل من دقيقة وابدأ بالتسعير" data-en="Create your account in under a minute and start pricing">سجّل حسابك في أقل من دقيقة وابدأ بالتسعير</p>
     </div>
     <div class="trust-actions">
-      <button class="btn btn-gold  btn-lg" onclick="showAuth('register')" data-ar="أنشئ حسابك"      data-en="Create account">أنشئ حسابك</button>
-      <button class="btn btn-ghost btn-lg" onclick="showAuth('demo')"     data-ar="جرّب بدون تسجيل" data-en="Try without signup">جرّب بدون تسجيل</button>
+      <button class="btn btn-gold  btn-lg" onclick="showAuth('register')" data-ar="أنشئ حسابك"   data-en="Create account">أنشئ حسابك</button>
+      <button class="btn btn-ghost btn-lg" onclick="showAuth('login')"   data-ar="تسجيل الدخول" data-en="Sign in">تسجيل الدخول</button>
     </div>
   </div>
 </div>
@@ -337,7 +337,6 @@ if ($user) { header('Location: /dashboard'); exit; }
         <div class="footer-links">
           <span onclick="showAuth('login')">تسجيل الدخول</span>
           <span onclick="showAuth('register')">إنشاء حساب</span>
-          <span onclick="showAuth('demo')">تجربة النظام</span>
         </div>
       </div>
       <div>
@@ -393,12 +392,6 @@ if ($user) { header('Location: /dashboard'); exit; }
         </div>
         <button type="submit" class="btn btn-primary w-full">دخول</button>
       </form>
-      <div class="auth-sep" data-ar="أو جرّب بدون تسجيل" data-en="or try without signing up">أو جرّب بدون تسجيل</div>
-      <div class="auth-demo">
-        <button type="button" onclick="doDemo('client')"   data-ar="عميل"  data-en="Client">عميل</button>
-        <button type="button" onclick="doDemo('employee')" data-ar="موظف"  data-en="Employee">موظف</button>
-        <button type="button" onclick="doDemo('admin')"    data-ar="مدير"  data-en="Admin">مدير</button>
-      </div>
     </div>
 
     <!-- إنشاء حساب -->
@@ -524,12 +517,6 @@ async function doRegister() {
   const res = await apiPost('/api/auth', { action: 'register', name, email, password: pass });
   if (res.success) location.href = '/dashboard';
   else showErr(res.error || 'خطأ في إنشاء الحساب');
-}
-
-async function doDemo(role) {
-  const res = await apiPost('/api/auth', { action: 'demo', role });
-  if (res.success) location.href = '/dashboard';
-  else showErr(res.error || 'حساب التجربة غير متاح');
 }
 
 document.addEventListener('keydown', e => {
