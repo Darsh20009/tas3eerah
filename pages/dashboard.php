@@ -174,36 +174,35 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
     <!-- ══ OVERVIEW ══ -->
     <div class="section-panel active" id="panel-overview">
       <div class="stats-grid" id="statsGrid">
-        <?php if ($role === 'admin'): ?>
-          <?php
+        <?php
+        $month = date('Y-m');
+        if ($role === 'admin'):
           $stats = [
-            ['المستخدمون', (int)DB::val("SELECT COUNT(*) FROM users"), 'إجمالي المستخدمين', 'accent'],
-            ['عروض الأسعار', (int)DB::val("SELECT COUNT(*) FROM quotes"), 'كل العروض', 'green'],
-            ['هذا الشهر', (int)DB::val("SELECT COUNT(*) FROM quotes WHERE strftime('%Y-%m',created_at)=strftime('%Y-%m','now')"), 'عروض هذا الشهر', ''],
-            ['الإيراد', number_format((float)DB::val("SELECT COALESCE(SUM(total),0) FROM quotes WHERE status='accepted'"), 0) . ' ر.س', 'مجموع المقبول', 'gold'],
+            ['المستخدمون', DB::count('users'), 'إجمالي المستخدمين', 'accent'],
+            ['عروض الأسعار', DB::count('quotes'), 'كل العروض', 'green'],
+            ['هذا الشهر', DB::count('quotes', ['created_at' => ['$regex' => '^' . $month]]), 'عروض هذا الشهر', ''],
+            ['الإيراد', number_format(DB::sumField('quotes', ['status' => 'accepted'], 'total'), 0) . ' ر.س', 'مجموع المقبول', 'gold'],
           ];
-          ?>
-        <?php elseif ($role === 'employee'): ?>
-          <?php
+        elseif ($role === 'employee'):
+          $uid = $user['id'];
+          $myQList = DB::findAll('quotes', ['employee_id' => (int)$uid], ['projection' => ['client_id' => 1, 'id' => 1]]);
+          $distinctClients = count(array_unique(array_column($myQList, 'client_id')));
+          $stats = [
+            ['عروضي', DB::count('quotes', ['employee_id' => (int)$uid]), 'إجمالي عروضي', 'accent'],
+            ['هذا الشهر', DB::count('quotes', ['employee_id' => (int)$uid, 'created_at' => ['$regex' => '^' . $month]]), 'عروض هذا الشهر', ''],
+            ['مقبولة', DB::count('quotes', ['employee_id' => (int)$uid, 'status' => 'accepted']), 'عروض مقبولة', 'green'],
+            ['العملاء', $distinctClients, 'عملاء لديّ', ''],
+          ];
+        else:
           $uid = $user['id'];
           $stats = [
-            ['عروضي', (int)DB::val("SELECT COUNT(*) FROM quotes WHERE employee_id=?", [$uid]), 'إجمالي عروضي', 'accent'],
-            ['هذا الشهر', (int)DB::val("SELECT COUNT(*) FROM quotes WHERE employee_id=? AND strftime('%Y-%m',created_at)=strftime('%Y-%m','now')", [$uid]), 'عروض هذا الشهر', ''],
-            ['مقبولة', (int)DB::val("SELECT COUNT(*) FROM quotes WHERE employee_id=? AND status='accepted'", [$uid]), 'عروض مقبولة', 'green'],
-            ['العملاء', (int)DB::val("SELECT COUNT(DISTINCT client_id) FROM quotes WHERE employee_id=?", [$uid]), 'عملاء لديّ', ''],
-          ];
-          ?>
-        <?php else: ?>
-          <?php
-          $uid = $user['id'];
-          $stats = [
-            ['عروضي', (int)DB::val("SELECT COUNT(*) FROM quotes WHERE client_id=?", [$uid]), 'إجمالي عروضي', 'accent'],
-            ['مقبولة', (int)DB::val("SELECT COUNT(*) FROM quotes WHERE client_id=? AND status='accepted'", [$uid]), 'مقبولة', 'green'],
-            ['قيد الانتظار', (int)DB::val("SELECT COUNT(*) FROM quotes WHERE client_id=? AND status='sent'", [$uid]), 'بانتظار ردك', 'gold'],
+            ['عروضي', DB::count('quotes', ['client_id' => (int)$uid]), 'إجمالي عروضي', 'accent'],
+            ['مقبولة', DB::count('quotes', ['client_id' => (int)$uid, 'status' => 'accepted']), 'مقبولة', 'green'],
+            ['قيد الانتظار', DB::count('quotes', ['client_id' => (int)$uid, 'status' => 'sent']), 'بانتظار ردك', 'gold'],
             ['خطتك', $plan['name_ar'], 'مستوى الاشتراك', ''],
           ];
-          ?>
-        <?php endif; ?>
+        endif;
+        ?>
         <?php foreach ($stats as [$label, $value, $sub, $cls]): ?>
         <div class="stat-card <?= $cls ?>">
           <div class="stat-label"><?= $label ?></div>
@@ -220,11 +219,32 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
           <button class="btn btn-ghost btn-sm" onclick="nav(document.querySelector('[data-panel=quotes]'))">عرض الكل</button>
         </div>
         <?php
-        $recentQ = $role === 'admin'
-          ? DB::all("SELECT q.*, c.name as client_name, e.name as employee_name FROM quotes q LEFT JOIN users c ON c.id=q.client_id LEFT JOIN users e ON e.id=q.employee_id ORDER BY q.created_at DESC LIMIT 5")
-          : ($role === 'employee'
-              ? DB::all("SELECT q.*, c.name as client_name FROM quotes q LEFT JOIN users c ON c.id=q.client_id WHERE q.employee_id=? ORDER BY q.created_at DESC LIMIT 5", [$user['id']])
-              : DB::all("SELECT q.*, e.name as employee_name FROM quotes q LEFT JOIN users e ON e.id=q.employee_id WHERE q.client_id=? ORDER BY q.created_at DESC LIMIT 5", [$user['id']]));
+        $qLookupBase = [
+            ['$lookup'   => ['from' => 'users', 'localField' => 'client_id',   'foreignField' => 'id', 'as' => 'client']],
+            ['$lookup'   => ['from' => 'users', 'localField' => 'employee_id', 'foreignField' => 'id', 'as' => 'employee']],
+            ['$addFields' => [
+                'client_name'   => ['$arrayElemAt' => ['$client.name',   0]],
+                'employee_name' => ['$arrayElemAt' => ['$employee.name', 0]],
+            ]],
+            ['$project'  => ['client' => 0, 'employee' => 0, 'items' => 0]],
+        ];
+        if ($role === 'admin') {
+            $recentPipeline = array_merge(
+                [['$sort' => ['created_at' => -1]], ['$limit' => 5]],
+                $qLookupBase
+            );
+        } elseif ($role === 'employee') {
+            $recentPipeline = array_merge(
+                [['$match' => ['employee_id' => (int)$user['id']]], ['$sort' => ['created_at' => -1]], ['$limit' => 5]],
+                $qLookupBase
+            );
+        } else {
+            $recentPipeline = array_merge(
+                [['$match' => ['client_id' => (int)$user['id']]], ['$sort' => ['created_at' => -1]], ['$limit' => 5]],
+                $qLookupBase
+            );
+        }
+        $recentQ = DB::aggregate('quotes', $recentPipeline);
         ?>
         <table class="data-table">
           <thead><tr>
@@ -655,7 +675,9 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
           <div class="calc-result-row big"><span>الحد الأدنى لسعر المشروع (مع الربح)</span><span id="of_rMin">-</span></div>
           <?= toolSaveBtn($isPaid, 'office', 'تسعيرة المكتب والوكالة') ?>
         </div>
-        <!-- ═ TOOL: Custom Free-form ═ -->
+      </div><!-- /tool-calc_office -->
+
+      <!-- ═ TOOL: Custom Free-form ═ -->
       <div class="tool-panel" id="tool-calc_custom">
         <button class="btn btn-ghost btn-sm mb-16" onclick="closeTool()">← الأدوات</button>
         <h2 style="font-size:20px;font-weight:900;margin-bottom:16px">تسعيرة حرة مخصصة</h2>
@@ -813,6 +835,51 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
       </div>
     </div>
 
+    <?php if ($role === 'admin'): ?>
+    <!-- ══ ADMIN: CONTACT INBOX ══ -->
+    <div class="section-panel" id="panel-contact-inbox">
+      <div class="card">
+        <div class="card-header"><h3>رسائل التواصل</h3></div>
+        <table class="data-table">
+          <thead><tr><th>الاسم</th><th>البريد</th><th>الرسالة</th><th>التاريخ</th><th>إجراء</th></tr></thead>
+          <tbody id="contactInboxTbody">
+            <tr><td colspan="5" style="text-align:center;padding:32px;color:var(--muted)">جارٍ التحميل...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ ADMIN: SETTINGS ══ -->
+    <div class="section-panel" id="panel-settings">
+      <div style="max-width:560px;display:flex;flex-direction:column;gap:18px">
+        <div class="card" style="padding:24px">
+          <h3 style="font-size:15px;font-weight:800;margin-bottom:18px;color:var(--p)">معلومات التواصل</h3>
+          <div class="form-group">
+            <label>بريد الدعم الفني</label>
+            <input type="email" class="form-control" id="setContactEmail" placeholder="support@tas3eerah.com" dir="ltr">
+          </div>
+          <div class="form-group">
+            <label>رقم واتساب الدعم</label>
+            <input type="text" class="form-control" id="setWhatsapp" placeholder="966500000000" dir="ltr">
+          </div>
+        </div>
+        <div class="card" style="padding:24px">
+          <h3 style="font-size:15px;font-weight:800;margin-bottom:18px;color:var(--p)">إعدادات العرض</h3>
+          <div class="form-group">
+            <label>اسم المنصة</label>
+            <input type="text" class="form-control" id="setSiteName" placeholder="تسعيرة">
+          </div>
+          <div class="form-group">
+            <label>رسالة الترحيب للمستخدمين الجدد</label>
+            <textarea class="form-control" id="setWelcomeMsg" placeholder="مرحباً بك في تسعيرة..." style="height:80px"></textarea>
+          </div>
+        </div>
+        <div id="settingsMsg" class="hidden"></div>
+        <button class="btn btn-primary" onclick="saveSettings()">💾 حفظ الإعدادات</button>
+      </div>
+    </div>
+    <?php endif; ?>
+
   </div><!-- /workspace -->
 </div><!-- /main-area -->
 </div><!-- /app-shell -->
@@ -852,54 +919,6 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
       <button class="btn btn-primary flex-1" onclick="saveUser()">حفظ</button>
       <button class="btn btn-ghost" onclick="closeUserModal()">إلغاء</button>
     </div>
-  </div>
-</div>
-
-<!-- CONTACT INBOX PANEL -->
-<div class="section-panel hidden" id="panel-contact-inbox">
-  <div class="panel-header">
-    <h2>رسائل التواصل</h2>
-  </div>
-  <div class="table-wrap">
-    <table class="data-table">
-      <thead><tr>
-        <th>الاسم</th><th>البريد</th><th>الرسالة</th><th>التاريخ</th><th>إجراء</th>
-      </tr></thead>
-      <tbody id="contactInboxTbody">
-        <tr><td colspan="5" style="text-align:center;padding:32px;color:var(--muted)">جارٍ التحميل...</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- SETTINGS PANEL -->
-<div class="section-panel hidden" id="panel-settings">
-  <div class="panel-header"><h2>إعدادات النظام</h2></div>
-  <div style="max-width:560px;display:flex;flex-direction:column;gap:18px">
-    <div class="card" style="padding:24px">
-      <h3 style="font-size:15px;font-weight:800;margin-bottom:18px;color:var(--p)">معلومات التواصل</h3>
-      <div class="form-group">
-        <label>بريد الدعم الفني</label>
-        <input type="email" class="form-control" id="setContactEmail" placeholder="support@tas3eerah.com" dir="ltr">
-      </div>
-      <div class="form-group">
-        <label>رقم واتساب الدعم</label>
-        <input type="text" class="form-control" id="setWhatsapp" placeholder="966500000000" dir="ltr">
-      </div>
-    </div>
-    <div class="card" style="padding:24px">
-      <h3 style="font-size:15px;font-weight:800;margin-bottom:18px;color:var(--p)">إعدادات العرض</h3>
-      <div class="form-group">
-        <label>اسم المنصة</label>
-        <input type="text" class="form-control" id="setSiteName" placeholder="تسعيرة">
-      </div>
-      <div class="form-group">
-        <label>رسالة الترحيب للمستخدمين الجدد</label>
-        <textarea class="form-control" id="setWelcomeMsg" placeholder="مرحباً بك في تسعيرة..." style="height:80px"></textarea>
-      </div>
-    </div>
-    <div id="settingsMsg" class="hidden"></div>
-    <button class="btn btn-primary" onclick="saveSettings()">💾 حفظ الإعدادات</button>
   </div>
 </div>
 
