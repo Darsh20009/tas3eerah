@@ -86,16 +86,18 @@ class DB {
     }
 
     private static function seed(PDO $db): void {
-        // Only seed demo data in development — production starts with an empty DB
-        if (defined('APP_ENV') && APP_ENV !== 'development') return;
-
+        // Always ensure the admin account exists so the system is never locked out
         $has = $db->query("SELECT id FROM users WHERE role='admin' LIMIT 1")->fetch();
         if ($has) return;
 
         $h = fn($p) => password_hash($p, PASSWORD_BCRYPT);
         $ins = $db->prepare("INSERT INTO users (name,email,password_hash,role,plan) VALUES (?,?,?,?,?)");
 
-        $ins->execute(['مدير النظام',   'admin@tas3eerah.com',    $h('Admin@2025'),    'admin',    'enterprise']);
+        $ins->execute(['مدير النظام', 'admin@tas3eerah.com', $h('Admin@2025'), 'admin', 'enterprise']);
+
+        // Demo users and sample data — development only
+        if (defined('APP_ENV') && APP_ENV !== 'development') return;
+
         $ins->execute(['أحمد الموظف',   'employee@tas3eerah.com', $h('Demo@2025'),     'employee', 'pro']);
         $ins->execute(['سارة العميلة',   'client@tas3eerah.com',  $h('Demo@2025'),     'client',   'free']);
 

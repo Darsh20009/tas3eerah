@@ -494,9 +494,10 @@ function showErr(msg) {
 
 async function apiPost(url, data) {
   try {
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
     const r = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
       body: JSON.stringify(data)
     });
     return await r.json();

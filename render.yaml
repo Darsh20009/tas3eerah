@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: tas3eerah
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: APP_ENV
+        value: production
+      # Set APP_URL to your Render URL after first deploy, e.g.:
+      # - key: APP_URL
+      #   value: https://tas3eerah.onrender.com
