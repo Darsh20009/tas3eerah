@@ -18,13 +18,17 @@ if (preg_match('#^/assets/.+#', $uri)) {
     if (file_exists($file) && is_file($file)) {
         $ext  = strtolower(pathinfo($file, PATHINFO_EXTENSION));
         $mime = match($ext) {
-            'css'  => 'text/css',
+            'css'  => 'text/css; charset=UTF-8',
             'js'   => 'application/javascript',
             'png'  => 'image/png',
             'jpg','jpeg' => 'image/jpeg',
             'svg'  => 'image/svg+xml',
             'ico'  => 'image/x-icon',
             'woff2'=> 'font/woff2',
+            'woff' => 'font/woff',
+            'ttf'  => 'font/ttf',
+            'otf'  => 'font/otf',
+            'eot'  => 'application/vnd.ms-fontobject',
             default => 'application/octet-stream',
         };
         header("Content-Type: $mime");

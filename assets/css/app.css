@@ -3,7 +3,12 @@
    هوية سعودية: أخضر داكن · ذهبي · بيج دافئ · أوف وايت
    ════════════════════════════════════════════════════ */
 
-/* ── الخطوط المحلية ── */
+/* ══════════════════════════════════════════════════
+   الخطوط الرسمية — محلية بالكامل بدون إنترنت
+   BritishCouncil-Arabic  (العربي)
+   Hurme Geometric Sans   (الإنجليزي)
+   ══════════════════════════════════════════════════ */
+
 @font-face {
   font-family: 'BritishCouncil';
   src: url('/assets/fonts/BritishCouncil-Arabic.ttf') format('truetype');
@@ -15,29 +20,30 @@
   font-family: 'Hurme';
   src: url('/assets/fonts/Hurme-Light.otf') format('opentype');
   font-weight: 300;
+  font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'Hurme';
   src: url('/assets/fonts/Hurme-Regular.otf') format('opentype');
   font-weight: 400;
+  font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'Hurme';
   src: url('/assets/fonts/Hurme-SemiBold.otf') format('opentype');
   font-weight: 600;
+  font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'Hurme';
   src: url('/assets/fonts/Hurme-Bold.otf') format('opentype');
   font-weight: 700;
+  font-style: normal;
   font-display: swap;
 }
-
-/* خط احتياطي من Google */
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap');
 
 /* ══════════════════════════════════════════════════
    متغيرات هوية تسعيرة
@@ -105,20 +111,16 @@
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 
 body {
-  font-family: 'BritishCouncil', 'Tajawal', 'Hurme', system-ui, sans-serif;
+  font-family: 'BritishCouncil', 'Hurme', 'Arial', sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
   font-size: 14px;
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
-
-/* الانجليزي يستخدم Hurme */
-:lang(en) body,
-[dir="ltr"],
-[dir="ltr"] * { font-family: 'Hurme', system-ui, sans-serif; }
 
 button, input, textarea, select { font: inherit; color: inherit; }
 button { cursor: pointer; border: none; background: none; }
@@ -310,16 +312,17 @@ select.form-control { cursor: pointer; }
   position: sticky; top: 0; z-index: 200; gap: 12px;
   box-shadow: 0 1px 8px rgba(26,43,32,.06);
 }
-.land-brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; text-decoration: none; }
-.land-brand-logo-wrap {
-  width: 40px; height: 40px; border-radius: 10px;
-  background: var(--p-d); overflow: hidden;
-  display: flex; align-items: center; justify-content: center;
+.land-brand { display: flex; align-items: center; flex-shrink: 0; text-decoration: none; }
+.land-brand-logo {
+  /* عرض الشعار بحجم حقيقي — object-fit:cover يقص الحواف السوداء الزائدة */
+  width: 160px;
+  height: 52px;
+  object-fit: cover;
+  object-position: center 38%;
+  display: block;
+  border-radius: 9px;
   flex-shrink: 0;
 }
-.land-brand-logo-wrap img { width: 100%; height: 100%; object-fit: cover; }
-.land-brand-name { font-size: 16px; font-weight: 900; color: var(--text); }
-.land-brand-sub  { font-size: 9px; color: var(--muted2); display: block; font-weight: 500; }
 
 .land-nav-links { display: flex; gap: 0; }
 .land-nav-links a {
@@ -399,11 +402,13 @@ select.form-control { cursor: pointer; }
   margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--line2);
 }
 .hero-card-logo-wrap {
-  width: 36px; height: 36px; border-radius: 9px;
-  background: var(--p-d); overflow: hidden; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
+  width: 120px; height: 38px;
+  flex-shrink: 0; overflow: hidden; border-radius: 7px;
 }
-.hero-card-logo-wrap img { width: 100%; height: 100%; object-fit: cover; }
+.hero-card-logo-wrap img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center 38%;
+}
 .hero-card-title { font-size: 13px; font-weight: 700; color: var(--text); }
 .hero-card-sub { font-size: 11px; color: var(--muted); }
 .hero-stat-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--line2); }
@@ -541,14 +546,14 @@ select.form-control { cursor: pointer; }
 .land-footer { background: var(--p-d); color: rgba(255,255,255,.8); }
 .footer-inner { max-width: 1140px; margin: auto; padding: 56px 24px 26px; }
 .footer-grid { display: grid; grid-template-columns: 1.8fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 44px; }
-.footer-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.footer-brand { display: flex; align-items: center; margin-bottom: 16px; }
 .footer-brand-logo {
-  width: 38px; height: 38px; border-radius: 9px;
-  background: rgba(255,255,255,.1); overflow: hidden;
-  display: flex; align-items: center; justify-content: center;
+  width: 180px; height: 58px; border-radius: 9px; overflow: hidden;
 }
-.footer-brand-logo img { width: 100%; height: 100%; object-fit: cover; }
-.footer-brand strong { font-size: 16px; font-weight: 900; color: #fff; }
+.footer-brand-logo img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center 38%;
+}
 .footer-col-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: rgba(255,255,255,.5); margin-bottom: 16px; }
 .footer-links { display: flex; flex-direction: column; gap: 10px; }
 .footer-links a, .footer-links span {
@@ -576,13 +581,11 @@ select.form-control { cursor: pointer; }
   padding: 34px; width: 100%; max-width: 420px;
   box-shadow: var(--sh-lg); position: relative; max-height: 96vh; overflow-y: auto;
 }
-.auth-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
-.auth-logo-wrap {
-  width: 36px; height: 36px; border-radius: 9px; background: var(--p-d);
-  overflow: hidden; display: flex; align-items: center; justify-content: center;
+.auth-logo { display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
+.auth-logo-img {
+  width: 180px; height: 58px; display: block; border-radius: 10px;
+  object-fit: cover; object-position: center 38%;
 }
-.auth-logo-wrap img { width: 100%; height: 100%; object-fit: cover; }
-.auth-logo strong { font-size: 16px; font-weight: 900; color: var(--text); }
 .auth-tabs { display: flex; margin-bottom: 22px; border-bottom: 2px solid var(--line); }
 .auth-tab {
   flex: 1; padding: 10px; text-align: center; font-weight: 700; font-size: 13px;
@@ -629,17 +632,13 @@ select.form-control { cursor: pointer; }
 }
 
 .sb-logo {
-  padding: 17px 14px 14px; display: flex; align-items: center; gap: 10px;
+  padding: 14px 14px 12px; display: flex; align-items: center; justify-content: center;
   border-bottom: 1px solid var(--sb-line); flex-shrink: 0;
 }
-.sb-logo-wrap {
-  width: 34px; height: 34px; border-radius: 9px;
-  background: rgba(255,255,255,.08); overflow: hidden;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+.sb-logo-img {
+  width: 174px; height: 56px; display: block; border-radius: 8px;
+  object-fit: cover; object-position: center 38%;
 }
-.sb-logo-wrap img { width: 100%; height: 100%; object-fit: cover; }
-.sb-logo strong { font-size: 14px; font-weight: 900; color: #fff; }
-.sb-logo span { font-size: 10px; color: rgba(255,255,255,.32); display: block; letter-spacing: .3px; }
 
 .sb-close-btn {
   display: none; position: absolute; top: 15px; left: 13px;

@@ -16,20 +16,14 @@ if ($user) { header('Location: /dashboard'); exit; }
   <meta name="description" content="تسعيرة — منصة عربية سعودية للتسعير وعروض الأسعار وإدارة العملاء">
   <link rel="icon" type="image/png" href="/assets/logo.png">
   <title>تسعيرة | منصة التسعير العربية</title>
-  <link rel="stylesheet" href="/assets/css/app.css">
+  <link rel="stylesheet" href="/assets/css/app.css?v=<?= filemtime(__DIR__.'/../assets/css/app.css') ?>">
 </head>
 <body>
 
 <!-- ═══ شريط التنقل ═══ -->
 <nav class="land-nav">
   <a class="land-brand" href="/">
-    <div class="land-brand-logo-wrap">
-      <img src="/assets/logo.png" alt="تسعيرة">
-    </div>
-    <div>
-      <span class="land-brand-name" data-ar="تسعيرة" data-en="Tas3eerah">تسعيرة</span>
-      <span class="land-brand-sub"  data-ar="منصة التسعير العربية" data-en="Arabic Pricing Platform">منصة التسعير العربية</span>
-    </div>
+    <img class="land-brand-logo" src="/assets/logo.png" alt="تسعيرة">
   </a>
 
   <div class="land-nav-links">
@@ -88,7 +82,7 @@ if ($user) { header('Location: /dashboard'); exit; }
       <div class="hero-card-wrap">
         <div class="hero-card-header">
           <div class="hero-card-logo-wrap">
-            <img src="/assets/logo.png" alt="تسعيرة">
+            <img src="/assets/logo.png" alt="تسعيرة" style="width:100%;height:100%;object-fit:cover;object-position:center 38%;">
           </div>
           <div>
             <div class="hero-card-title">لوحة تحكم تسعيرة</div>
@@ -319,9 +313,8 @@ if ($user) { header('Location: /dashboard'); exit; }
       <div>
         <div class="footer-brand">
           <div class="footer-brand-logo">
-            <img src="/assets/logo.png" alt="تسعيرة">
+            <img src="/assets/logo.png" alt="تسعيرة" style="width:100%;height:100%;object-fit:cover;object-position:center 38%;">
           </div>
-          <strong>تسعيرة</strong>
         </div>
         <div class="footer-gold-line"></div>
         <p style="font-size:12px;color:rgba(255,255,255,.55);line-height:2;max-width:260px">منصة عربية لإدارة التسعير، عروض الأسعار، والتواصل مع العملاء.</p>
@@ -377,10 +370,7 @@ if ($user) { header('Location: /dashboard'); exit; }
     <button onclick="hideAuth()" style="position:absolute;top:14px;left:14px;background:none;border:none;font-size:18px;color:var(--muted);cursor:pointer;line-height:1">✕</button>
 
     <div class="auth-logo">
-      <div class="auth-logo-wrap">
-        <img src="/assets/logo.png" width="36" alt="تسعيرة">
-      </div>
-      <strong data-ar="تسعيرة" data-en="Tas3eerah">تسعيرة</strong>
+      <img class="auth-logo-img" src="/assets/logo.png" alt="تسعيرة">
     </div>
 
     <div id="authError" class="auth-error hidden"></div>
