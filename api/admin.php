@@ -50,7 +50,8 @@ function users(): never {
     if ($plan)   { $where[] = "plan=?"; $params[] = $plan; }
 
     $list = DB::all(
-        "SELECT id,name,email,role,plan,plan_expires_at,is_active,created_at FROM users WHERE " . implode(' AND ', $where) . " ORDER BY created_at DESC",
+        "SELECT id,name,email,role,plan,plan_expires_at,is_active,created_at FROM users
+         WHERE " . implode(' AND ', $where) . " ORDER BY created_at DESC",
         $params
     );
     Response::ok($list);
@@ -63,13 +64,16 @@ function userCreate(array $me, array $b): never {
     $role  = $b['role'] ?? 'client';
     $plan  = $b['plan'] ?? 'free';
 
-    if (!$name || !$email) Response::err('الاسم والبريد مطلوبان');
+    if (!$name || !$email)   Response::err('الاسم والبريد مطلوبان');
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) Response::err('البريد الإلكتروني غير صحيح');
     if (DB::val("SELECT id FROM users WHERE email=?", [$email])) Response::err('البريد مسجل مسبقاً');
     if (!in_array($role, ['client','employee','admin'])) Response::err('دور غير صحيح');
     if (!array_key_exists($plan, PLANS)) Response::err('خطة غير صحيحة');
 
-    DB::run("INSERT INTO users (name,email,password_hash,role,plan) VALUES (?,?,?,?,?)",
-        [$name, $email, password_hash($pass, PASSWORD_BCRYPT), $role, $plan]);
+    DB::run(
+        "INSERT INTO users (name,email,password_hash,role,plan) VALUES (?,?,?,?,?)",
+        [$name, $email, password_hash($pass, PASSWORD_BCRYPT), $role, $plan]
+    );
     $id = (int)DB::id();
     DB::run("INSERT INTO activity_log (user_id,action,details) VALUES (?,?,?)",
         [$me['id'], 'admin_user_create', "مستخدم جديد: $email"]);
@@ -86,11 +90,21 @@ function userUpdate(array $me, array $b): never {
     $u = DB::row("SELECT * FROM users WHERE id=?", [$id]);
     if (!$u) Response::err('المستخدم غير موجود', 404);
 
-    $sql = "UPDATE users SET updated=1"; // placeholder
-    $params = [];
-    if ($name) { DB::run("UPDATE users SET name=? WHERE id=?", [$name, $id]); }
-    if ($role && in_array($role, ['client','employee','admin'])) { DB::run("UPDATE users SET role=? WHERE id=?", [$role, $id]); }
-    if ($pass && strlen($pass) >= 6) { DB::run("UPDATE users SET password_hash=? WHERE id=?", [password_hash($pass, PASSWORD_BCRYPT), $id]); }
+    // Prevent demoting the last admin
+    if ($role && $role !== 'admin' && $u['role'] === 'admin') {
+        $adminCount = (int)DB::val("SELECT COUNT(*) FROM users WHERE role='admin' AND is_active=1");
+        if ($adminCount <= 1) Response::err('لا يمكن تغيير دور المدير الوحيد في النظام');
+    }
+
+    if ($name) {
+        DB::run("UPDATE users SET name=? WHERE id=?", [$name, $id]);
+    }
+    if ($role && in_array($role, ['client','employee','admin'], true)) {
+        DB::run("UPDATE users SET role=? WHERE id=?", [$role, $id]);
+    }
+    if ($pass && strlen($pass) >= 6) {
+        DB::run("UPDATE users SET password_hash=? WHERE id=?", [password_hash($pass, PASSWORD_BCRYPT), $id]);
+    }
 
     DB::run("INSERT INTO activity_log (user_id,action,details) VALUES (?,?,?)",
         [$me['id'], 'admin_user_update', "مستخدم: $id"]);
@@ -112,9 +126,40 @@ function userToggle(array $me, array $b): never {
 
 function userDelete(array $me, array $b): never {
     $id = (int)($b['id'] ?? 0);
+    if (!$id) Response::err('معرف مطلوب');
     if ($id === $me['id']) Response::err('لا يمكنك حذف حسابك');
-    DB::run("DELETE FROM users WHERE id=?", [$id]);
-    Response::ok([], 'تم الحذف');
+
+    $u = DB::row("SELECT * FROM users WHERE id=?", [$id]);
+    if (!$u) Response::err('المستخدم غير موجود', 404);
+
+    // Prevent deletion if user has quotes (data integrity)
+    $quoteCount = (int)DB::val(
+        "SELECT COUNT(*) FROM quotes WHERE employee_id=? OR client_id=?",
+        [$id, $id]
+    );
+    if ($quoteCount > 0) {
+        Response::err(
+            "لا يمكن حذف المستخدم لأن لديه $quoteCount عرض/عروض أسعار. قم بتعطيل الحساب عوضاً عن ذلك.",
+            409
+        );
+    }
+
+    $db = DB::get();
+    try {
+        $db->beginTransaction();
+        // Clean up messages (no CASCADE on users FK)
+        DB::run("DELETE FROM messages WHERE sender_id=? OR receiver_id=?", [$id, $id]);
+        DB::run("DELETE FROM activity_log WHERE user_id=?", [$id]);
+        DB::run("DELETE FROM users WHERE id=?", [$id]);
+        $db->commit();
+    } catch (Throwable $e) {
+        $db->rollBack();
+        Response::err('فشل حذف المستخدم، يرجى المحاولة مجدداً');
+    }
+
+    DB::run("INSERT INTO activity_log (user_id,action,details) VALUES (?,?,?)",
+        [$me['id'], 'admin_user_delete', "حذف المستخدم: {$u['email']}"]);
+    Response::ok([], 'تم حذف المستخدم');
 }
 
 function setPlan(array $me, array $b): never {
@@ -124,6 +169,7 @@ function setPlan(array $me, array $b): never {
 
     if (!$id || !$plan) Response::err('البيانات ناقصة');
     if (!array_key_exists($plan, PLANS)) Response::err('خطة غير صحيحة');
+    if (!DB::val("SELECT id FROM users WHERE id=?", [$id])) Response::err('المستخدم غير موجود', 404);
 
     DB::run("UPDATE users SET plan=?, plan_expires_at=? WHERE id=?", [$plan, $expires, $id]);
     DB::run("INSERT INTO activity_log (user_id,action,details) VALUES (?,?,?)",

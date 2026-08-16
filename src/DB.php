@@ -76,6 +76,11 @@ class DB {
                 ip         TEXT,
                 created_at TEXT NOT NULL DEFAULT (datetime('now'))
             );
+            CREATE TABLE IF NOT EXISTS quote_counter (
+                last_num INTEGER NOT NULL DEFAULT 0
+            );
+            INSERT OR IGNORE INTO quote_counter (last_num)
+                SELECT 0 WHERE NOT EXISTS (SELECT 1 FROM quote_counter);
         ");
         self::seed($db);
     }
