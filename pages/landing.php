@@ -391,20 +391,22 @@ if ($user) { header('Location: /dashboard'); exit; }
         <div class="auth-tab active" onclick="showAuth('login')" data-ar="تسجيل الدخول" data-en="Sign in">تسجيل الدخول</div>
         <div class="auth-tab"        onclick="showAuth('register')" data-ar="إنشاء حساب" data-en="Create account">إنشاء حساب</div>
       </div>
-      <div class="form-group">
-        <label>البريد الإلكتروني</label>
-        <input type="email" class="form-control" id="loginEmail" placeholder="you@example.com" dir="ltr" autocomplete="email">
-      </div>
-      <div class="form-group">
-        <label>كلمة المرور</label>
-        <input type="password" class="form-control" id="loginPass" placeholder="••••••" dir="ltr" autocomplete="current-password">
-      </div>
-      <button class="btn btn-primary w-full" onclick="doLogin()">دخول</button>
+      <form onsubmit="doLogin();return false;" autocomplete="on">
+        <div class="form-group">
+          <label>البريد الإلكتروني</label>
+          <input type="email" class="form-control" id="loginEmail" name="email" placeholder="you@example.com" dir="ltr" autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label>كلمة المرور</label>
+          <input type="password" class="form-control" id="loginPass" name="password" placeholder="••••••" dir="ltr" autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-primary w-full">دخول</button>
+      </form>
       <div class="auth-sep" data-ar="أو جرّب بدون تسجيل" data-en="or try without signing up">أو جرّب بدون تسجيل</div>
       <div class="auth-demo">
-        <button onclick="doDemo('client')"   data-ar="عميل"  data-en="Client">عميل</button>
-        <button onclick="doDemo('employee')" data-ar="موظف"  data-en="Employee">موظف</button>
-        <button onclick="doDemo('admin')"    data-ar="مدير"  data-en="Admin">مدير</button>
+        <button type="button" onclick="doDemo('client')"   data-ar="عميل"  data-en="Client">عميل</button>
+        <button type="button" onclick="doDemo('employee')" data-ar="موظف"  data-en="Employee">موظف</button>
+        <button type="button" onclick="doDemo('admin')"    data-ar="مدير"  data-en="Admin">مدير</button>
       </div>
     </div>
 
@@ -414,19 +416,21 @@ if ($user) { header('Location: /dashboard'); exit; }
         <div class="auth-tab"        onclick="showAuth('login')"    data-ar="تسجيل الدخول" data-en="Sign in">تسجيل الدخول</div>
         <div class="auth-tab active" onclick="showAuth('register')" data-ar="إنشاء حساب"  data-en="Create account">إنشاء حساب</div>
       </div>
-      <div class="form-group">
-        <label>الاسم الكامل</label>
-        <input type="text" class="form-control" id="regName" placeholder="محمد أحمد" autocomplete="name">
-      </div>
-      <div class="form-group">
-        <label>البريد الإلكتروني</label>
-        <input type="email" class="form-control" id="regEmail" placeholder="you@example.com" dir="ltr" autocomplete="email">
-      </div>
-      <div class="form-group">
-        <label>كلمة المرور</label>
-        <input type="password" class="form-control" id="regPass" placeholder="٦ أحرف على الأقل" dir="ltr" autocomplete="new-password">
-      </div>
-      <button class="btn btn-primary w-full" onclick="doRegister()">إنشاء الحساب</button>
+      <form onsubmit="doRegister();return false;" autocomplete="on">
+        <div class="form-group">
+          <label>الاسم الكامل</label>
+          <input type="text" class="form-control" id="regName" name="name" placeholder="محمد أحمد" autocomplete="name">
+        </div>
+        <div class="form-group">
+          <label>البريد الإلكتروني</label>
+          <input type="email" class="form-control" id="regEmail" name="email" placeholder="you@example.com" dir="ltr" autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label>كلمة المرور</label>
+          <input type="password" class="form-control" id="regPass" name="password" placeholder="٦ أحرف على الأقل" dir="ltr" autocomplete="new-password">
+        </div>
+        <button type="submit" class="btn btn-primary w-full">إنشاء الحساب</button>
+      </form>
     </div>
   </div>
 </div>
