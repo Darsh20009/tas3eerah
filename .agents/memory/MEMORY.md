@@ -1,3 +1,4 @@
+- [Dual-mode DB](db-dual-mode.md) — MongoDB في الإنتاج (Docker/Render)، SQLite محلياً (Replit) — نفس الـ interface
 - [System Architecture](system-arch.md) — PHP 8.4 + SQLite3، هيكل ملفات منفصل، router.php كنقطة دخول واحدة
 - [Quote System](quote-system.md) — transactions إلزامية، quote_counter table للأرقام، permission matrix للحالات
 - [Auth & Sessions](auth-sessions.md) — PHP sessions بـ bcrypt، 3 حسابات تجريبية محددة، session name: TAS3_SESS
