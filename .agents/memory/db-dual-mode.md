@@ -26,4 +26,9 @@ description: DB.php automatically selects MongoDB in production and SQLite local
 
 **Why:** Replit NixOS cannot install ext-mongodb (pecl fails, nix store immutable). Docker (Render) installs it via Dockerfile. Dual-mode lets local dev use SQLite while production uses MongoDB Atlas for persistence.
 
+## Dockerfile ext-mongodb version — MUST PIN
+`pecl install mongodb` installs 2.x (latest). `mongodb/mongodb ^1.19` requires `ext-mongodb ^1.x` — version mismatch kills the Composer step.
+**Always use**: `pecl install mongodb-1.21.0` in the Dockerfile.
+If upgrading the PHP library to `^2.0`, remove the pin and test API compatibility (FindOneAndUpdate constants, typeMap, etc.).
+
 **How to apply:** Never check for MongoDB extension directly in business code. Always go through `DB::*` methods. If a new method is needed, add both a MongoDB and SQLite implementation.
