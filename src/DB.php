@@ -171,6 +171,15 @@ class DB {
                 seq INTEGER NOT NULL DEFAULT 0
             );
         ");
+        // Add columns that may have been added after initial schema creation
+        $addIfMissing = [
+            "ALTER TABLE quotes ADD COLUMN items TEXT NOT NULL DEFAULT '[]'",
+            "ALTER TABLE users  ADD COLUMN plan_expires_at TEXT",
+        ];
+        foreach ($addIfMissing as $sql) {
+            try { self::$pdo->exec($sql); } catch (\Throwable) {}
+        }
+
         // Ensure admin exists
         $has = self::$pdo->query("SELECT id FROM users WHERE role='admin' LIMIT 1")->fetch();
         if ($has) return;
@@ -257,7 +266,8 @@ class DB {
             $val = $stage[$key];
 
             if ($key === '$match') {
-                $matchFilter = $val;
+                // MongoDB requires (object)[] for empty match; SQLite needs []
+                $matchFilter = is_array($val) ? $val : [];
             } elseif ($key === '$lookup') {
                 $from    = $val['from'];
                 $local   = $val['localField'];
@@ -450,6 +460,26 @@ class DB {
         $stmt = self::get()->prepare("SELECT COALESCE(SUM({$field}), 0) FROM {$col} WHERE " . implode(' AND ', $where));
         $stmt->execute($params);
         return (float)$stmt->fetchColumn();
+    }
+
+    /**
+     * Upsert a document by a unique key field.
+     * Works like: if document with $keyField=$keyValue exists → update; else → insert.
+     */
+    public static function upsertByKey(string $col, string $keyField, mixed $keyValue, array $data): void {
+        if (self::isMongo()) {
+            self::col($col)->updateOne(
+                [$keyField => $keyValue],
+                ['$set' => array_merge($data, [$keyField => $keyValue])],
+                ['upsert' => true]
+            );
+            return;
+        }
+        // SQLite: INSERT OR REPLACE (no auto created_at — caller controls schema)
+        $data[$keyField] = $keyValue;
+        $cols  = implode(',', array_keys($data));
+        $ph    = implode(',', array_fill(0, count($data), '?'));
+        self::get()->prepare("INSERT OR REPLACE INTO {$col} ({$cols}) VALUES ({$ph})")->execute(array_values($data));
     }
 
     public static function nextQuoteNumber(): string {

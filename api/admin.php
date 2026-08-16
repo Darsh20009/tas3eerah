@@ -247,11 +247,7 @@ function saveSettings(array $me, array $b): never {
     $allowed = ['contact_email', 'whatsapp', 'site_name', 'welcome_message'];
     foreach ($allowed as $key) {
         if (array_key_exists($key, $b)) {
-            DB::col('settings')->updateOne(
-                ['key' => $key],
-                ['$set' => ['key' => $key, 'value' => trim((string)$b[$key])]],
-                ['upsert' => true]
-            );
+            DB::upsertByKey('settings', 'key', $key, ['value' => trim((string)$b[$key])]);
         }
     }
     DB::insertDoc('activity_log', ['user_id' => (int)$me['id'], 'action' => 'settings_saved', 'details' => 'تعديل إعدادات النظام']);
