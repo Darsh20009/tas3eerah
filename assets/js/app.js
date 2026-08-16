@@ -39,9 +39,13 @@ function toggleLang() {
 // ─── API ─────────────────────────────────
 async function api(endpoint, data = null, method = null) {
   const isGet = data === null;
+  const csrf  = document.querySelector('meta[name="csrf-token"]')?.content || '';
   const opts = {
     method : method || (isGet ? 'GET' : 'POST'),
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(isGet ? {} : { 'X-CSRF-Token': csrf }),
+    },
   };
   if (!isGet) opts.body = JSON.stringify(data);
   try {
@@ -68,25 +72,21 @@ const panelTitles = {
 };
 
 function nav(btn) {
-  closeSidebar(); // close on mobile when navigating
+  closeSidebar();
   if (!btn) return;
   const panel = btn.getAttribute('data-panel');
   if (!panel) return;
 
-  // Sidebar highlight
   document.querySelectorAll('.sb-item').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
 
-  // Panel visibility
   document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
   const target = document.getElementById('panel-' + panel);
   if (target) target.classList.add('active');
 
-  // Title
   const titleEl = document.getElementById('topbarTitle');
   if (titleEl) titleEl.textContent = panelTitles[panel] || '';
 
-  // Lazy-load data
   if (panel === 'quotes')        loadQuotes();
   if (panel === 'clients')       loadClients();
   if (panel === 'messages')      loadInbox();
@@ -185,7 +185,7 @@ async function viewQuote(id) {
       <div class="pdf-total-row grand"><span>الإجمالي</span><span>${fmt(q.total)} ر.س</span></div>
     </div>
     ${q.notes ? `<div style="margin-top:16px;padding:12px;background:var(--paper);border-radius:8px;font-size:13px"><strong>ملاحظات:</strong> ${esc(q.notes)}</div>` : ''}
-    <div class="pdf-footer">تسعيرة · <a href="https://qiroxstudio.online">Qirox Studio Group</a></div>
+    <div class="pdf-footer">تسعيرة — منصة التسعير الذكي</div>
   `;
   document.getElementById('pdfOverlay').classList.remove('hidden');
 }
@@ -194,7 +194,6 @@ async function editQuote(id) {
   const r = await api(`quotes?action=get&id=${id}`);
   if (!r.success) { alert(r.error); return; }
   const q = r.data;
-  // Switch to quote-new panel
   const btn = document.querySelector('[data-panel="quote-new"]');
   if (btn) nav(btn); else return;
 
@@ -204,10 +203,8 @@ async function editQuote(id) {
   document.getElementById('qTax').value      = q.tax_rate;
   document.getElementById('qDiscount').value = q.discount;
   document.getElementById('qNotes').value    = q.notes || '';
-  // Select client
   await ensureClientsLoaded();
   document.getElementById('qClient').value = q.client_id;
-  // Load items
   document.getElementById('itemsBody').innerHTML = '';
   (q.items || []).forEach(it => addItem(it.description, it.qty, it.unit_price));
   calcTotals();
@@ -228,15 +225,9 @@ async function initQuoteForm() {
 }
 
 async function ensureClientsLoaded() {
-  if (clientsCache) {
-    populateClientSelect(clientsCache);
-    return;
-  }
+  if (clientsCache) { populateClientSelect(clientsCache); return; }
   const r = await api('quotes?action=clients');
-  if (r.success) {
-    clientsCache = r.data;
-    populateClientSelect(clientsCache);
-  }
+  if (r.success) { clientsCache = r.data; populateClientSelect(clientsCache); }
 }
 
 function populateClientSelect(clients) {
@@ -414,7 +405,6 @@ async function sendReply() {
   if (!currentThreadId) return;
   const body = document.getElementById('replyBody').value.trim();
   if (!body) return;
-  // Get receiver from thread
   const r2 = await api('messages', { action: 'thread', id: currentThreadId });
   if (!r2.success) return;
   const other = r2.data.find(m => m.sender_id != APP.uid) || r2.data[0];
@@ -480,11 +470,17 @@ function openTool(slug) {
   document.querySelectorAll('.tool-panel').forEach(p => p.classList.remove('active'));
   const panel = document.getElementById('tool-' + slug);
   if (panel) panel.classList.add('active');
+  // Restore sessionStorage state
+  restoreToolState(slug);
   // Trigger initial calculation
   if (slug === 'calc_pkg')    calcPkg();
   if (slug === 'calc_labor')  calcLabor();
   if (slug === 'calc_store')  calcStore();
   if (slug === 'calc_office') calcOffice();
+  if (slug === 'calc_custom') {
+    if (!document.getElementById('custItemsBody').children.length) addCustomItem();
+    calcCustom();
+  }
 }
 
 function closeTool() {
@@ -504,6 +500,31 @@ function updateCicLabel(toolId) {
 
 function showPlanUpgrade() {
   document.getElementById('upgradeModal').classList.remove('hidden');
+}
+
+// ─── TOOL STATE (sessionStorage) ─────────
+function saveToolState(slug) {
+  const panel = document.getElementById('tool-' + slug);
+  if (!panel) return;
+  const state = {};
+  panel.querySelectorAll('input[id], select[id], textarea[id]').forEach(el => {
+    if (el.type !== 'button' && el.id) state[el.id] = el.value;
+  });
+  try { sessionStorage.setItem('tool_state_' + slug, JSON.stringify(state)); } catch (_) {}
+}
+
+function restoreToolState(slug) {
+  try {
+    const raw = sessionStorage.getItem('tool_state_' + slug);
+    if (!raw) return;
+    const state = JSON.parse(raw);
+    const panel = document.getElementById('tool-' + slug);
+    if (!panel) return;
+    Object.entries(state).forEach(([id, val]) => {
+      const el = panel.querySelector('#' + id);
+      if (el && el.type !== 'button') el.value = val;
+    });
+  } catch (_) {}
 }
 
 // Tool: Basic
@@ -537,6 +558,7 @@ function selectField(btn, field) {
   document.getElementById('costsSection').style.display = '';
   document.getElementById('basicResult').style.display = '';
   calcBasic();
+  saveToolState('calc_basic');
 }
 
 function toggleSvc(btn, svc) {
@@ -562,6 +584,10 @@ function calcBasic() {
   setText('rProfit', fmt(profAmt) + ' ر.س');
   setText('rTax',    fmt(taxAmt)  + ' ر.س');
   setText('rFinal',  fmt(total)   + ' ر.س');
+
+  const el = document.getElementById('basicResult');
+  if (el) el.setAttribute('data-amount', total.toFixed(2));
+  saveToolState('calc_basic');
 }
 
 // Tool: Packages
@@ -578,7 +604,6 @@ function calcPkg() {
 
   const cost   = rent + salaries + tech + other;
   const target = cost * (1 + profit / 100);
-  // Weighted: s1 + s2*ratio + s3*ratio*ratio
   const denom  = s1 + s2 * ratio + s3 * ratio * ratio;
   const r1     = denom > 0 ? target / denom : 0;
   const r2     = r1 * ratio;
@@ -589,6 +614,10 @@ function calcPkg() {
   setText('pkg_r1',      fmt(r1)     + ' ر.س');
   setText('pkg_r2',      fmt(r2)     + ' ر.س');
   setText('pkg_r3',      fmt(r3)     + ' ر.س');
+
+  const el = document.getElementById('pkgResult');
+  if (el) el.setAttribute('data-amount', r1.toFixed(2));
+  saveToolState('calc_pkg');
 }
 
 // Tool: Labor
@@ -600,15 +629,19 @@ function calcLabor() {
   const extra    = parseFloat(document.getElementById('lb_extra')?.value)    || 0;
   const profit   = parseFloat(document.getElementById('lb_profit')?.value)   || 30;
 
-  const totalCost  = salary + extra;
+  const totalCost   = salary + extra;
   const billableHrs = hrs * days * (1 - overhead / 100);
-  const costPerHr  = billableHrs > 0 ? totalCost / billableHrs : 0;
-  const finalHr    = costPerHr * (1 + profit / 100);
+  const costPerHr   = billableHrs > 0 ? totalCost / billableHrs : 0;
+  const finalHr     = costPerHr * (1 + profit / 100);
 
-  setText('lb_rCost',  fmt(totalCost)  + ' ر.س');
+  setText('lb_rCost',  fmt(totalCost)   + ' ر.س');
   setText('lb_rHrs',   fmt(billableHrs) + ' ساعة');
-  setText('lb_rBase',  fmt(costPerHr)  + ' ر.س/ساعة');
-  setText('lb_rFinal', fmt(finalHr)    + ' ر.س/ساعة');
+  setText('lb_rBase',  fmt(costPerHr)   + ' ر.س/ساعة');
+  setText('lb_rFinal', fmt(finalHr)     + ' ر.س/ساعة');
+
+  const el = document.getElementById('laborResult');
+  if (el) el.setAttribute('data-amount', finalHr.toFixed(2));
+  saveToolState('calc_labor');
 }
 
 // Tool: Store
@@ -629,11 +662,15 @@ function calcStore() {
   const taxAmt  = (cost + profAmt) * tax / 100;
   const total   = cost + profAmt + taxAmt;
 
-  setText('st_rWork',   fmt(work)   + ' ر.س');
-  setText('st_rSetup',  fmt(setup)  + ' ر.س');
-  setText('st_rCost',   fmt(cost)   + ' ر.س');
-  setText('st_rProfit', fmt(profAmt)+ ' ر.س');
-  setText('st_rFinal',  fmt(total)  + ' ر.س');
+  setText('st_rWork',   fmt(work)    + ' ر.س');
+  setText('st_rSetup',  fmt(setup)   + ' ر.س');
+  setText('st_rCost',   fmt(cost)    + ' ر.س');
+  setText('st_rProfit', fmt(profAmt) + ' ر.س');
+  setText('st_rFinal',  fmt(total)   + ' ر.س');
+
+  const el = document.getElementById('storeResult');
+  if (el) el.setAttribute('data-amount', total.toFixed(2));
+  saveToolState('calc_store');
 }
 
 // Tool: Office
@@ -645,13 +682,154 @@ function calcOffice() {
   const proj     = parseFloat(document.getElementById('of_proj')?.value)     || 1;
   const profit   = parseFloat(document.getElementById('of_profit')?.value)   || 35;
 
-  const cost      = rent + salaries + tools + other;
-  const perProj   = proj > 0 ? cost / proj : 0;
-  const minPrice  = perProj * (1 + profit / 100);
+  const cost     = rent + salaries + tools + other;
+  const perProj  = proj > 0 ? cost / proj : 0;
+  const minPrice = perProj * (1 + profit / 100);
 
   setText('of_rCost',    fmt(cost)     + ' ر.س');
   setText('of_rPerProj', fmt(perProj)  + ' ر.س');
   setText('of_rMin',     fmt(minPrice) + ' ر.س');
+
+  const el = document.getElementById('officeResult');
+  if (el) el.setAttribute('data-amount', minPrice.toFixed(2));
+  saveToolState('calc_office');
+}
+
+// Tool: Custom (free-form)
+function addCustomItem(desc = '', qty = 1, price = 0) {
+  const tbody = document.getElementById('custItemsBody');
+  if (!tbody) return;
+  const row = document.createElement('tr');
+  row.innerHTML = `
+    <td><input type="text"   value="${esc(desc)}"  placeholder="وصف البند..." oninput="calcCustom()" style="width:100%"></td>
+    <td><input type="number" value="${qty}"   min="0.01" step="0.01" oninput="calcCustom()" style="text-align:center;width:100%"></td>
+    <td><input type="number" value="${price}" min="0"    step="0.01" oninput="calcCustom()" style="width:100%"></td>
+    <td class="cu-row-total" style="font-weight:700;padding:8px 10px;white-space:nowrap">${fmt(qty * price)}</td>
+    <td style="width:32px"><button class="del-item" onclick="this.closest('tr').remove();calcCustom()">✕</button></td>
+  `;
+  tbody.appendChild(row);
+  calcCustom();
+}
+
+function calcCustom() {
+  let subtotal = 0;
+  document.querySelectorAll('#custItemsBody tr').forEach(row => {
+    const inputs = row.querySelectorAll('input');
+    if (inputs.length < 3) return;
+    const qty   = parseFloat(inputs[1].value) || 0;
+    const price = parseFloat(inputs[2].value) || 0;
+    const tot   = qty * price;
+    subtotal += tot;
+    const td = row.querySelector('.cu-row-total');
+    if (td) td.textContent = fmt(tot) + ' ر.س';
+  });
+  const taxPct  = parseFloat(document.getElementById('cu_tax')?.value)      || 0;
+  const discount= parseFloat(document.getElementById('cu_discount')?.value) || 0;
+  const taxAmt  = (subtotal - discount) * taxPct / 100;
+  const total   = subtotal - discount + taxAmt;
+
+  setText('cu_rSub',    fmt(subtotal) + ' ر.س');
+  setText('cu_rDis',    fmt(discount) + ' ر.س');
+  setText('cu_rTax',    fmt(taxAmt)   + ' ر.س');
+  setText('cu_rFinal',  fmt(total)    + ' ر.س');
+  setText('cu_rTaxLbl', `ضريبة (${taxPct}%)`);
+
+  const el = document.getElementById('customResult');
+  if (el) el.setAttribute('data-amount', total.toFixed(2));
+  saveToolState('calc_custom');
+}
+
+// ─── TOOL → QUOTE ────────────────────────
+async function openToolQuote(slug, toolName) {
+  const resultEl = document.getElementById(
+    slug === 'basic'  ? 'basicResult'  :
+    slug === 'pkg'    ? 'pkgResult'    :
+    slug === 'labor'  ? 'laborResult'  :
+    slug === 'store'  ? 'storeResult'  :
+    slug === 'office' ? 'officeResult' : 'customResult'
+  );
+  const amount = parseFloat(resultEl?.getAttribute('data-amount') || '0');
+  if (!amount) {
+    alert('أدخل بيانات التسعير أولاً لظهور قيمة محسوبة.');
+    return;
+  }
+
+  document.getElementById('tqmSlug').value   = slug;
+  document.getElementById('tqmAmount').value = amount;
+  document.getElementById('tqmTitle').textContent = `حفظ نتيجة ${toolName} كعرض سعر`;
+  document.getElementById('tqmQuoteTitle').value  = toolName;
+  document.getElementById('tqmNotes').value = '';
+  document.getElementById('tqmMsg').className = 'hidden';
+
+  // Load clients into the select
+  await ensureClientsLoaded();
+  const sel = document.getElementById('tqmClient');
+  if (sel && clientsCache) {
+    sel.innerHTML = '<option value="">اختر العميل...</option>' +
+      clientsCache.map(c => `<option value="${c.id}">${esc(c.name)} — ${esc(c.email)}</option>`).join('');
+  }
+
+  document.getElementById('toolQuoteModal').classList.remove('hidden');
+}
+
+async function saveToolQuote() {
+  const slug     = document.getElementById('tqmSlug').value;
+  const amount   = parseFloat(document.getElementById('tqmAmount').value) || 0;
+  const title    = document.getElementById('tqmQuoteTitle').value.trim();
+  const clientId = document.getElementById('tqmClient').value;
+  const notes    = document.getElementById('tqmNotes').value.trim();
+  const msgEl    = document.getElementById('tqmMsg');
+
+  const showMsg = (txt, isErr) => {
+    msgEl.className = `alert alert-${isErr ? 'danger' : 'success'}`;
+    msgEl.textContent = txt;
+  };
+
+  if (!title) { showMsg('عنوان العرض مطلوب', true); return; }
+  if (!clientId) { showMsg('يرجى اختيار العميل', true); return; }
+
+  const toolLabel = {
+    basic: 'التسعير الأساسي', pkg: 'باقات الاشتراك',
+    labor: 'تكلفة الساعة',    store: 'المتجر الإلكتروني',
+    office: 'تكلفة المكتب',   custom: 'تسعيرة مخصصة',
+  };
+
+  // For custom tool, use actual items; otherwise single summary item
+  let items, taxRate = 0, discount = 0;
+  if (slug === 'custom') {
+    items = [];
+    document.querySelectorAll('#custItemsBody tr').forEach(row => {
+      const ins = row.querySelectorAll('input');
+      if (ins.length < 3) return;
+      const desc = ins[0].value.trim();
+      const qty  = parseFloat(ins[1].value) || 0;
+      const uprice = parseFloat(ins[2].value) || 0;
+      if (desc) items.push({ description: desc, qty, unit_price: uprice });
+    });
+    taxRate  = parseFloat(document.getElementById('cu_tax')?.value) || 0;
+    discount = parseFloat(document.getElementById('cu_discount')?.value) || 0;
+  } else {
+    items = [{ description: toolLabel[slug] || title, qty: 1, unit_price: amount }];
+    taxRate = 0; // amount already includes tax
+  }
+
+  if (!items.length) { showMsg('لا توجد بنود في التسعيرة', true); return; }
+
+  const r = await api('quotes', {
+    action: 'create', title, client_id: clientId,
+    items, tax_rate: taxRate, discount, notes,
+  });
+
+  if (r.success) {
+    showMsg('✅ تم حفظ العرض كمسودة بنجاح', false);
+    setTimeout(() => {
+      document.getElementById('toolQuoteModal').classList.add('hidden');
+      // Switch to quotes panel
+      nav(document.querySelector('[data-panel="quotes"]'));
+    }, 1500);
+  } else {
+    showMsg(r.error || 'حدث خطأ', true);
+  }
 }
 
 // ─── ADMIN: USERS ────────────────────────
@@ -729,7 +907,6 @@ async function saveUser() {
   if (id) {
     r = await api('admin', { action: 'user_update', id: parseInt(id), name, role, password: pass || undefined });
     if (r.success) {
-      // Also update plan
       await api('admin', { action: 'set_plan', id: parseInt(id), plan });
     }
   } else {
@@ -817,7 +994,8 @@ async function loadActivity() {
   if (!tb || !r.success) return;
   const actionLabels = {
     login:'تسجيل دخول', logout:'تسجيل خروج', register:'تسجيل جديد',
-    quote_created:'إنشاء عرض', message_sent:'رسالة مُرسلة',
+    quote_created:'إنشاء عرض', quote_status_changed:'تغيير حالة عرض',
+    message_sent:'رسالة مُرسلة',
     admin_user_create:'إنشاء مستخدم', admin_user_update:'تعديل مستخدم',
     user_activated:'تفعيل مستخدم', user_deactivated:'تعطيل مستخدم',
     plan_changed:'تغيير خطة', system_init:'تهيئة النظام',
@@ -837,12 +1015,22 @@ async function loadActivity() {
 // ─── ACCOUNT ─────────────────────────────
 async function saveAccount() {
   const name = document.getElementById('accName').value.trim();
-  const msg  = document.getElementById('accMsg');
+  const pass  = document.getElementById('accPass')?.value || '';
+  const msg   = document.getElementById('accMsg');
   if (!name) { msg.className='alert alert-danger mb-8'; msg.textContent='الاسم مطلوب'; return; }
-  // For now, just show success (would need an account update API endpoint)
-  msg.className = 'alert alert-success mb-8';
-  msg.textContent = 'تم حفظ التغييرات';
-  setTimeout(() => msg.className = 'hidden', 2000);
+
+  const payload = { action: 'update_account', name };
+  if (pass) payload.password = pass;
+
+  const r = await api('auth', payload);
+  if (r && r.success) {
+    msg.className = 'alert alert-success mb-8';
+    msg.textContent = 'تم حفظ التغييرات بنجاح';
+  } else {
+    msg.className = 'alert alert-danger mb-8';
+    msg.textContent = (r && r.error) ? r.error : 'تعذّر الحفظ في الوقت الحالي';
+  }
+  setTimeout(() => msg.className = 'hidden', 2500);
 }
 
 // ─── HELPERS ─────────────────────────────
@@ -876,11 +1064,5 @@ function showInModal(id, msg, isErr) {
 // ─── INIT ────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   loadUnreadCount();
-  // Initial panel data
-  const active = document.querySelector('.section-panel.active');
-  if (active && active.id === 'panel-overview') {
-    // Already rendered server-side
-  }
-  // Poll unread every 60s
   setInterval(loadUnreadCount, 60000);
 });

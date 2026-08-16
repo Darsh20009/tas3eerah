@@ -2,5 +2,7 @@
 - [Quote System](quote-system.md) — transactions إلزامية، quote_counter table للأرقام، permission matrix للحالات
 - [Auth & Sessions](auth-sessions.md) — PHP sessions بـ bcrypt، 3 حسابات تجريبية محددة، session name: TAS3_SESS
 - [Subscription System](subscriptions.md) — 3 خطط (free/pro/enterprise) في config.php، المدير يغير خطة أي مستخدم من /api/admin
-- [Tools Integration](tools.md) — 5 أدوات تسعير مدمجة داخل dashboard (ليست روابط خارجية)، مقفلة بالخطة
+- [Tools Integration](tools.md) — 6 أدوات تسعير مدمجة (calc_basic/pkg/store/office/labor/custom)، مقفلة بالخطة، جميعها تعرض نتائج حقيقية
 - [Brand Identity v3](brand-identity.md) — هوية سعودية كاملة: أخضر داكن + ذهبي + بيج دافئ، خطوط محلية، شعار logo.png
+- [CSRF Protection](csrf.md) — X-CSRF-Token header لكل POST، token في session، meta tag في كل صفحة، validation في router.php
+- [Plan Enforcement](plan-enforcement.md) — effectivePlan() تُحدّد الخطة الفعلية بعد انتهاء الصلاحية، APP_ENV يتحكم في Seed

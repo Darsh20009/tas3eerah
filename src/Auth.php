@@ -115,6 +115,23 @@ class Auth {
         return $count < $max;
     }
 
+    // ── CSRF ──────────────────────────────────────────────────────────
+    public static function csrfToken(): string {
+        self::start();
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+        return $_SESSION['csrf_token'];
+    }
+
+    public static function verifyCsrf(): void {
+        $token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+        $valid = $_SESSION['csrf_token'] ?? '';
+        if (!$token || !$valid || !hash_equals($valid, $token)) {
+            Response::json(['error' => 'طلب غير صالح (CSRF)', 'code' => 'CSRF_INVALID'], 403);
+        }
+    }
+
     private static function isApi(): bool {
         return str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/api/');
     }

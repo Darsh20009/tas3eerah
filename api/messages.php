@@ -63,6 +63,20 @@ function send(array $u, array $b): never {
 
     if (!$body) Response::err('نص الرسالة مطلوب');
     if (!$to)   Response::err('يرجى تحديد المستلم');
+
+    // Enforce monthly message limit
+    $effectivePlan = Auth::effectivePlan($u);
+    $maxMsgs = PLANS[$effectivePlan]['max_msgs'] ?? PLANS['free']['max_msgs'];
+    if ($maxMsgs !== -1) {
+        $month    = date('Y-m');
+        $sentCount = (int)DB::val(
+            "SELECT COUNT(*) FROM messages WHERE sender_id=? AND strftime('%Y-%m',created_at)=?",
+            [$u['id'], $month]
+        );
+        if ($sentCount >= $maxMsgs) {
+            Response::err("وصلت للحد الأقصى من الرسائل لهذا الشهر ($maxMsgs رسالة). يرجى ترقية الخطة.");
+        }
+    }
     if ($to === $u['id']) Response::err('لا يمكنك إرسال رسالة لنفسك');
     if (!DB::val("SELECT id FROM users WHERE id=? AND is_active=1", [$to]))
         Response::err('المستلم غير موجود');

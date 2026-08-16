@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /api/
+Disallow: /dashboard
 Disallow: /legacy-calculator.html
 
-Sitemap: https://presentation.thanarah.com/sitemap.xml
+# Sitemap URL is set via APP_URL environment variable

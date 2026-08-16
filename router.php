@@ -49,6 +49,13 @@ if ($uri === '/legacy-calculator.html') {
 // API routes
 if (str_starts_with($uri, '/api/')) {
     header('Content-Type: application/json; charset=utf-8');
+
+    // CSRF protection for all state-changing requests
+    if ($method === 'POST' || $method === 'PUT' || $method === 'DELETE') {
+        Auth::start();
+        Auth::verifyCsrf();
+    }
+
     $segment = explode('/', trim($uri, '/'))[1] ?? '';
     $apiFile = __DIR__ . "/api/$segment.php";
     if (file_exists($apiFile)) {

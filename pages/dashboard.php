@@ -5,23 +5,38 @@ require_once __DIR__ . '/../src/Auth.php';
 require_once __DIR__ . '/../src/Response.php';
 
 Auth::start();
-$user = Auth::require();
-$role = $user['role'];
-$plan = PLANS[$user['plan']] ?? PLANS['free'];
+$user          = Auth::require();
+$role          = $user['role'];
+$effectivePlan = Auth::effectivePlan($user);
+$plan          = PLANS[$effectivePlan] ?? PLANS['free'];
+$isPaid        = in_array($effectivePlan, ['pro', 'enterprise']);
 
 $roleLabel = ['admin' => 'مدير النظام', 'employee' => 'موظف', 'client' => 'عميل'][$role] ?? $role;
 $planName  = $plan['name_ar'];
 
-function teaserOverlay(): string {
-  return '<div class="result-teaser-overlay">
-    <div class="rto-lock">🔒</div>
-    <h3>لعرض نتيجة التسعير</h3>
-    <p>هذه الميزة متاحة لمشتركي خطة المحترف والمؤسسة</p>
-    <div class="rto-btns">
-      <button class="btn btn-primary" onclick="showPlanUpgrade()">اكتشف الخطط</button>
-    </div>
-    <small>أو تواصل مع مدير النظام لترقية حسابك</small>
-  </div>';
+// Expiry warning banner
+$showExpiryBanner = false;
+$expiryBannerMsg  = '';
+$expiryExpired    = false;
+if ($user['plan_expires_at'] && $user['plan'] !== 'free') {
+    $expiry   = strtotime($user['plan_expires_at']);
+    $daysLeft = (int)ceil(($expiry - time()) / 86400);
+    if ($daysLeft <= 0) {
+        $showExpiryBanner = true;
+        $expiryExpired    = true;
+        $expiryBannerMsg  = 'انتهت صلاحية خطتك — يتم التعامل معك كمستخدم مجاني حتى تجديد الاشتراك';
+    } elseif ($daysLeft <= 7) {
+        $showExpiryBanner = true;
+        $expiryBannerMsg  = "تنتهي خطتك ({$plan['name_ar']}) خلال $daysLeft " . ($daysLeft === 1 ? 'يوم' : 'أيام') . ' · تواصل مع المدير للتجديد';
+    }
+}
+
+function toolSaveBtn(bool $paid, string $slug, string $name): string {
+  $style = 'margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15)';
+  if ($paid) {
+    return "<div style='$style'><button class='btn btn-success w-full' onclick=\"openToolQuote('$slug','$name')\">💾 حفظ كعرض سعر</button></div>";
+  }
+  return "<div style='$style'><button class='btn btn-ghost w-full' onclick='showPlanUpgrade()'>🔒 حفظ كعرض سعر — يتطلب خطة محترف</button></div>";
 }
 ?>
 <!DOCTYPE html>
@@ -32,6 +47,7 @@ function teaserOverlay(): string {
   <title>تسعيرة | لوحة التحكم</title>
   <link rel="icon" type="image/png" href="/assets/logo.png">
   <link rel="stylesheet" href="/assets/css/app.css?v=<?= filemtime(__DIR__.'/../assets/css/app.css') ?>">
+  <meta name="csrf-token" content="<?= htmlspecialchars(Auth::csrfToken(), ENT_QUOTES) ?>">
 </head>
 <body>
 <div class="app-shell">
@@ -141,6 +157,11 @@ function teaserOverlay(): string {
     </div>
   </div>
 
+  <?php if ($showExpiryBanner): ?>
+  <div style="background:<?= $expiryExpired ? 'rgba(216,107,114,.15)' : 'rgba(201,167,65,.15)' ?>;border-bottom:1px solid <?= $expiryExpired ? 'rgba(216,107,114,.3)' : 'rgba(201,167,65,.3)' ?>;padding:8px 20px;font-size:13px;color:<?= $expiryExpired ? 'var(--danger)' : '#b8932a' ?>;text-align:center">
+    <?= $expiryExpired ? '🔴' : '⚠️' ?> <?= htmlspecialchars($expiryBannerMsg) ?>
+  </div>
+  <?php endif; ?>
   <div class="workspace" id="workspace">
 
     <!-- ══ OVERVIEW ══ -->
@@ -360,7 +381,6 @@ function teaserOverlay(): string {
     <div class="section-panel" id="panel-tools">
       <?php
         $userTools = $plan['tools'];
-        $isPaid    = in_array($user['plan'], ['pro','enterprise']);
       ?>
 
       <!-- ═ TOOLS MENU ═ -->
@@ -372,6 +392,7 @@ function teaserOverlay(): string {
           ['calc_store',  'تسعيرة المتجر الإلكتروني', 'تجارة إلكترونية، متاجر',               'سعّر مشاريع التجارة الإلكترونية مع حساب الربحية الكاملة.'],
           ['calc_office', 'تسعيرة المكتب والوكالة',   'مكاتب، وكالات تسويق',                  'احسب التسعيرة الصحيحة لمكتبك بناءً على تكاليف التشغيل.'],
           ['calc_labor',  'حساب تكلفة الساعة',        'مستقل، فريلانسر',                      'احسب تكلفة ساعة عملك الحقيقية مع هامش الربح المناسب.'],
+          ['calc_custom', 'تسعيرة حرة مخصصة',         'مؤسسات، خدمات متعددة',                 'أنشئ تسعيرة ببنود مخصصة حرة بلا قيود على نوع المشروع.'],
         ];
         foreach ($toolCards as [$slug, $name, $sectors, $desc]):
           $locked = !in_array($slug, $userTools) && !in_array('all', $userTools);
@@ -440,25 +461,13 @@ function teaserOverlay(): string {
           </div>
         </div>
 
-        <?php if (!$isPaid): ?>
-        <div class="result-teaser-wrap">
-          <div class="calc-result result-blurred" aria-hidden="true">
-            <div class="calc-result-row"><span>إجمالي التكاليف</span><span>٨٬٢٥٠ ر.س</span></div>
-            <div class="calc-result-row"><span>هامش الربح</span><span>٢٬٤٧٥ ر.س</span></div>
-            <div class="calc-result-row"><span>ضريبة القيمة المضافة</span><span>١٬٦٠٩ ر.س</span></div>
-            <div class="calc-result-row big"><span>السعر النهائي للعميل</span><span>١٢٬٣٣٤ ر.س</span></div>
-          </div>
-          <?= teaserOverlay() ?>
-        </div>
-        <?php else: ?>
-        <div class="calc-result" id="basicResult" style="display:none">
+        <div class="calc-result" id="basicResult" data-amount="0" style="display:none">
           <div class="calc-result-row"><span>إجمالي التكاليف</span><span id="rCost">-</span></div>
           <div class="calc-result-row"><span>هامش الربح</span><span id="rProfit">-</span></div>
           <div class="calc-result-row"><span>ضريبة القيمة المضافة</span><span id="rTax">-</span></div>
           <div class="calc-result-row big"><span>السعر النهائي للعميل</span><span id="rFinal">-</span></div>
-          <div style="margin-top:16px;font-size:12px;color:rgba(255,255,255,.5)">يمكنك إنشاء عرض سعر بهذا المبلغ مباشرة</div>
+          <?= toolSaveBtn($isPaid, 'basic', 'أداة التسعير الأساسية') ?>
         </div>
-        <?php endif; ?>
       </div>
 
       <!-- ═ TOOL: Package Pricing ═ -->
@@ -501,26 +510,14 @@ function teaserOverlay(): string {
             <div class="form-group"><label>نسبة الباقة الأساسية للمتوسطة</label><input type="number" class="form-control" id="pkg_ratio" value="2" oninput="calcPkg()" placeholder="مثال: 2 تعني ضعف السعر"></div>
           </div>
         </div>
-        <?php if (!$isPaid): ?>
-        <div class="result-teaser-wrap">
-          <div class="calc-result result-blurred" aria-hidden="true">
-            <div class="calc-result-row"><span>إجمالي التكاليف الشهرية</span><span>١٥٬٠٠٠ ر.س</span></div>
-            <div class="calc-result-row"><span>المستهدف مع الربح</span><span>٢١٬٠٠٠ ر.س</span></div>
-            <div class="calc-result-row big"><span>سعر الباقة الأساسية / شهر</span><span>٢٨٠ ر.س</span></div>
-            <div class="calc-result-row big"><span>سعر الباقة المتوسطة / شهر</span><span>٥٦٠ ر.س</span></div>
-            <div class="calc-result-row big"><span>سعر الباقة المتقدمة / شهر</span><span>١٬١٢٠ ر.س</span></div>
-          </div>
-          <?= teaserOverlay() ?>
-        </div>
-        <?php else: ?>
-        <div class="calc-result" id="pkgResult">
+        <div class="calc-result" id="pkgResult" data-amount="0">
           <div class="calc-result-row"><span>إجمالي التكاليف الشهرية</span><span id="pkg_rCost">-</span></div>
           <div class="calc-result-row"><span>المستهدف مع الربح</span><span id="pkg_rTarget">-</span></div>
           <div class="calc-result-row big"><span>سعر الباقة الأساسية / شهر</span><span id="pkg_r1">-</span></div>
           <div class="calc-result-row big"><span>سعر الباقة المتوسطة / شهر</span><span id="pkg_r2">-</span></div>
           <div class="calc-result-row big"><span>سعر الباقة المتقدمة / شهر</span><span id="pkg_r3">-</span></div>
+          <?= toolSaveBtn($isPaid, 'pkg', 'تسعيرة باقات الاشتراك') ?>
         </div>
-        <?php endif; ?>
       </div>
 
       <!-- ═ TOOL: Labor Cost ═ -->
@@ -555,24 +552,13 @@ function teaserOverlay(): string {
             <div class="form-group"><label>هامش الربح المستهدف %</label><input type="number" class="form-control" id="lb_profit" value="30" oninput="calcLabor()"></div>
           </div>
         </div>
-        <?php if (!$isPaid): ?>
-        <div class="result-teaser-wrap">
-          <div class="calc-result result-blurred" aria-hidden="true">
-            <div class="calc-result-row"><span>إجمالي التكاليف الشهرية</span><span>٦٬٥٠٠ ر.س</span></div>
-            <div class="calc-result-row"><span>ساعات العمل الفعلية المُدفوعة</span><span>١٢٣ ساعة</span></div>
-            <div class="calc-result-row"><span>تكلفة الساعة (بدون ربح)</span><span>٥٣ ر.س</span></div>
-            <div class="calc-result-row big"><span>سعر الساعة للعميل (مع الربح)</span><span>٦٩ ر.س</span></div>
-          </div>
-          <?= teaserOverlay() ?>
-        </div>
-        <?php else: ?>
-        <div class="calc-result" id="laborResult">
+        <div class="calc-result" id="laborResult" data-amount="0">
           <div class="calc-result-row"><span>إجمالي التكاليف الشهرية</span><span id="lb_rCost">-</span></div>
           <div class="calc-result-row"><span>ساعات العمل الفعلية المُدفوعة</span><span id="lb_rHrs">-</span></div>
           <div class="calc-result-row"><span>تكلفة الساعة (بدون ربح)</span><span id="lb_rBase">-</span></div>
           <div class="calc-result-row big"><span>سعر الساعة للعميل (مع الربح)</span><span id="lb_rFinal">-</span></div>
+          <?= toolSaveBtn($isPaid, 'labor', 'حساب تكلفة الساعة') ?>
         </div>
-        <?php endif; ?>
       </div>
 
       <!-- ═ TOOL: Store ═ -->
@@ -611,26 +597,14 @@ function teaserOverlay(): string {
             <div class="form-group"><label>ضريبة %</label><input type="number" class="form-control" id="st_tax" value="15" oninput="calcStore()"></div>
           </div>
         </div>
-        <?php if (!$isPaid): ?>
-        <div class="result-teaser-wrap">
-          <div class="calc-result result-blurred" aria-hidden="true">
-            <div class="calc-result-row"><span>تكلفة العمل</span><span>١٢٬٠٠٠ ر.س</span></div>
-            <div class="calc-result-row"><span>تكلفة الإعداد</span><span>٣٬٥٠٠ ر.س</span></div>
-            <div class="calc-result-row"><span>إجمالي التكلفة</span><span>١٥٬٥٠٠ ر.س</span></div>
-            <div class="calc-result-row"><span>هامش الربح</span><span>٤٬٦٥٠ ر.س</span></div>
-            <div class="calc-result-row big"><span>السعر النهائي (شامل الضريبة)</span><span>٢٣٬٢٢٥ ر.س</span></div>
-          </div>
-          <?= teaserOverlay() ?>
-        </div>
-        <?php else: ?>
-        <div class="calc-result" id="storeResult">
+        <div class="calc-result" id="storeResult" data-amount="0">
           <div class="calc-result-row"><span>تكلفة العمل</span><span id="st_rWork">-</span></div>
           <div class="calc-result-row"><span>تكلفة الإعداد</span><span id="st_rSetup">-</span></div>
           <div class="calc-result-row"><span>إجمالي التكلفة</span><span id="st_rCost">-</span></div>
           <div class="calc-result-row"><span>هامش الربح</span><span id="st_rProfit">-</span></div>
           <div class="calc-result-row big"><span>السعر النهائي (شامل الضريبة)</span><span id="st_rFinal">-</span></div>
+          <?= toolSaveBtn($isPaid, 'store', 'تسعيرة المتجر الإلكتروني') ?>
         </div>
-        <?php endif; ?>
       </div>
 
       <!-- ═ TOOL: Office ═ -->
@@ -668,23 +642,58 @@ function teaserOverlay(): string {
             <div class="form-group"><label>هامش الربح المستهدف %</label><input type="number" class="form-control" id="of_profit" value="35" oninput="calcOffice()"></div>
           </div>
         </div>
-        <?php if (!$isPaid): ?>
-        <div class="result-teaser-wrap">
-          <div class="calc-result result-blurred" aria-hidden="true">
-            <div class="calc-result-row"><span>إجمالي التكاليف الشهرية</span><span>٣٢٬٠٠٠ ر.س</span></div>
-            <div class="calc-result-row"><span>تكلفة المشروع الواحد</span><span>٨٬٠٠٠ ر.س</span></div>
-            <div class="calc-result-row big"><span>الحد الأدنى لسعر المشروع (مع الربح)</span><span>١٠٬٨٠٠ ر.س</span></div>
-          </div>
-          <?= teaserOverlay() ?>
-        </div>
-        <?php else: ?>
-        <div class="calc-result" id="officeResult">
+        <div class="calc-result" id="officeResult" data-amount="0">
           <div class="calc-result-row"><span>إجمالي التكاليف الشهرية</span><span id="of_rCost">-</span></div>
           <div class="calc-result-row"><span>تكلفة المشروع الواحد</span><span id="of_rPerProj">-</span></div>
           <div class="calc-result-row big"><span>الحد الأدنى لسعر المشروع (مع الربح)</span><span id="of_rMin">-</span></div>
+          <?= toolSaveBtn($isPaid, 'office', 'تسعيرة المكتب والوكالة') ?>
         </div>
-        <?php endif; ?>
+        <!-- ═ TOOL: Custom Free-form ═ -->
+      <div class="tool-panel" id="tool-calc_custom">
+        <button class="btn btn-ghost btn-sm mb-16" onclick="closeTool()">← الأدوات</button>
+        <h2 style="font-size:20px;font-weight:900;margin-bottom:16px">تسعيرة حرة مخصصة</h2>
+        <div class="cic-card">
+          <div class="cic-toggle" onclick="this.closest('.cic-card').classList.toggle('open')">
+            <span id="cic_label_custom">👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">(اختياري)</small></span>
+            <span class="cic-arrow">▾</span>
+          </div>
+          <div class="cic-body">
+            <div class="form-row" style="margin-bottom:0">
+              <div class="form-group" style="margin-bottom:0"><label>اسم العميل</label><input type="text" class="form-control" id="ci_name_custom" placeholder="محمد العمري" oninput="updateCicLabel('custom')"></div>
+              <div class="form-group" style="margin-bottom:0"><label>اسم الشركة</label><input type="text" class="form-control" id="ci_company_custom" placeholder="شركة النجوم"></div>
+              <div class="form-group" style="margin-bottom:0"><label>رقم الجوال</label><input type="tel" class="form-control" id="ci_phone_custom" placeholder="05xxxxxxxx" dir="ltr"></div>
+            </div>
+          </div>
+        </div>
+        <div class="calc-section">
+          <h4>بنود التسعيرة</h4>
+          <table class="items-table">
+            <thead><tr>
+              <th style="width:45%">الوصف</th>
+              <th style="width:18%">الكمية</th>
+              <th style="width:22%">سعر الوحدة (ر.س)</th>
+              <th style="width:15%">الإجمالي</th>
+            </tr></thead>
+            <tbody id="custItemsBody"></tbody>
+          </table>
+          <button class="add-item-btn mt-8" onclick="addCustomItem()">+ إضافة بند</button>
+        </div>
+        <div class="calc-section">
+          <div class="form-row">
+            <div class="form-group"><label>ضريبة القيمة المضافة %</label><input type="number" class="form-control" id="cu_tax" value="15" min="0" oninput="calcCustom()"></div>
+            <div class="form-group"><label>خصم (ر.س)</label><input type="number" class="form-control" id="cu_discount" value="0" min="0" oninput="calcCustom()"></div>
+          </div>
+        </div>
+        <div class="calc-result" id="customResult" data-amount="0">
+          <div class="calc-result-row"><span>المجموع الفرعي</span><span id="cu_rSub">-</span></div>
+          <div class="calc-result-row"><span>الخصم</span><span id="cu_rDis">-</span></div>
+          <div class="calc-result-row"><span id="cu_rTaxLbl">ضريبة (15%)</span><span id="cu_rTax">-</span></div>
+          <div class="calc-result-row big"><span>الإجمالي النهائي</span><span id="cu_rFinal">-</span></div>
+          <?= toolSaveBtn($isPaid, 'custom', 'تسعيرة حرة مخصصة') ?>
+        </div>
       </div>
+
+    </div>
     </div>
 
     <!-- ══ ADMIN: USERS ══ -->
@@ -788,6 +797,10 @@ function teaserOverlay(): string {
           <div style="font-size:12px;color:var(--warn);margin-top:4px">تنتهي في: <?= $user['plan_expires_at'] ?></div>
           <?php endif; ?>
         </div>
+        <div class="form-group">
+          <label>كلمة مرور جديدة <small style="color:var(--muted);font-weight:400">(اتركه فارغاً للإبقاء على الحالية)</small></label>
+          <input type="password" class="form-control" id="accPass" placeholder="••••••••" autocomplete="new-password">
+        </div>
         <div id="accMsg" class="hidden mb-8"></div>
         <button class="btn btn-primary" onclick="saveAccount()">حفظ التغييرات</button>
       </div>
@@ -888,6 +901,36 @@ function teaserOverlay(): string {
   </div>
 </div>
 
+<!-- Tool → Quote Modal -->
+<div class="modal-overlay hidden" id="toolQuoteModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="tqmTitle">حفظ كعرض سعر</h3>
+      <button class="modal-close" onclick="document.getElementById('toolQuoteModal').classList.add('hidden')">✕</button>
+    </div>
+    <input type="hidden" id="tqmSlug" value="">
+    <input type="hidden" id="tqmAmount" value="">
+    <div class="form-group">
+      <label>عنوان العرض *</label>
+      <input type="text" class="form-control" id="tqmQuoteTitle" placeholder="عنوان العرض...">
+    </div>
+    <div class="form-group">
+      <label>العميل *</label>
+      <select class="form-control" id="tqmClient"><option value="">اختر العميل...</option></select>
+    </div>
+    <div class="form-group">
+      <label>ملاحظات</label>
+      <textarea class="form-control" id="tqmNotes" placeholder="أي ملاحظات إضافية..." style="height:70px"></textarea>
+    </div>
+    <div id="tqmMsg" class="hidden mb-8"></div>
+    <div class="flex gap-8">
+      <button class="btn btn-primary flex-1" onclick="saveToolQuote()">💾 حفظ كمسودة</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('toolQuoteModal').classList.add('hidden')">إلغاء</button>
+    </div>
+    <p style="font-size:11px;color:var(--muted);margin-top:10px;text-align:center">يُحفظ كمسودة — يمكنك تعديله وإرساله للعميل من قسم عروض الأسعار</p>
+  </div>
+</div>
+
 <!-- Plan upgrade notice -->
 <div class="modal-overlay hidden" id="upgradeModal">
   <div class="modal-box" style="text-align:center">
@@ -900,10 +943,12 @@ function teaserOverlay(): string {
 
 <script>
 const APP = {
-  role:  '<?= $role ?>',
-  uid:   <?= $user['id'] ?>,
-  plan:  '<?= $user['plan'] ?>',
-  name:  '<?= htmlspecialchars($user['name'], ENT_QUOTES) ?>',
+  role:          '<?= $role ?>',
+  uid:           <?= $user['id'] ?>,
+  plan:          '<?= $user['plan'] ?>',
+  effectivePlan: '<?= $effectivePlan ?>',
+  isPaid:        <?= $isPaid ? 'true' : 'false' ?>,
+  name:          '<?= htmlspecialchars($user['name'], ENT_QUOTES) ?>',
 };
 </script>
 <script src="/assets/js/app.js"></script>

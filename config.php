@@ -1,7 +1,11 @@
 <?php
 define('APP_NAME_AR', 'تسعيرة');
 define('APP_NAME_EN', 'Tas3eerah');
-define('APP_URL', 'https://presentation.thanarah.com');
+
+// Read from environment variable; fall back to localhost for local dev
+define('APP_URL', rtrim($_ENV['APP_URL'] ?? getenv('APP_URL') ?: 'http://localhost:5000', '/'));
+define('APP_ENV', $_ENV['APP_ENV'] ?? getenv('APP_ENV') ?: 'development');
+
 define('APP_LOGO', '/assets/brand-logo-transparent.png');
 define('DB_PATH', __DIR__ . '/database/tas3eerah.db');
 define('SESSION_LIFETIME', 60 * 60 * 24 * 30);
@@ -35,7 +39,7 @@ define('PLANS', [
         'max_msgs'   => -1,
         'tools'      => ['calc_basic','calc_pkg','calc_store','calc_office','calc_labor','calc_custom'],
         'badge'      => '#d7ae61',
-        'features_ar'=> ['كل ما في المحترف','علامة تجارية مخصصة','أولوية الدعم الفني','تقارير متقدمة','API access'],
+        'features_ar'=> ['كل ما في المحترف','أداة تسعير حر مخصصة','علامة تجارية مخصصة','أولوية الدعم الفني','تقارير متقدمة'],
     ],
 ]);
 

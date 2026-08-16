@@ -86,6 +86,9 @@ class DB {
     }
 
     private static function seed(PDO $db): void {
+        // Only seed demo data in development — production starts with an empty DB
+        if (defined('APP_ENV') && APP_ENV !== 'development') return;
+
         $has = $db->query("SELECT id FROM users WHERE role='admin' LIMIT 1")->fetch();
         if ($has) return;
 

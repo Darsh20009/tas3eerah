@@ -8,12 +8,13 @@ $body   = json_decode(file_get_contents('php://input'), true) ?? [];
 $action = $body['action'] ?? $_GET['action'] ?? '';
 
 match ($action) {
-    'login'    => handleLogin($body),
-    'register' => handleRegister($body),
-    'logout'   => handleLogout(),
-    'me'       => handleMe(),
-    'demo'     => handleDemo($body),
-    default    => Response::err('إجراء غير معروف', 400),
+    'login'          => handleLogin($body),
+    'register'       => handleRegister($body),
+    'logout'         => handleLogout(),
+    'me'             => handleMe(),
+    'demo'           => handleDemo($body),
+    'update_account' => handleUpdateAccount($body),
+    default          => Response::err('إجراء غير معروف', 400),
 };
 
 function handleLogin(array $b): never {
@@ -60,6 +61,30 @@ function handleDemo(array $b): never {
     }
     if (!$user) Response::err('حساب التجربة غير متاح');
     Response::ok(safeUser($user), 'تم تسجيل الدخول كـ ' . $user['role']);
+}
+
+function handleUpdateAccount(array $b): never {
+    $u = Auth::user();
+    if (!$u) Response::err('غير مسجل', 401);
+
+    $name = trim($b['name'] ?? '');
+    if (!$name) Response::err('الاسم مطلوب');
+
+    $db = DB::get();
+    $sets = ['name = ?'];
+    $params = [$name];
+
+    if (!empty($b['password'])) {
+        if (strlen($b['password']) < 8) Response::err('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
+        $sets[]   = 'password_hash = ?';
+        $params[] = password_hash($b['password'], PASSWORD_BCRYPT);
+    }
+
+    $params[] = $u['id'];
+    $db->prepare('UPDATE users SET ' . implode(', ', $sets) . ' WHERE id = ?')->execute($params);
+
+    $updated = $db->query("SELECT * FROM users WHERE id = {$u['id']}")->fetch(PDO::FETCH_ASSOC);
+    Response::ok(safeUser($updated), 'تم تحديث البيانات');
 }
 
 function safeUser(array $u): array {
