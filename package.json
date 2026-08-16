@@ -1,0 +1,8 @@
+{
+  "name": "tas3eerah",
+  "version": "1.0.0",
+  "description": "منصة تسعيرة العربية للتسعير وعروض الأسعار",
+  "scripts": {
+    "start": "php -S 0.0.0.0:$PORT router.php"
+  }
+}
