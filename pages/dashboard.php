@@ -30,7 +30,7 @@ function teaserOverlay(): string {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>تسعيرة | لوحة التحكم</title>
-  <link rel="icon" type="image/png" href="/assets/brand-logo-transparent.png">
+  <link rel="icon" type="image/png" href="/assets/logo.png">
   <link rel="stylesheet" href="/assets/css/app.css">
 </head>
 <body>
@@ -43,12 +43,15 @@ function teaserOverlay(): string {
 <aside class="sidebar" id="sidebar">
   <button class="sb-close-btn" onclick="closeSidebar()" aria-label="إغلاق القائمة">✕</button>
   <div class="sb-logo">
-    <img src="/assets/brand-logo-transparent.png" alt="تسعيرة">
+    <div class="sb-logo-wrap">
+      <img src="/assets/logo.png" alt="تسعيرة">
+    </div>
     <div>
       <strong>تسعيرة</strong>
       <span>Tas3eerah</span>
     </div>
   </div>
+  <div class="sb-gold-stripe"></div>
   <div class="sb-user">
     <div class="sb-user-name"><?= htmlspecialchars($user['name']) ?></div>
     <div class="sb-user-role"><?= $roleLabel ?></div>
