@@ -83,7 +83,7 @@ function handleUpdateAccount(array $b): never {
     $params[] = $u['id'];
     $db->prepare('UPDATE users SET ' . implode(', ', $sets) . ' WHERE id = ?')->execute($params);
 
-    $updated = $db->query("SELECT * FROM users WHERE id = {$u['id']}")->fetch(PDO::FETCH_ASSOC);
+    $updated = DB::row("SELECT * FROM users WHERE id=?", [$u['id']]);
     Response::ok(safeUser($updated), 'تم تحديث البيانات');
 }
 

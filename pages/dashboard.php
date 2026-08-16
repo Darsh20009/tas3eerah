@@ -46,7 +46,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>تسعيرة | لوحة التحكم</title>
   <link rel="icon" type="image/png" href="/assets/logo.png">
-  <link rel="stylesheet" href="/assets/css/app.css?v=<?= filemtime(__DIR__.'/../assets/css/app.css') ?>">
+  <link rel="stylesheet" href="/assets/css/app.css?v=<?= @filemtime(__DIR__.'/../assets/css/app.css') ?: time() ?>">
   <meta name="csrf-token" content="<?= htmlspecialchars(Auth::csrfToken(), ENT_QUOTES) ?>">
 </head>
 <body>
@@ -942,14 +942,14 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
 </div>
 
 <script>
-const APP = {
-  role:          '<?= $role ?>',
-  uid:           <?= $user['id'] ?>,
-  plan:          '<?= $user['plan'] ?>',
-  effectivePlan: '<?= $effectivePlan ?>',
-  isPaid:        <?= $isPaid ? 'true' : 'false' ?>,
-  name:          '<?= htmlspecialchars($user['name'], ENT_QUOTES) ?>',
-};
+const APP = <?= json_encode([
+  'role'          => $role,
+  'uid'           => (int)$user['id'],
+  'plan'          => $user['plan'],
+  'effectivePlan' => $effectivePlan,
+  'isPaid'        => (bool)$isPaid,
+  'name'          => $user['name'],
+], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 </script>
 <script src="/assets/js/app.js"></script>
 </body>

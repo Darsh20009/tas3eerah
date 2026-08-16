@@ -540,9 +540,36 @@ async function apiPost(url, data) {
       headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
       body: JSON.stringify(data)
     });
-    return await r.json();
+    const json = await r.json();
+    if (!r.ok && !json.error) json.error = 'خطأ في الخادم (' + r.status + ')';
+    return json;
   } catch (e) {
-    return { success: false, error: 'خطأ في الاتصال بالخادم' };
+    return { success: false, error: 'خطأ في الاتصال بالخادم — تحقق من الاتصال بالإنترنت' };
+  }
+}
+
+async function submitContact() {
+  const name  = document.getElementById('ctName')?.value.trim();
+  const email = document.getElementById('ctEmail')?.value.trim();
+  const msg   = document.getElementById('ctMsg')?.value.trim();
+  const fb    = document.getElementById('ctFeedback');
+  if (!name || !email || !msg) {
+    fb.style.display = 'block';
+    fb.style.color   = 'var(--red, #e53e3e)';
+    fb.textContent   = 'يرجى تعبئة جميع الحقول';
+    return;
+  }
+  const res = await apiPost('/api/contact', { name, email, message: msg });
+  fb.style.display = 'block';
+  if (res.success) {
+    fb.style.color = 'var(--p)';
+    fb.textContent = '✓ تم إرسال رسالتك — سنرد خلال يوم عمل واحد';
+    document.getElementById('ctName').value = '';
+    document.getElementById('ctEmail').value = '';
+    document.getElementById('ctMsg').value = '';
+  } else {
+    fb.style.color = 'var(--red, #e53e3e)';
+    fb.textContent = res.error || 'حدث خطأ — يرجى المحاولة مجدداً';
   }
 }
 

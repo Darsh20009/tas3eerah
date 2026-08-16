@@ -132,6 +132,12 @@ function userDelete(array $me, array $b): never {
     $u = DB::row("SELECT * FROM users WHERE id=?", [$id]);
     if (!$u) Response::err('المستخدم غير موجود', 404);
 
+    // Prevent deleting the last admin
+    if ($u['role'] === 'admin') {
+        $adminCount = (int)DB::val("SELECT COUNT(*) FROM users WHERE role='admin' AND is_active=1");
+        if ($adminCount <= 1) Response::err('لا يمكن حذف المدير الأخير في النظام', 409);
+    }
+
     // Prevent deletion if user has quotes (data integrity)
     $quoteCount = (int)DB::val(
         "SELECT COUNT(*) FROM quotes WHERE employee_id=? OR client_id=?",
@@ -195,7 +201,7 @@ function allQuotes(): never {
 }
 
 function activityLog(): never {
-    $limit = min((int)($_GET['limit'] ?? 50), 200);
+    $limit = max(1, min((int)($_GET['limit'] ?? 50), 200));
     $log   = DB::all(
         "SELECT l.*, u.name as user_name, u.role as user_role
          FROM activity_log l LEFT JOIN users u ON u.id=l.user_id

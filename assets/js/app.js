@@ -862,7 +862,7 @@ async function loadUsers() {
         <div class="actions">
           <button class="btn btn-ghost btn-sm" onclick="editUser(${JSON.stringify(u).replace(/"/g,'&quot;')})">تعديل</button>
           <button class="btn btn-ghost btn-sm" onclick="toggleUser(${u.id})">${u.is_active ? 'تعطيل' : 'تفعيل'}</button>
-          <button class="btn btn-primary btn-sm" onclick="openPlanModal(${u.id},'${esc(u.name)}','${u.plan}')">الخطة</button>
+          <button class="btn btn-primary btn-sm" data-uid="${u.id}" data-uname="${esc(u.name)}" data-uplan="${esc(u.plan)}" onclick="openPlanModal(+this.dataset.uid,this.dataset.uname,this.dataset.uplan)">الخطة</button>
         </div>
       </td>
     </tr>
@@ -1006,7 +1006,7 @@ async function loadActivity() {
       <td>${l.user_role ? `<span class="badge badge-${l.user_role}">${roleLabel(l.user_role)}</span>` : ''}</td>
       <td>${actionLabels[l.action] || l.action}</td>
       <td style="font-size:12px;color:var(--muted)">${esc(l.details || '')}</td>
-      <td style="font-size:11px;direction:ltr">${l.ip || ''}</td>
+      <td style="font-size:11px;direction:ltr">${esc(l.ip || '')}</td>
       <td style="font-size:11px;color:var(--muted)">${(l.created_at||'').slice(0,16).replace('T',' ')}</td>
     </tr>
   `).join('');

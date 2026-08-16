@@ -80,9 +80,13 @@ function createQuote(array $u, array $b): never {
 
     $subtotal = 0;
     foreach ($items as $item) {
-        $subtotal += (float)($item['qty'] ?? 1) * (float)($item['unit_price'] ?? 0);
+        $qty   = max(0.001, (float)($item['qty']        ?? 1));
+        $price = max(0,     (float)($item['unit_price'] ?? 0));
+        if (!is_finite($qty) || !is_finite($price)) Response::err('قيمة غير صالحة في أحد البنود');
+        $subtotal += $qty * $price;
     }
     if ($discount > $subtotal) Response::err('الخصم لا يمكن أن يتجاوز الإجمالي الفرعي');
+    $taxRate = min($taxRate, 100);
     $total = ($subtotal - $discount) * (1 + $taxRate / 100);
 
     $db = DB::get();
@@ -141,9 +145,13 @@ function updateQuote(array $u, array $b): never {
     $subtotal = 0;
     foreach ($items as $item) {
         if (trim($item['description'] ?? '') === '') Response::err('وصف البند مطلوب لكل بند');
-        $subtotal += (float)($item['qty'] ?? 1) * (float)($item['unit_price'] ?? 0);
+        $qty   = max(0.001, (float)($item['qty']        ?? 1));
+        $price = max(0,     (float)($item['unit_price'] ?? 0));
+        if (!is_finite($qty) || !is_finite($price)) Response::err('قيمة غير صالحة في أحد البنود');
+        $subtotal += $qty * $price;
     }
     if ($discount > $subtotal && $subtotal > 0) Response::err('الخصم لا يمكن أن يتجاوز الإجمالي الفرعي');
+    $taxRate = min($taxRate, 100);
     $total = ($subtotal - $discount) * (1 + $taxRate / 100);
 
     $db = DB::get();
@@ -155,14 +163,14 @@ function updateQuote(array $u, array $b): never {
             [$title, $subtotal, $taxRate, $discount, $total, $notes, $id]
         );
 
-        if (!empty($items)) {
-            DB::run("DELETE FROM quote_items WHERE quote_id=?", [$id]);
-            $ins = $db->prepare("INSERT INTO quote_items (quote_id,description,qty,unit_price,total) VALUES (?,?,?,?,?)");
-            foreach ($items as $item) {
-                $qty   = (float)($item['qty'] ?? 1);
-                $price = (float)($item['unit_price'] ?? 0);
-                $ins->execute([$id, trim($item['description']), $qty, $price, $qty * $price]);
-            }
+        // Always replace items when provided; require at least 1
+        if (empty($items)) Response::err('يرجى إضافة بند واحد على الأقل');
+        DB::run("DELETE FROM quote_items WHERE quote_id=?", [$id]);
+        $ins = $db->prepare("INSERT INTO quote_items (quote_id,description,qty,unit_price,total) VALUES (?,?,?,?,?)");
+        foreach ($items as $item) {
+            $qty   = max(0.001, (float)($item['qty']        ?? 1));
+            $price = max(0,     (float)($item['unit_price'] ?? 0));
+            $ins->execute([$id, trim($item['description']), $qty, $price, $qty * $price]);
         }
 
         $db->commit();
