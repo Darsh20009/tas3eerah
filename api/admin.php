@@ -9,17 +9,22 @@ $body   = json_decode(file_get_contents('php://input'), true) ?? [];
 $action = $body['action'] ?? $_GET['action'] ?? '';
 
 match ($action) {
-    'stats'         => stats(),
-    'users'         => users(),
-    'user_create'   => userCreate($user, $body),
-    'user_update'   => userUpdate($user, $body),
-    'user_toggle'   => userToggle($user, $body),
-    'user_delete'   => userDelete($user, $body),
-    'set_plan'      => setPlan($user, $body),
-    'all_quotes'    => allQuotes(),
-    'activity_log'  => activityLog(),
-    'plan_settings' => planSettings(),
-    default         => Response::err('إجراء غير معروف', 400),
+    'stats'                => stats(),
+    'users'                => users(),
+    'user_create'          => userCreate($user, $body),
+    'user_update'          => userUpdate($user, $body),
+    'user_toggle'          => userToggle($user, $body),
+    'user_delete'          => userDelete($user, $body),
+    'set_plan'             => setPlan($user, $body),
+    'all_quotes'           => allQuotes(),
+    'activity_log'         => activityLog(),
+    'plan_settings'        => planSettings(),
+    'contact_messages'     => contactMessages(),
+    'contact_mark_read'    => contactMarkRead($body),
+    'contact_delete'       => contactDelete($body),
+    'get_settings'         => getSettings(),
+    'save_settings'        => saveSettings($user, $body),
+    default                => Response::err('إجراء غير معروف', 400),
 };
 
 function stats(): never {
@@ -213,4 +218,70 @@ function activityLog(): never {
 
 function planSettings(): never {
     Response::ok(PLANS);
+}
+
+// ── Contact Messages ──────────────────────────────────────────────────────────
+function ensureContactTable(): void {
+    DB::get()->exec("CREATE TABLE IF NOT EXISTS contact_messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        message TEXT NOT NULL,
+        ip TEXT,
+        is_read INTEGER NOT NULL DEFAULT 0,
+        created_at DATETIME DEFAULT (datetime('now'))
+    )");
+}
+
+function contactMessages(): never {
+    ensureContactTable();
+    $msgs = DB::all("SELECT * FROM contact_messages ORDER BY created_at DESC LIMIT 200");
+    Response::ok($msgs);
+}
+
+function contactMarkRead(array $b): never {
+    ensureContactTable();
+    $id = (int)($b['id'] ?? 0);
+    if (!$id) Response::err('معرف مطلوب');
+    DB::run("UPDATE contact_messages SET is_read=1 WHERE id=?", [$id]);
+    Response::ok([], 'تم التحديث');
+}
+
+function contactDelete(array $b): never {
+    ensureContactTable();
+    $id = (int)($b['id'] ?? 0);
+    if (!$id) Response::err('معرف مطلوب');
+    DB::run("DELETE FROM contact_messages WHERE id=?", [$id]);
+    Response::ok([], 'تم الحذف');
+}
+
+// ── System Settings ───────────────────────────────────────────────────────────
+function ensureSettingsTable(): void {
+    DB::get()->exec("CREATE TABLE IF NOT EXISTS settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL DEFAULT ''
+    )");
+}
+
+function getSettings(): never {
+    ensureSettingsTable();
+    $rows = DB::all("SELECT key, value FROM settings");
+    $map  = [];
+    foreach ($rows as $r) $map[$r['key']] = $r['value'];
+    Response::ok($map);
+}
+
+function saveSettings(array $me, array $b): never {
+    ensureSettingsTable();
+    $allowed = ['contact_email', 'whatsapp', 'site_name', 'welcome_message'];
+    $db = DB::get();
+    $stmt = $db->prepare("INSERT INTO settings (key,value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value");
+    foreach ($allowed as $key) {
+        if (array_key_exists($key, $b)) {
+            $stmt->execute([$key, trim($b[$key])]);
+        }
+    }
+    DB::run("INSERT INTO activity_log (user_id,action,details) VALUES (?,?,?)",
+        [$me['id'], 'settings_saved', 'تعديل إعدادات النظام']);
+    Response::ok([], 'تم حفظ الإعدادات');
 }

@@ -120,8 +120,15 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
     <button class="sb-item" data-panel="subscriptions" onclick="nav(this)">
       <span class="sb-icon">◈</span> الاشتراكات
     </button>
+    <button class="sb-item" data-panel="contact-inbox" onclick="nav(this)">
+      <span class="sb-icon">✉</span> رسائل التواصل
+      <span class="sb-badge hidden" id="contactBadge">0</span>
+    </button>
     <button class="sb-item" data-panel="activity" onclick="nav(this)">
       <span class="sb-icon">◑</span> سجل النشاط
+    </button>
+    <button class="sb-item" data-panel="settings" onclick="nav(this)">
+      <span class="sb-icon">⚙</span> إعدادات النظام
     </button>
     <?php endif; ?>
 
@@ -845,6 +852,54 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
       <button class="btn btn-primary flex-1" onclick="saveUser()">حفظ</button>
       <button class="btn btn-ghost" onclick="closeUserModal()">إلغاء</button>
     </div>
+  </div>
+</div>
+
+<!-- CONTACT INBOX PANEL -->
+<div class="section-panel hidden" id="panel-contact-inbox">
+  <div class="panel-header">
+    <h2>رسائل التواصل</h2>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr>
+        <th>الاسم</th><th>البريد</th><th>الرسالة</th><th>التاريخ</th><th>إجراء</th>
+      </tr></thead>
+      <tbody id="contactInboxTbody">
+        <tr><td colspan="5" style="text-align:center;padding:32px;color:var(--muted)">جارٍ التحميل...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- SETTINGS PANEL -->
+<div class="section-panel hidden" id="panel-settings">
+  <div class="panel-header"><h2>إعدادات النظام</h2></div>
+  <div style="max-width:560px;display:flex;flex-direction:column;gap:18px">
+    <div class="card" style="padding:24px">
+      <h3 style="font-size:15px;font-weight:800;margin-bottom:18px;color:var(--p)">معلومات التواصل</h3>
+      <div class="form-group">
+        <label>بريد الدعم الفني</label>
+        <input type="email" class="form-control" id="setContactEmail" placeholder="support@tas3eerah.com" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label>رقم واتساب الدعم</label>
+        <input type="text" class="form-control" id="setWhatsapp" placeholder="966500000000" dir="ltr">
+      </div>
+    </div>
+    <div class="card" style="padding:24px">
+      <h3 style="font-size:15px;font-weight:800;margin-bottom:18px;color:var(--p)">إعدادات العرض</h3>
+      <div class="form-group">
+        <label>اسم المنصة</label>
+        <input type="text" class="form-control" id="setSiteName" placeholder="تسعيرة">
+      </div>
+      <div class="form-group">
+        <label>رسالة الترحيب للمستخدمين الجدد</label>
+        <textarea class="form-control" id="setWelcomeMsg" placeholder="مرحباً بك في تسعيرة..." style="height:80px"></textarea>
+      </div>
+    </div>
+    <div id="settingsMsg" class="hidden"></div>
+    <button class="btn btn-primary" onclick="saveSettings()">💾 حفظ الإعدادات</button>
   </div>
 </div>
 

@@ -219,9 +219,9 @@ if ($user) { header('Location: /dashboard'); exit; }
         بُنيت لأصحاب المشاريع العربية
       </h2>
       <p style="color:var(--muted);font-size:15px;line-height:2;margin-bottom:8px"
-         data-ar="تسعيرة مبادرة من <strong style='color:var(--text)'>Qirox Studio Group</strong> لتمكين أصحاب المشاريع والفرق العربية من إدارة أعمالهم باحترافية — من أول لحظة تسعير حتى إرسال الفاتورة."
-         data-en="Tas3eerah is an initiative by <strong style='color:var(--text)'>Qirox Studio Group</strong> to empower Arabic businesses and teams to manage their work professionally — from the first pricing moment to the final invoice.">
-        تسعيرة مبادرة من <strong style="color:var(--text)">Qirox Studio Group</strong> لتمكين أصحاب المشاريع والفرق العربية من إدارة أعمالهم باحترافية — من أول لحظة تسعير حتى إرسال الفاتورة.
+         data-ar="تسعيرة منصة عربية متكاملة تُمكّن أصحاب المشاريع والفرق من إدارة أعمالهم باحترافية — من أول لحظة تسعير حتى إرسال الفاتورة."
+         data-en="Tas3eerah is an all-in-one Arabic platform that empowers businesses and teams to manage their work professionally — from the first pricing moment to the final invoice.">
+        تسعيرة منصة عربية متكاملة تُمكّن أصحاب المشاريع والفرق من إدارة أعمالهم باحترافية — من أول لحظة تسعير حتى إرسال الفاتورة.
       </p>
       <div class="about-stats">
         <div>
@@ -277,7 +277,7 @@ if ($user) { header('Location: /dashboard'); exit; }
         <div class="contact-info-icon">✉</div>
         <div>
           <div style="font-size:11px;color:var(--muted);font-weight:700">البريد الإلكتروني</div>
-          <div style="font-weight:700;font-size:13px;direction:ltr">info@qirox.online</div>
+          <div style="font-weight:700;font-size:13px;direction:ltr">support@tas3eerah.com</div>
         </div>
       </div>
       <div class="contact-info-item">
@@ -285,7 +285,7 @@ if ($user) { header('Location: /dashboard'); exit; }
         <div>
           <div style="font-size:11px;color:var(--muted);font-weight:700">الموقع الرسمي</div>
           <div style="font-weight:700;font-size:13px">
-            <a href="https://qiroxstudio.online" target="_blank" rel="noopener" style="color:var(--p)">qiroxstudio.online</a>
+            <a href="#" style="color:var(--p)">tas3eerah.com</a>
           </div>
         </div>
       </div>
@@ -326,9 +326,6 @@ if ($user) { header('Location: /dashboard'); exit; }
         </div>
         <div class="footer-gold-line"></div>
         <p style="font-size:12px;color:rgba(255,255,255,.55);line-height:2;max-width:260px">منصة عربية لإدارة التسعير عروض الأسعار والتواصل مع العملاء.</p>
-        <p style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.35)">
-          صُنع بـ <a href="https://qiroxstudio.online" target="_blank" rel="noopener" style="color:var(--gold)">Qirox Studio Group</a>
-        </p>
       </div>
       <div>
         <div class="footer-col-title">المنصة</div>
@@ -357,7 +354,7 @@ if ($user) { header('Location: /dashboard'); exit; }
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© <?= date('Y') ?> تسعيرة Qirox Studio Group جميع الحقوق محفوظة</span>
+      <span>© <?= date('Y') ?> تسعيرة — جميع الحقوق محفوظة</span>
       <span>🇸🇦 المملكة العربية السعودية</span>
     </div>
   </div>
@@ -604,7 +601,7 @@ document.addEventListener('keydown', e => {
 const POLICIES = {
   privacy: {
     title: 'سياسة الخصوصية',
-    body: `<p style="color:var(--muted);font-size:12px;margin-bottom:22px">آخر تحديث: ${new Date().getFullYear()} تسعيرة / Qirox Studio Group</p>
+    body: `<p style="color:var(--muted);font-size:12px;margin-bottom:22px">آخر تحديث: ${new Date().getFullYear()} — تسعيرة</p>
     <h3 style="font-size:15px;font-weight:800;margin:20px 0 10px;color:var(--p)">١. المعلومات التي نجمعها</h3>
     <p style="color:var(--muted);font-size:13px;line-height:2">نجمع المعلومات التي تقدمها مباشرةً عند إنشاء حساب (الاسم البريد الإلكتروني كلمة المرور المشفرة). لا نجمع بيانات الدفع مباشرةً.</p>
     <h3 style="font-size:15px;font-weight:800;margin:20px 0 10px;color:var(--p)">٢. استخدام المعلومات</h3>
@@ -612,7 +609,7 @@ const POLICIES = {
     <h3 style="font-size:15px;font-weight:800;margin:20px 0 10px;color:var(--p)">٣. الأمان</h3>
     <p style="color:var(--muted);font-size:13px;line-height:2">كلمات المرور مشفرة بخوارزمية bcrypt. نطبق بروتوكولات أمان معيارية لحماية بياناتك.</p>
     <h3 style="font-size:15px;font-weight:800;margin:20px 0 10px;color:var(--p)">٤. حقوقك</h3>
-    <p style="color:var(--muted);font-size:13px;line-height:2">يحق لك الاطلاع على بياناتك أو طلب حذفها. تواصل معنا على info@qirox.online</p>`
+    <p style="color:var(--muted);font-size:13px;line-height:2">يحق لك الاطلاع على بياناتك أو طلب حذفها. تواصل معنا على support@tas3eerah.com</p>`
   },
   terms: {
     title: 'شروط الاستخدام',
@@ -622,7 +619,7 @@ const POLICIES = {
     <h3 style="font-size:15px;font-weight:800;margin:20px 0 10px;color:var(--p)">٢. الاستخدام المسموح</h3>
     <p style="color:var(--muted);font-size:13px;line-height:2">تلتزم بالاستخدام للأغراض المشروعة فقط وفق الأنظمة المعمول بها في المملكة العربية السعودية.</p>
     <h3 style="font-size:15px;font-weight:800;margin:20px 0 10px;color:var(--p)">٣. الملكية الفكرية</h3>
-    <p style="color:var(--muted);font-size:13px;line-height:2">جميع محتويات المنصة محمية بموجب حقوق الملكية الفكرية وتعود لـ Qirox Studio Group.</p>`
+    <p style="color:var(--muted);font-size:13px;line-height:2">جميع محتويات المنصة محمية بموجب حقوق الملكية الفكرية وتعود لـ تسعيرة.</p>`
   },
   refund: {
     title: 'سياسة الإلغاء والاسترداد',

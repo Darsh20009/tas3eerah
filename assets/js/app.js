@@ -59,16 +59,18 @@ async function api(endpoint, data = null, method = null) {
 
 // ─── NAVIGATION ──────────────────────────
 const panelTitles = {
-  overview      : 'نظرة عامة',
-  quotes        : 'عروض الأسعار',
-  'quote-new'   : 'عرض سعر جديد',
-  clients       : 'العملاء',
-  messages      : 'الرسائل',
-  tools         : 'أدوات التسعير',
-  users         : 'إدارة المستخدمين',
-  subscriptions : 'الاشتراكات',
-  activity      : 'سجل النشاط',
-  account       : 'حسابي',
+  overview        : 'نظرة عامة',
+  quotes          : 'عروض الأسعار',
+  'quote-new'     : 'عرض سعر جديد',
+  clients         : 'العملاء',
+  messages        : 'الرسائل',
+  tools           : 'أدوات التسعير',
+  users           : 'إدارة المستخدمين',
+  subscriptions   : 'الاشتراكات',
+  'contact-inbox' : 'رسائل التواصل',
+  activity        : 'سجل النشاط',
+  settings        : 'إعدادات النظام',
+  account         : 'حسابي',
 };
 
 function nav(btn) {
@@ -87,13 +89,15 @@ function nav(btn) {
   const titleEl = document.getElementById('topbarTitle');
   if (titleEl) titleEl.textContent = panelTitles[panel] || '';
 
-  if (panel === 'quotes')        loadQuotes();
-  if (panel === 'clients')       loadClients();
-  if (panel === 'messages')      loadInbox();
-  if (panel === 'users')         loadUsers();
-  if (panel === 'subscriptions') loadSubscriptions();
-  if (panel === 'activity')      loadActivity();
-  if (panel === 'quote-new')     initQuoteForm();
+  if (panel === 'quotes')          loadQuotes();
+  if (panel === 'clients')         loadClients();
+  if (panel === 'messages')        loadInbox();
+  if (panel === 'users')           loadUsers();
+  if (panel === 'subscriptions')   loadSubscriptions();
+  if (panel === 'contact-inbox')   loadContactInbox();
+  if (panel === 'activity')        loadActivity();
+  if (panel === 'settings')        loadSettings();
+  if (panel === 'quote-new')       initQuoteForm();
 }
 
 // ─── AUTH ────────────────────────────────
@@ -1010,6 +1014,68 @@ async function loadActivity() {
       <td style="font-size:11px;color:var(--muted)">${(l.created_at||'').slice(0,16).replace('T',' ')}</td>
     </tr>
   `).join('');
+}
+
+// ─── ADMIN: CONTACT INBOX ────────────────
+async function loadContactInbox() {
+  const r = await api('admin?action=contact_messages');
+  const tb = document.getElementById('contactInboxTbody');
+  const badge = document.getElementById('contactBadge');
+  if (!tb || !r.success) return;
+  const msgs = r.data;
+  const unread = msgs.filter(m => !m.is_read).length;
+  if (badge) { badge.textContent = unread; badge.classList.toggle('hidden', unread === 0); }
+  if (!msgs.length) { tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px">لا توجد رسائل بعد</td></tr>'; return; }
+  tb.innerHTML = msgs.map(m => `
+    <tr style="${m.is_read ? '' : 'background:var(--surface);font-weight:600'}">
+      <td>${esc(m.name)}</td>
+      <td style="direction:ltr;font-size:12px">${esc(m.email)}</td>
+      <td style="max-width:260px;white-space:pre-wrap;font-size:13px">${esc(m.message)}</td>
+      <td style="font-size:11px;color:var(--muted)">${(m.created_at||'').slice(0,16).replace('T',' ')}</td>
+      <td>
+        <div class="actions">
+          ${!m.is_read ? `<button class="btn btn-ghost btn-sm" onclick="markContactRead(${m.id})">قُرئت</button>` : '<span style="font-size:11px;color:var(--muted)">✓</span>'}
+          <button class="btn btn-ghost btn-sm" style="color:var(--red,#e53e3e)" onclick="deleteContact(${m.id})">حذف</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+async function markContactRead(id) {
+  const r = await api('admin', { action: 'contact_mark_read', id });
+  if (r.success) loadContactInbox();
+}
+async function deleteContact(id) {
+  if (!confirm('تأكيد حذف الرسالة؟')) return;
+  const r = await api('admin', { action: 'contact_delete', id });
+  if (r.success) loadContactInbox();
+}
+
+// ─── ADMIN: SETTINGS ─────────────────────
+async function loadSettings() {
+  const r = await api('admin?action=get_settings');
+  if (!r.success) return;
+  const s = r.data;
+  const f = id => document.getElementById(id);
+  if (f('setContactEmail'))   f('setContactEmail').value   = s.contact_email   || '';
+  if (f('setWhatsapp'))       f('setWhatsapp').value       = s.whatsapp        || '';
+  if (f('setSiteName'))       f('setSiteName').value       = s.site_name       || 'تسعيرة';
+  if (f('setWelcomeMsg'))     f('setWelcomeMsg').value     = s.welcome_message || '';
+}
+async function saveSettings() {
+  const val = id => (document.getElementById(id)||{}).value || '';
+  const payload = {
+    action: 'save_settings',
+    contact_email:   val('setContactEmail'),
+    whatsapp:        val('setWhatsapp'),
+    site_name:       val('setSiteName'),
+    welcome_message: val('setWelcomeMsg'),
+  };
+  const r = await api('admin', payload);
+  const msg = document.getElementById('settingsMsg');
+  if (!msg) return;
+  msg.className = r.success ? 'alert alert-success' : 'alert alert-danger';
+  msg.textContent = r.success ? 'تم حفظ الإعدادات بنجاح ✓' : (r.error || 'فشل الحفظ');
+  setTimeout(() => { msg.className = 'hidden'; }, 3000);
 }
 
 // ─── ACCOUNT ─────────────────────────────
