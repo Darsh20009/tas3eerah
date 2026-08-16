@@ -1,143 +1,181 @@
 <?php
+use MongoDB\Client;
+use MongoDB\Operation\FindOneAndUpdate;
+
 class DB {
-    private static ?PDO $pdo = null;
+    private static ?Client $client       = null;
+    private static ?\MongoDB\Database $database = null;
+    private static ?int $lastId          = null;
 
-    public static function get(): PDO {
-        if (self::$pdo === null) {
-            $dir = dirname(DB_PATH);
-            if (!is_dir($dir)) mkdir($dir, 0755, true);
-            self::$pdo = new PDO('sqlite:' . DB_PATH);
-            self::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            self::$pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-            self::$pdo->exec('PRAGMA journal_mode=WAL');
-            self::$pdo->exec('PRAGMA foreign_keys=ON');
-            self::migrate();
+    // ── Connection ────────────────────────────────────────────────────
+    private static function db(): \MongoDB\Database {
+        if (self::$database !== null) return self::$database;
+
+        $uri = MONGODB_URI;
+        if (!$uri) {
+            throw new \RuntimeException(
+                'MONGODB_URI غير محدد — أضف المتغير في إعدادات المشروع (Secrets)'
+            );
         }
-        return self::$pdo;
+        self::$client   = new Client($uri);
+        self::$database = self::$client->selectDatabase('tas3eerah');
+
+        // Init indexes and seed (calling col() here is safe: db() returns early now)
+        self::doInit();
+        return self::$database;
     }
 
-    private static function migrate(): void {
-        $db = self::$pdo;
-        $db->exec("
-            CREATE TABLE IF NOT EXISTS users (
-                id              INTEGER PRIMARY KEY AUTOINCREMENT,
-                name            TEXT    NOT NULL,
-                email           TEXT    UNIQUE NOT NULL,
-                password_hash   TEXT    NOT NULL,
-                role            TEXT    NOT NULL DEFAULT 'client',
-                plan            TEXT    NOT NULL DEFAULT 'free',
-                plan_expires_at TEXT,
-                is_active       INTEGER NOT NULL DEFAULT 1,
-                created_at      TEXT    NOT NULL DEFAULT (datetime('now'))
-            );
-            CREATE TABLE IF NOT EXISTS quotes (
-                id          INTEGER PRIMARY KEY AUTOINCREMENT,
-                number      TEXT    NOT NULL,
-                client_id   INTEGER,
-                employee_id INTEGER,
-                title       TEXT    NOT NULL,
-                status      TEXT    NOT NULL DEFAULT 'draft',
-                subtotal    REAL    NOT NULL DEFAULT 0,
-                tax_rate    REAL    NOT NULL DEFAULT 15,
-                discount    REAL    NOT NULL DEFAULT 0,
-                total       REAL    NOT NULL DEFAULT 0,
-                notes       TEXT,
-                created_at  TEXT    NOT NULL DEFAULT (datetime('now')),
-                updated_at  TEXT    NOT NULL DEFAULT (datetime('now')),
-                FOREIGN KEY (client_id)   REFERENCES users(id),
-                FOREIGN KEY (employee_id) REFERENCES users(id)
-            );
-            CREATE TABLE IF NOT EXISTS quote_items (
-                id          INTEGER PRIMARY KEY AUTOINCREMENT,
-                quote_id    INTEGER NOT NULL,
-                description TEXT    NOT NULL,
-                qty         REAL    NOT NULL DEFAULT 1,
-                unit_price  REAL    NOT NULL DEFAULT 0,
-                total       REAL    NOT NULL DEFAULT 0,
-                FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE CASCADE
-            );
-            CREATE TABLE IF NOT EXISTS messages (
-                id          INTEGER PRIMARY KEY AUTOINCREMENT,
-                sender_id   INTEGER NOT NULL,
-                receiver_id INTEGER NOT NULL,
-                subject     TEXT,
-                body        TEXT    NOT NULL,
-                is_read     INTEGER NOT NULL DEFAULT 0,
-                parent_id   INTEGER,
-                created_at  TEXT    NOT NULL DEFAULT (datetime('now')),
-                FOREIGN KEY (sender_id)   REFERENCES users(id),
-                FOREIGN KEY (receiver_id) REFERENCES users(id)
-            );
-            CREATE TABLE IF NOT EXISTS activity_log (
-                id         INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id    INTEGER,
-                action     TEXT NOT NULL,
-                details    TEXT,
-                ip         TEXT,
-                created_at TEXT NOT NULL DEFAULT (datetime('now'))
-            );
-            CREATE TABLE IF NOT EXISTS quote_counter (
-                last_num INTEGER NOT NULL DEFAULT 0
-            );
-            INSERT OR IGNORE INTO quote_counter (last_num)
-                SELECT 0 WHERE NOT EXISTS (SELECT 1 FROM quote_counter);
-        ");
-        self::seed($db);
+    private static function doInit(): void {
+        // Indexes (ignore if already exist)
+        try {
+            self::$database->users->createIndex(['email' => 1], ['unique' => true, 'sparse' => false]);
+            self::$database->users->createIndex(['id'    => 1], ['unique' => true, 'sparse' => false]);
+            self::$database->quotes->createIndex(['id'   => 1], ['unique' => true, 'sparse' => false]);
+        } catch (\Throwable) {}
+
+        // Seed only if no admin exists yet
+        $adminExists = self::$database->users->countDocuments(['role' => 'admin']) > 0;
+        if ($adminExists) return;
+        self::doSeed();
     }
 
-    private static function seed(PDO $db): void {
-        // Always ensure the admin account exists so the system is never locked out
-        $has = $db->query("SELECT id FROM users WHERE role='admin' LIMIT 1")->fetch();
-        if ($has) return;
+    private static function doSeed(): void {
+        $h = fn(string $p) => password_hash($p, PASSWORD_BCRYPT);
 
-        $h = fn($p) => password_hash($p, PASSWORD_BCRYPT);
-        $ins = $db->prepare("INSERT INTO users (name,email,password_hash,role,plan) VALUES (?,?,?,?,?)");
+        self::insertDoc('users', [
+            'name'            => 'مدير النظام',
+            'email'           => 'admin@tas3eerah.com',
+            'password_hash'   => $h('Admin@2025'),
+            'role'            => 'admin',
+            'plan'            => 'enterprise',
+            'plan_expires_at' => null,
+            'is_active'       => 1,
+        ]);
 
-        $ins->execute(['مدير النظام', 'admin@tas3eerah.com', $h('Admin@2025'), 'admin', 'enterprise']);
+        if (defined('APP_ENV') && APP_ENV === 'production') return;
 
-        // Demo users and sample data — development only
-        if (defined('APP_ENV') && APP_ENV !== 'development') return;
-
-        $ins->execute(['أحمد الموظف',   'employee@tas3eerah.com', $h('Demo@2025'),     'employee', 'pro']);
-        $ins->execute(['سارة العميلة',   'client@tas3eerah.com',  $h('Demo@2025'),     'client',   'free']);
-
-        // Sample quote
-        $empId = $db->lastInsertId();
-        $empId = (int)$db->query("SELECT id FROM users WHERE role='employee' LIMIT 1")->fetchColumn();
-        $cliId = (int)$db->query("SELECT id FROM users WHERE role='client'   LIMIT 1")->fetchColumn();
-
-        $db->prepare("INSERT INTO quotes (number,client_id,employee_id,title,status,subtotal,tax_rate,total)
-                      VALUES (?,?,?,?,?,?,?,?)")
-           ->execute(['QT-0001', $cliId, $empId, 'تصميم موقع إلكتروني', 'sent', 5000, 15, 5750]);
-
-        $qid = (int)$db->lastInsertId();
-        $ii  = $db->prepare("INSERT INTO quote_items (quote_id,description,qty,unit_price,total) VALUES (?,?,?,?,?)");
-        $ii->execute([$qid,'تصميم الواجهة',1,2500,2500]);
-        $ii->execute([$qid,'تطوير الصفحات',5,500,2500]);
-
-        // Sample messages
-        $adId = (int)$db->query("SELECT id FROM users WHERE role='admin' LIMIT 1")->fetchColumn();
-        $db->prepare("INSERT INTO messages (sender_id,receiver_id,subject,body) VALUES (?,?,?,?)")
-           ->execute([$empId,$cliId,'عرض السعر جاهز','تم إعداد عرض السعر الخاص بك. يرجى مراجعته.']);
-        $db->prepare("INSERT INTO messages (sender_id,receiver_id,subject,body) VALUES (?,?,?,?)")
-           ->execute([$cliId,$empId,'استفسار','شكراً جزيلاً، لدي بعض الأسئلة.']);
-
-        // Activity log
-        $db->prepare("INSERT INTO activity_log (user_id,action,details) VALUES (?,?,?)")
-           ->execute([$adId,'system_init','تهيئة النظام للمرة الأولى']);
+        self::insertDoc('users', [
+            'name'            => 'أحمد الموظف',
+            'email'           => 'employee@tas3eerah.com',
+            'password_hash'   => $h('Demo@2025'),
+            'role'            => 'employee',
+            'plan'            => 'pro',
+            'plan_expires_at' => null,
+            'is_active'       => 1,
+        ]);
+        self::insertDoc('users', [
+            'name'            => 'سارة العميلة',
+            'email'           => 'client@tas3eerah.com',
+            'password_hash'   => $h('Demo@2025'),
+            'role'            => 'client',
+            'plan'            => 'free',
+            'plan_expires_at' => null,
+            'is_active'       => 1,
+        ]);
     }
 
-    public static function all(string $sql, array $p = []): array {
-        $s = self::get()->prepare($sql); $s->execute($p); return $s->fetchAll();
+    // ── Collection accessor ───────────────────────────────────────────
+    public static function col(string $name): \MongoDB\Collection {
+        return self::db()->selectCollection($name);
     }
-    public static function row(string $sql, array $p = []): ?array {
-        $r = self::all($sql, $p); return $r[0] ?? null;
+
+    // ── Auto-increment IDs ────────────────────────────────────────────
+    private static function nextSeq(string $collection): int {
+        $result = self::col('_counters')->findOneAndUpdate(
+            ['_id' => $collection],
+            ['$inc' => ['seq' => 1]],
+            [
+                'upsert'         => true,
+                'returnDocument' => FindOneAndUpdate::RETURN_DOCUMENT_AFTER,
+                'typeMap'        => ['root' => 'array', 'document' => 'array'],
+            ]
+        );
+        return (int)($result['seq'] ?? 1);
     }
-    public static function val(string $sql, array $p = []) {
-        $s = self::get()->prepare($sql); $s->execute($p); return $s->fetchColumn();
+
+    public static function id(): ?int { return self::$lastId; }
+
+    // ── BSON → plain PHP array ────────────────────────────────────────
+    private static function clean($doc): array {
+        $arr = json_decode(json_encode($doc), true) ?? [];
+        unset($arr['_id']);
+        return $arr;
     }
-    public static function run(string $sql, array $p = []): PDOStatement {
-        $s = self::get()->prepare($sql); $s->execute($p); return $s;
+
+    // ── Default query options (typeMap) ───────────────────────────────
+    private static function tm(): array {
+        return ['typeMap' => ['root' => 'array', 'document' => 'array', 'array' => 'array']];
     }
-    public static function id(): string { return self::get()->lastInsertId(); }
+
+    // ── CRUD helpers ──────────────────────────────────────────────────
+
+    public static function insertDoc(string $col, array $data): int {
+        $id         = self::nextSeq($col);
+        $data['id'] = $id;
+        if (!isset($data['created_at'])) {
+            $data['created_at'] = date('Y-m-d H:i:s');
+        }
+        self::col($col)->insertOne($data);
+        self::$lastId = $id;
+        return $id;
+    }
+
+    public static function findOne(string $col, array $filter, array $opts = []): ?array {
+        $doc = self::col($col)->findOne($filter, $opts + self::tm());
+        return $doc === null ? null : self::clean($doc);
+    }
+
+    public static function findAll(string $col, array $filter = [], array $opts = []): array {
+        $cursor = self::col($col)->find($filter, $opts + self::tm());
+        $result = [];
+        foreach ($cursor as $doc) {
+            $result[] = self::clean($doc);
+        }
+        return $result;
+    }
+
+    public static function count(string $col, array $filter = []): int {
+        return (int)self::col($col)->countDocuments($filter);
+    }
+
+    public static function updateDoc(string $col, array $filter, array $update): void {
+        self::col($col)->updateMany($filter, ['$set' => $update]);
+    }
+
+    public static function deleteDoc(string $col, array $filter): void {
+        self::col($col)->deleteMany($filter);
+    }
+
+    public static function aggregate(string $col, array $pipeline): array {
+        $cursor = self::col($col)->aggregate($pipeline, self::tm());
+        $result = [];
+        foreach ($cursor as $doc) {
+            $result[] = self::clean($doc);
+        }
+        return $result;
+    }
+
+    /** SUM a numeric field across matching documents */
+    public static function sumField(string $col, array $filter, string $field): float {
+        $res = self::aggregate($col, [
+            ['$match' => $filter ?: (object)[]],
+            ['$group' => ['_id' => null, 'total' => ['$sum' => '$' . $field]]],
+        ]);
+        return (float)($res[0]['total'] ?? 0);
+    }
+
+    /** Quote counter — atomic increment */
+    public static function nextQuoteNumber(): string {
+        $result = self::col('_counters')->findOneAndUpdate(
+            ['_id' => 'quote_counter'],
+            ['$inc' => ['seq' => 1]],
+            [
+                'upsert'         => true,
+                'returnDocument' => FindOneAndUpdate::RETURN_DOCUMENT_AFTER,
+                'typeMap'        => ['root' => 'array', 'document' => 'array'],
+            ]
+        );
+        $num = (int)($result['seq'] ?? 1);
+        return 'QT-' . str_pad($num, 4, '0', STR_PAD_LEFT);
+    }
 }

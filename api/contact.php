@@ -19,22 +19,12 @@ if (mb_strlen($message) < 10) {
     Response::err('الرسالة قصيرة جداً — يرجى كتابة ١٠ أحرف على الأقل');
 }
 
-// Ensure contact_messages table exists
-DB::get()->exec("
-    CREATE TABLE IF NOT EXISTS contact_messages (
-        id         INTEGER PRIMARY KEY AUTOINCREMENT,
-        name       TEXT NOT NULL,
-        email      TEXT NOT NULL,
-        message    TEXT NOT NULL,
-        ip         TEXT,
-        is_read    INTEGER NOT NULL DEFAULT 0,
-        created_at DATETIME DEFAULT (datetime('now'))
-    )
-");
-
-DB::run(
-    "INSERT INTO contact_messages (name, email, message, ip) VALUES (?, ?, ?, ?)",
-    [$name, $email, $message, $_SERVER['REMOTE_ADDR'] ?? '']
-);
+DB::insertDoc('contact_messages', [
+    'name'    => $name,
+    'email'   => $email,
+    'message' => $message,
+    'ip'      => $_SERVER['REMOTE_ADDR'] ?? '',
+    'is_read' => 0,
+]);
 
 Response::ok([], 'تم إرسال رسالتك — سنرد خلال يوم عمل واحد');

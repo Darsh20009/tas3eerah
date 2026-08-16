@@ -1,0 +1,11 @@
+{
+    "name": "tas3eerah/platform",
+    "description": "Arabic pricing SaaS platform",
+    "require": {
+        "php": ">=8.2",
+        "mongodb/mongodb": "^1.19"
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}

@@ -49,17 +49,13 @@ function handleMe(): never {
 function handleDemo(array $b): never {
     $role = $b['role'] ?? 'client';
     $map  = [
-        'admin'    => 'admin@tas3eerah.com',
-        'employee' => 'employee@tas3eerah.com',
-        'client'   => 'client@tas3eerah.com',
+        'admin'    => ['admin@tas3eerah.com',    'Admin@2025'],
+        'employee' => ['employee@tas3eerah.com', 'Demo@2025'],
+        'client'   => ['client@tas3eerah.com',   'Demo@2025'],
     ];
-    $email = $map[$role] ?? $map['client'];
-    $user  = Auth::login($email, 'Demo@2025');
-    if (!$user) {
-        // Try admin password for admin role
-        if ($role === 'admin') $user = Auth::login($email, 'Admin@2025');
-    }
-    if (!$user) Response::err('حساب التجربة غير متاح');
+    [$email, $pass] = $map[$role] ?? $map['client'];
+    $user = Auth::login($email, $pass);
+    if (!$user) Response::err('حساب التجربة غير متاح — تأكد من تشغيل النظام في بيئة التطوير');
     Response::ok(safeUser($user), 'تم تسجيل الدخول كـ ' . $user['role']);
 }
 
@@ -70,26 +66,19 @@ function handleUpdateAccount(array $b): never {
     $name = trim($b['name'] ?? '');
     if (!$name) Response::err('الاسم مطلوب');
 
-    $db = DB::get();
-    $sets = ['name = ?'];
-    $params = [$name];
-
+    $update = ['name' => $name];
     if (!empty($b['password'])) {
         if (strlen($b['password']) < 8) Response::err('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
-        $sets[]   = 'password_hash = ?';
-        $params[] = password_hash($b['password'], PASSWORD_BCRYPT);
+        $update['password_hash'] = password_hash($b['password'], PASSWORD_BCRYPT);
     }
 
-    $params[] = $u['id'];
-    $db->prepare('UPDATE users SET ' . implode(', ', $sets) . ' WHERE id = ?')->execute($params);
-
-    $updated = DB::row("SELECT * FROM users WHERE id=?", [$u['id']]);
+    DB::updateDoc('users', ['id' => (int)$u['id']], $update);
+    $updated = DB::findOne('users', ['id' => (int)$u['id']]);
     Response::ok(safeUser($updated), 'تم تحديث البيانات');
 }
 
 function safeUser(array $u): array {
     unset($u['password_hash']);
-    $plans = PLANS;
-    $u['plan_info'] = $plans[$u['plan']] ?? $plans['free'];
+    $u['plan_info'] = PLANS[$u['plan']] ?? PLANS['free'];
     return $u;
 }

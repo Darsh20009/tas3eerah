@@ -9,56 +9,61 @@ $body   = json_decode(file_get_contents('php://input'), true) ?? [];
 $action = $body['action'] ?? $_GET['action'] ?? '';
 
 match ($action) {
-    'stats'                => stats(),
-    'users'                => users(),
-    'user_create'          => userCreate($user, $body),
-    'user_update'          => userUpdate($user, $body),
-    'user_toggle'          => userToggle($user, $body),
-    'user_delete'          => userDelete($user, $body),
-    'set_plan'             => setPlan($user, $body),
-    'all_quotes'           => allQuotes(),
-    'activity_log'         => activityLog(),
-    'plan_settings'        => planSettings(),
-    'contact_messages'     => contactMessages(),
-    'contact_mark_read'    => contactMarkRead($body),
-    'contact_delete'       => contactDelete($body),
-    'get_settings'         => getSettings(),
-    'save_settings'        => saveSettings($user, $body),
-    default                => Response::err('إجراء غير معروف', 400),
+    'stats'             => stats(),
+    'users'             => users(),
+    'user_create'       => userCreate($user, $body),
+    'user_update'       => userUpdate($user, $body),
+    'user_toggle'       => userToggle($user, $body),
+    'user_delete'       => userDelete($user, $body),
+    'set_plan'          => setPlan($user, $body),
+    'all_quotes'        => allQuotes(),
+    'activity_log'      => activityLog(),
+    'plan_settings'     => planSettings(),
+    'contact_messages'  => contactMessages(),
+    'contact_mark_read' => contactMarkRead($body),
+    'contact_delete'    => contactDelete($body),
+    'get_settings'      => getSettings(),
+    'save_settings'     => saveSettings($user, $body),
+    default             => Response::err('إجراء غير معروف', 400),
 };
 
+// ── Stats ─────────────────────────────────────────────────────────────
 function stats(): never {
+    $month = date('Y-m');
     Response::ok([
-        'users_total'     => (int)DB::val("SELECT COUNT(*) FROM users"),
-        'users_active'    => (int)DB::val("SELECT COUNT(*) FROM users WHERE is_active=1"),
-        'clients'         => (int)DB::val("SELECT COUNT(*) FROM users WHERE role='client'"),
-        'employees'       => (int)DB::val("SELECT COUNT(*) FROM users WHERE role='employee'"),
-        'quotes_total'    => (int)DB::val("SELECT COUNT(*) FROM quotes"),
-        'quotes_month'    => (int)DB::val("SELECT COUNT(*) FROM quotes WHERE strftime('%Y-%m',created_at)=strftime('%Y-%m','now')"),
-        'revenue_total'   => (float)(DB::val("SELECT COALESCE(SUM(total),0) FROM quotes WHERE status='accepted'") ?? 0),
-        'messages_total'  => (int)DB::val("SELECT COUNT(*) FROM messages"),
-        'plan_free'       => (int)DB::val("SELECT COUNT(*) FROM users WHERE plan='free'"),
-        'plan_pro'        => (int)DB::val("SELECT COUNT(*) FROM users WHERE plan='pro'"),
-        'plan_enterprise' => (int)DB::val("SELECT COUNT(*) FROM users WHERE plan='enterprise'"),
+        'users_total'     => DB::count('users'),
+        'users_active'    => DB::count('users',  ['is_active' => 1]),
+        'clients'         => DB::count('users',  ['role' => 'client']),
+        'employees'       => DB::count('users',  ['role' => 'employee']),
+        'quotes_total'    => DB::count('quotes'),
+        'quotes_month'    => DB::count('quotes', ['created_at' => ['$regex' => '^' . $month]]),
+        'revenue_total'   => DB::sumField('quotes', ['status' => 'accepted'], 'total'),
+        'messages_total'  => DB::count('messages'),
+        'plan_free'       => DB::count('users', ['plan' => 'free']),
+        'plan_pro'        => DB::count('users', ['plan' => 'pro']),
+        'plan_enterprise' => DB::count('users', ['plan' => 'enterprise']),
     ]);
 }
 
+// ── Users ─────────────────────────────────────────────────────────────
 function users(): never {
-    $search = $_GET['q'] ?? '';
+    $search = $_GET['q']    ?? '';
     $role   = $_GET['role'] ?? '';
     $plan   = $_GET['plan'] ?? '';
 
-    $where  = ['1=1'];
-    $params = [];
-    if ($search) { $where[] = "(name LIKE ? OR email LIKE ?)"; $params[] = "%$search%"; $params[] = "%$search%"; }
-    if ($role)   { $where[] = "role=?"; $params[] = $role; }
-    if ($plan)   { $where[] = "plan=?"; $params[] = $plan; }
+    $filter = [];
+    if ($search) $filter['$or'] = [
+        ['name'  => ['$regex' => $search, '$options' => 'i']],
+        ['email' => ['$regex' => $search, '$options' => 'i']],
+    ];
+    if ($role) $filter['role'] = $role;
+    if ($plan) $filter['plan'] = $plan;
 
-    $list = DB::all(
-        "SELECT id,name,email,role,plan,plan_expires_at,is_active,created_at FROM users
-         WHERE " . implode(' AND ', $where) . " ORDER BY created_at DESC",
-        $params
-    );
+    $list = DB::findAll('users', $filter, [
+        'sort'       => ['created_at' => -1],
+        'projection' => ['id' => 1, 'name' => 1, 'email' => 1, 'role' => 1,
+                         'plan' => 1, 'plan_expires_at' => 1, 'is_active' => 1, 'created_at' => 1],
+    ]);
     Response::ok($list);
 }
 
@@ -66,222 +71,189 @@ function userCreate(array $me, array $b): never {
     $name  = trim($b['name'] ?? '');
     $email = strtolower(trim($b['email'] ?? ''));
     $pass  = $b['password'] ?? 'Demo@2025';
-    $role  = $b['role'] ?? 'client';
-    $plan  = $b['plan'] ?? 'free';
+    $role  = $b['role']     ?? 'client';
+    $plan  = $b['plan']     ?? 'free';
 
     if (!$name || !$email)   Response::err('الاسم والبريد مطلوبان');
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) Response::err('البريد الإلكتروني غير صحيح');
-    if (DB::val("SELECT id FROM users WHERE email=?", [$email])) Response::err('البريد مسجل مسبقاً');
-    if (!in_array($role, ['client','employee','admin'])) Response::err('دور غير صحيح');
+    if (DB::findOne('users', ['email' => $email])) Response::err('البريد مسجل مسبقاً');
+    if (!in_array($role, ['client', 'employee', 'admin'])) Response::err('دور غير صحيح');
     if (!array_key_exists($plan, PLANS)) Response::err('خطة غير صحيحة');
 
-    DB::run(
-        "INSERT INTO users (name,email,password_hash,role,plan) VALUES (?,?,?,?,?)",
-        [$name, $email, password_hash($pass, PASSWORD_BCRYPT), $role, $plan]
-    );
-    $id = (int)DB::id();
-    DB::run("INSERT INTO activity_log (user_id,action,details) VALUES (?,?,?)",
-        [$me['id'], 'admin_user_create', "مستخدم جديد: $email"]);
+    $id = DB::insertDoc('users', [
+        'name'            => $name,
+        'email'           => $email,
+        'password_hash'   => password_hash($pass, PASSWORD_BCRYPT),
+        'role'            => $role,
+        'plan'            => $plan,
+        'plan_expires_at' => null,
+        'is_active'       => 1,
+    ]);
+    DB::insertDoc('activity_log', ['user_id' => (int)$me['id'], 'action' => 'admin_user_create', 'details' => "مستخدم جديد: $email"]);
     Response::ok(['id' => $id], 'تم إنشاء المستخدم. كلمة المرور الافتراضية: ' . $pass);
 }
 
 function userUpdate(array $me, array $b): never {
     $id   = (int)($b['id'] ?? 0);
     $name = trim($b['name'] ?? '');
-    $role = $b['role'] ?? '';
+    $role = $b['role']     ?? '';
     $pass = $b['password'] ?? '';
 
     if (!$id) Response::err('معرف المستخدم مطلوب');
-    $u = DB::row("SELECT * FROM users WHERE id=?", [$id]);
+    $u = DB::findOne('users', ['id' => $id]);
     if (!$u) Response::err('المستخدم غير موجود', 404);
 
-    // Prevent demoting the last admin
     if ($role && $role !== 'admin' && $u['role'] === 'admin') {
-        $adminCount = (int)DB::val("SELECT COUNT(*) FROM users WHERE role='admin' AND is_active=1");
-        if ($adminCount <= 1) Response::err('لا يمكن تغيير دور المدير الوحيد في النظام');
+        if (DB::count('users', ['role' => 'admin', 'is_active' => 1]) <= 1) {
+            Response::err('لا يمكن تغيير دور المدير الوحيد في النظام');
+        }
     }
 
-    if ($name) {
-        DB::run("UPDATE users SET name=? WHERE id=?", [$name, $id]);
-    }
-    if ($role && in_array($role, ['client','employee','admin'], true)) {
-        DB::run("UPDATE users SET role=? WHERE id=?", [$role, $id]);
-    }
-    if ($pass && strlen($pass) >= 6) {
-        DB::run("UPDATE users SET password_hash=? WHERE id=?", [password_hash($pass, PASSWORD_BCRYPT), $id]);
-    }
+    $update = [];
+    if ($name) $update['name'] = $name;
+    if ($role && in_array($role, ['client', 'employee', 'admin'], true)) $update['role'] = $role;
+    if ($pass && strlen($pass) >= 6) $update['password_hash'] = password_hash($pass, PASSWORD_BCRYPT);
+    if ($update) DB::updateDoc('users', ['id' => $id], $update);
 
-    DB::run("INSERT INTO activity_log (user_id,action,details) VALUES (?,?,?)",
-        [$me['id'], 'admin_user_update', "مستخدم: $id"]);
+    DB::insertDoc('activity_log', ['user_id' => (int)$me['id'], 'action' => 'admin_user_update', 'details' => "مستخدم: $id"]);
     Response::ok([], 'تم التحديث');
 }
 
 function userToggle(array $me, array $b): never {
     $id = (int)($b['id'] ?? 0);
     if (!$id) Response::err('معرف مطلوب');
-    if ($id === $me['id']) Response::err('لا يمكنك تعطيل حسابك');
-    $u = DB::row("SELECT * FROM users WHERE id=?", [$id]);
+    if ($id === (int)$me['id']) Response::err('لا يمكنك تعطيل حسابك');
+    $u = DB::findOne('users', ['id' => $id]);
     if (!$u) Response::err('غير موجود', 404);
     $new = $u['is_active'] ? 0 : 1;
-    DB::run("UPDATE users SET is_active=? WHERE id=?", [$new, $id]);
-    DB::run("INSERT INTO activity_log (user_id,action,details) VALUES (?,?,?)",
-        [$me['id'], $new ? 'user_activated' : 'user_deactivated', "مستخدم: $id"]);
+    DB::updateDoc('users', ['id' => $id], ['is_active' => $new]);
+    DB::insertDoc('activity_log', [
+        'user_id' => (int)$me['id'],
+        'action'  => $new ? 'user_activated' : 'user_deactivated',
+        'details' => "مستخدم: $id",
+    ]);
     Response::ok(['is_active' => $new], $new ? 'تم التفعيل' : 'تم التعطيل');
 }
 
 function userDelete(array $me, array $b): never {
     $id = (int)($b['id'] ?? 0);
     if (!$id) Response::err('معرف مطلوب');
-    if ($id === $me['id']) Response::err('لا يمكنك حذف حسابك');
+    if ($id === (int)$me['id']) Response::err('لا يمكنك حذف حسابك');
 
-    $u = DB::row("SELECT * FROM users WHERE id=?", [$id]);
+    $u = DB::findOne('users', ['id' => $id]);
     if (!$u) Response::err('المستخدم غير موجود', 404);
 
-    // Prevent deleting the last admin
     if ($u['role'] === 'admin') {
-        $adminCount = (int)DB::val("SELECT COUNT(*) FROM users WHERE role='admin' AND is_active=1");
-        if ($adminCount <= 1) Response::err('لا يمكن حذف المدير الأخير في النظام', 409);
+        if (DB::count('users', ['role' => 'admin', 'is_active' => 1]) <= 1) {
+            Response::err('لا يمكن حذف المدير الأخير في النظام', 409);
+        }
     }
 
-    // Prevent deletion if user has quotes (data integrity)
-    $quoteCount = (int)DB::val(
-        "SELECT COUNT(*) FROM quotes WHERE employee_id=? OR client_id=?",
-        [$id, $id]
-    );
+    $quoteCount = DB::count('quotes', ['$or' => [['employee_id' => $id], ['client_id' => $id]]]);
     if ($quoteCount > 0) {
-        Response::err(
-            "لا يمكن حذف المستخدم لأن لديه $quoteCount عرض/عروض أسعار. قم بتعطيل الحساب عوضاً عن ذلك.",
-            409
-        );
+        Response::err("لا يمكن حذف المستخدم لأن لديه $quoteCount عرض/عروض أسعار. قم بتعطيل الحساب عوضاً عن ذلك.", 409);
     }
 
-    $db = DB::get();
-    try {
-        $db->beginTransaction();
-        // Clean up messages (no CASCADE on users FK)
-        DB::run("DELETE FROM messages WHERE sender_id=? OR receiver_id=?", [$id, $id]);
-        DB::run("DELETE FROM activity_log WHERE user_id=?", [$id]);
-        DB::run("DELETE FROM users WHERE id=?", [$id]);
-        $db->commit();
-    } catch (Throwable $e) {
-        $db->rollBack();
-        Response::err('فشل حذف المستخدم يرجى المحاولة مجدداً');
-    }
-
-    DB::run("INSERT INTO activity_log (user_id,action,details) VALUES (?,?,?)",
-        [$me['id'], 'admin_user_delete', "حذف المستخدم: {$u['email']}"]);
+    DB::deleteDoc('messages',     ['$or' => [['sender_id' => $id], ['receiver_id' => $id]]]);
+    DB::deleteDoc('activity_log', ['user_id' => $id]);
+    DB::deleteDoc('users',        ['id' => $id]);
+    DB::insertDoc('activity_log', ['user_id' => (int)$me['id'], 'action' => 'admin_user_delete', 'details' => "حذف: {$u['email']}"]);
     Response::ok([], 'تم حذف المستخدم');
 }
 
 function setPlan(array $me, array $b): never {
-    $id      = (int)($b['id'] ?? 0);
-    $plan    = $b['plan'] ?? '';
+    $id      = (int)($b['id']        ?? 0);
+    $plan    = $b['plan']     ?? '';
     $expires = $b['expires_at'] ?? null;
 
     if (!$id || !$plan) Response::err('البيانات ناقصة');
     if (!array_key_exists($plan, PLANS)) Response::err('خطة غير صحيحة');
-    if (!DB::val("SELECT id FROM users WHERE id=?", [$id])) Response::err('المستخدم غير موجود', 404);
+    if (!DB::findOne('users', ['id' => $id])) Response::err('المستخدم غير موجود', 404);
 
-    DB::run("UPDATE users SET plan=?, plan_expires_at=? WHERE id=?", [$plan, $expires, $id]);
-    DB::run("INSERT INTO activity_log (user_id,action,details) VALUES (?,?,?)",
-        [$me['id'], 'plan_changed', "مستخدم $id → خطة $plan"]);
+    DB::updateDoc('users', ['id' => $id], ['plan' => $plan, 'plan_expires_at' => $expires]);
+    DB::insertDoc('activity_log', ['user_id' => (int)$me['id'], 'action' => 'plan_changed', 'details' => "مستخدم $id → خطة $plan"]);
     Response::ok([], 'تم تغيير الخطة');
 }
 
+// ── All Quotes ────────────────────────────────────────────────────────
 function allQuotes(): never {
     $status = $_GET['status'] ?? '';
-    $where  = ['1=1'];
-    $params = [];
-    if ($status) { $where[] = "q.status=?"; $params[] = $status; }
-    $quotes = DB::all(
-        "SELECT q.*, c.name as client_name, e.name as employee_name
-         FROM quotes q
-         LEFT JOIN users c ON c.id=q.client_id
-         LEFT JOIN users e ON e.id=q.employee_id
-         WHERE " . implode(' AND ', $where) . "
-         ORDER BY q.created_at DESC LIMIT 200",
-        $params
-    );
+    $match  = $status ? ['status' => $status] : [];
+    $quotes = DB::aggregate('quotes', [
+        ['$match'    => $match ?: (object)[]],
+        ['$lookup'   => ['from' => 'users', 'localField' => 'client_id',   'foreignField' => 'id', 'as' => 'client']],
+        ['$lookup'   => ['from' => 'users', 'localField' => 'employee_id', 'foreignField' => 'id', 'as' => 'employee']],
+        ['$addFields' => [
+            'client_name'   => ['$arrayElemAt' => ['$client.name',   0]],
+            'employee_name' => ['$arrayElemAt' => ['$employee.name', 0]],
+        ]],
+        ['$project'  => ['client' => 0, 'employee' => 0]],
+        ['$sort'     => ['created_at' => -1]],
+        ['$limit'    => 200],
+    ]);
     Response::ok($quotes);
 }
 
+// ── Activity Log ──────────────────────────────────────────────────────
 function activityLog(): never {
-    $limit = max(1, min((int)($_GET['limit'] ?? 50), 200));
-    $log   = DB::all(
-        "SELECT l.*, u.name as user_name, u.role as user_role
-         FROM activity_log l LEFT JOIN users u ON u.id=l.user_id
-         ORDER BY l.created_at DESC LIMIT ?",
-        [$limit]
-    );
-    Response::ok($log);
+    $limit = max(1, min(200, (int)($_GET['limit'] ?? 50)));
+    $logs  = DB::aggregate('activity_log', [
+        ['$sort'    => ['created_at' => -1]],
+        ['$limit'   => $limit],
+        ['$lookup'  => ['from' => 'users', 'localField' => 'user_id', 'foreignField' => 'id', 'as' => 'user']],
+        ['$addFields' => [
+            'user_name' => ['$arrayElemAt' => ['$user.name', 0]],
+            'user_role' => ['$arrayElemAt' => ['$user.role', 0]],
+        ]],
+        ['$project' => ['user' => 0]],
+    ]);
+    Response::ok($logs);
 }
 
+// ── Plan Settings ─────────────────────────────────────────────────────
 function planSettings(): never {
     Response::ok(PLANS);
 }
 
-// ── Contact Messages ──────────────────────────────────────────────────────────
-function ensureContactTable(): void {
-    DB::get()->exec("CREATE TABLE IF NOT EXISTS contact_messages (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        email TEXT NOT NULL,
-        message TEXT NOT NULL,
-        ip TEXT,
-        is_read INTEGER NOT NULL DEFAULT 0,
-        created_at DATETIME DEFAULT (datetime('now'))
-    )");
-}
-
+// ── Contact Messages ──────────────────────────────────────────────────
 function contactMessages(): never {
-    ensureContactTable();
-    $msgs = DB::all("SELECT * FROM contact_messages ORDER BY created_at DESC LIMIT 200");
+    $msgs = DB::findAll('contact_messages', [], ['sort' => ['created_at' => -1], 'limit' => 200]);
     Response::ok($msgs);
 }
 
 function contactMarkRead(array $b): never {
-    ensureContactTable();
     $id = (int)($b['id'] ?? 0);
     if (!$id) Response::err('معرف مطلوب');
-    DB::run("UPDATE contact_messages SET is_read=1 WHERE id=?", [$id]);
+    DB::updateDoc('contact_messages', ['id' => $id], ['is_read' => 1]);
     Response::ok([], 'تم التحديث');
 }
 
 function contactDelete(array $b): never {
-    ensureContactTable();
     $id = (int)($b['id'] ?? 0);
     if (!$id) Response::err('معرف مطلوب');
-    DB::run("DELETE FROM contact_messages WHERE id=?", [$id]);
+    DB::deleteDoc('contact_messages', ['id' => $id]);
     Response::ok([], 'تم الحذف');
 }
 
-// ── System Settings ───────────────────────────────────────────────────────────
-function ensureSettingsTable(): void {
-    DB::get()->exec("CREATE TABLE IF NOT EXISTS settings (
-        key TEXT PRIMARY KEY,
-        value TEXT NOT NULL DEFAULT ''
-    )");
-}
-
+// ── System Settings ───────────────────────────────────────────────────
 function getSettings(): never {
-    ensureSettingsTable();
-    $rows = DB::all("SELECT key, value FROM settings");
+    $rows = DB::findAll('settings');
     $map  = [];
     foreach ($rows as $r) $map[$r['key']] = $r['value'];
     Response::ok($map);
 }
 
 function saveSettings(array $me, array $b): never {
-    ensureSettingsTable();
     $allowed = ['contact_email', 'whatsapp', 'site_name', 'welcome_message'];
-    $db = DB::get();
-    $stmt = $db->prepare("INSERT INTO settings (key,value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value");
     foreach ($allowed as $key) {
         if (array_key_exists($key, $b)) {
-            $stmt->execute([$key, trim($b[$key])]);
+            DB::col('settings')->updateOne(
+                ['key' => $key],
+                ['$set' => ['key' => $key, 'value' => trim((string)$b[$key])]],
+                ['upsert' => true]
+            );
         }
     }
-    DB::run("INSERT INTO activity_log (user_id,action,details) VALUES (?,?,?)",
-        [$me['id'], 'settings_saved', 'تعديل إعدادات النظام']);
+    DB::insertDoc('activity_log', ['user_id' => (int)$me['id'], 'action' => 'settings_saved', 'details' => 'تعديل إعدادات النظام']);
     Response::ok([], 'تم حفظ الإعدادات');
 }
