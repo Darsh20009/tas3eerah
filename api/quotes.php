@@ -58,7 +58,7 @@ function getQuote(array $u, int $id): never {
 
 function createQuote(array $u, array $b): never {
     if ($u['role'] === 'client') Response::err('العملاء لا يمكنهم إنشاء عروض أسعار', 403);
-    if (!Auth::canCreateQuote($u)) Response::err('وصلت للحد الأقصى من عروض الأسعار لهذا الشهر. يرجى ترقية الخطة.');
+    if (!Auth::canCreateQuote($u)) Response::err('وصلت للحد الأقصى من عروض الأسعار لهذا الشهر. يرجى ترقية الخطة');
 
     $title    = trim($b['title'] ?? '');
     $clientId = (int)($b['client_id'] ?? 0);
@@ -116,7 +116,7 @@ function createQuote(array $u, array $b): never {
         $db->commit();
     } catch (Throwable $e) {
         $db->rollBack();
-        Response::err('فشل إنشاء العرض، يرجى المحاولة مجدداً');
+        Response::err('فشل إنشاء العرض يرجى المحاولة مجدداً');
     }
 
     Response::ok(['id' => $qid, 'number' => $number], 'تم إنشاء عرض السعر');
@@ -168,7 +168,7 @@ function updateQuote(array $u, array $b): never {
         $db->commit();
     } catch (Throwable $e) {
         $db->rollBack();
-        Response::err('فشل تحديث العرض، يرجى المحاولة مجدداً');
+        Response::err('فشل تحديث العرض يرجى المحاولة مجدداً');
     }
 
     Response::ok(['id' => $id], 'تم التحديث');

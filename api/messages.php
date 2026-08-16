@@ -74,7 +74,7 @@ function send(array $u, array $b): never {
             [$u['id'], $month]
         );
         if ($sentCount >= $maxMsgs) {
-            Response::err("وصلت للحد الأقصى من الرسائل لهذا الشهر ($maxMsgs رسالة). يرجى ترقية الخطة.");
+            Response::err("وصلت للحد الأقصى من الرسائل لهذا الشهر $maxMsgs رسالة. يرجى ترقية الخطة.");
         }
     }
     if ($to === $u['id']) Response::err('لا يمكنك إرسال رسالة لنفسك');

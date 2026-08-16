@@ -24,10 +24,10 @@ if ($user['plan_expires_at'] && $user['plan'] !== 'free') {
     if ($daysLeft <= 0) {
         $showExpiryBanner = true;
         $expiryExpired    = true;
-        $expiryBannerMsg  = 'انتهت صلاحية خطتك — يتم التعامل معك كمستخدم مجاني حتى تجديد الاشتراك';
+        $expiryBannerMsg  = 'انتهت صلاحية خطتك يتم التعامل معك كمستخدم مجاني حتى تجديد الاشتراك';
     } elseif ($daysLeft <= 7) {
         $showExpiryBanner = true;
-        $expiryBannerMsg  = "تنتهي خطتك ({$plan['name_ar']}) خلال $daysLeft " . ($daysLeft === 1 ? 'يوم' : 'أيام') . ' · تواصل مع المدير للتجديد';
+        $expiryBannerMsg  = "تنتهي خطتك ({$plan['name_ar']}) خلال $daysLeft " . ($daysLeft === 1 ? 'يوم' : 'أيام') . ' تواصل مع المدير للتجديد';
     }
 }
 
@@ -36,7 +36,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
   if ($paid) {
     return "<div style='$style'><button class='btn btn-success w-full' onclick=\"openToolQuote('$slug','$name')\">💾 حفظ كعرض سعر</button></div>";
   }
-  return "<div style='$style'><button class='btn btn-ghost w-full' onclick='showPlanUpgrade()'>🔒 حفظ كعرض سعر — يتطلب خطة محترف</button></div>";
+  return "<div style='$style'><button class='btn btn-ghost w-full' onclick='showPlanUpgrade()'>🔒 حفظ كعرض سعر يتطلب خطة محترف</button></div>";
 }
 ?>
 <!DOCTYPE html>
@@ -387,19 +387,19 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
       <div id="toolsMenu">
         <?php
         $toolCards = [
-          ['calc_basic',  'أداة التسعير الأساسية',   'مواقع، تطبيقات، هوية، إنتاج، استشارة',  'احسب سعر خدمتك بدقة — اختر نوع المشروع وأدخل تكاليفك.'],
-          ['calc_pkg',    'تسعيرة باقات الاشتراك',    'SaaS، منتجات رقمية',                   'احسب سعر باقاتك الشهرية بناءً على تكاليفك وعدد المشتركين.'],
-          ['calc_store',  'تسعيرة المتجر الإلكتروني', 'تجارة إلكترونية، متاجر',               'سعّر مشاريع التجارة الإلكترونية مع حساب الربحية الكاملة.'],
-          ['calc_office', 'تسعيرة المكتب والوكالة',   'مكاتب، وكالات تسويق',                  'احسب التسعيرة الصحيحة لمكتبك بناءً على تكاليف التشغيل.'],
-          ['calc_labor',  'حساب تكلفة الساعة',        'مستقل، فريلانسر',                      'احسب تكلفة ساعة عملك الحقيقية مع هامش الربح المناسب.'],
-          ['calc_custom', 'تسعيرة حرة مخصصة',         'مؤسسات، خدمات متعددة',                 'أنشئ تسعيرة ببنود مخصصة حرة بلا قيود على نوع المشروع.'],
+          ['calc_basic',  'أداة التسعير الأساسية',   'مواقع تطبيقات هوية إنتاج استشارة',  'احسب سعر خدمتك بدقة اختر نوع المشروع وأدخل تكاليفك.'],
+          ['calc_pkg',    'تسعيرة باقات الاشتراك',    'SaaS منتجات رقمية',                   'احسب سعر باقاتك الشهرية بناءً على تكاليفك وعدد المشتركين.'],
+          ['calc_store',  'تسعيرة المتجر الإلكتروني', 'تجارة إلكترونية متاجر',               'سعّر مشاريع التجارة الإلكترونية مع حساب الربحية الكاملة.'],
+          ['calc_office', 'تسعيرة المكتب والوكالة',   'مكاتب وكالات تسويق',                  'احسب التسعيرة الصحيحة لمكتبك بناءً على تكاليف التشغيل.'],
+          ['calc_labor',  'حساب تكلفة الساعة',        'مستقل فريلانسر',                      'احسب تكلفة ساعة عملك الحقيقية مع هامش الربح المناسب.'],
+          ['calc_custom', 'تسعيرة حرة مخصصة',         'مؤسسات خدمات متعددة',                 'أنشئ تسعيرة ببنود مخصصة حرة بلا قيود على نوع المشروع.'],
         ];
         foreach ($toolCards as [$slug, $name, $sectors, $desc]):
           $locked = !in_array($slug, $userTools) && !in_array('all', $userTools);
         ?>
         <div class="tool-card <?= $locked ? 'locked' : '' ?>" onclick="<?= $locked ? "showPlanUpgrade()" : "openTool('$slug')" ?>">
           <?php if ($locked): ?><div class="tool-lock">🔒</div><?php endif; ?>
-          <div class="tool-tag"><?= $locked ? 'مقفل · يتطلب ترقية' : $sectors ?></div>
+          <div class="tool-tag"><?= $locked ? 'مقفل يتطلب ترقية' : $sectors ?></div>
           <h3><?= $name ?></h3>
           <p><?= $desc ?></p>
           <?php if (!$locked): ?>
@@ -417,7 +417,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
         <!-- Client info card -->
         <div class="cic-card">
           <div class="cic-toggle" onclick="this.closest('.cic-card').classList.toggle('open')">
-            <span id="cic_label_basic">👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">(اختياري)</small></span>
+            <span id="cic_label_basic">👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small></span>
             <span class="cic-arrow">▾</span>
           </div>
           <div class="cic-body">
@@ -430,7 +430,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
         </div>
 
         <div class="calc-section">
-          <h4>الخطوة 1 — نوع المشروع</h4>
+          <h4>الخطوة 1 نوع المشروع</h4>
           <div class="field-grid" id="fieldGrid">
             <?php
             $fields = ['موقع إلكتروني','تطبيق موبايل','هوية بصرية','فيديو وإنتاج','تصوير','محتوى & سوشيال','استشارة','برمجة خاصة','ترجمة','أخرى'];
@@ -441,12 +441,12 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
         </div>
 
         <div class="calc-section" id="svcSection" style="display:none">
-          <h4>الخطوة 2 — الخدمات المطلوبة</h4>
+          <h4>الخطوة 2 الخدمات المطلوبة</h4>
           <div class="svc-grid-2" id="svcGrid"></div>
         </div>
 
         <div class="calc-section" id="costsSection" style="display:none">
-          <h4>الخطوة 3 — التكاليف والربحية</h4>
+          <h4>الخطوة 3 التكاليف والربحية</h4>
           <div class="form-row">
             <div class="form-group"><label>تكلفة العمالة (ر.س)</label><input type="number" class="form-control" id="cLbr" value="0" oninput="calcBasic()"></div>
             <div class="form-group"><label>تكاليف الأدوات والبرامج (ر.س)</label><input type="number" class="form-control" id="cTools" value="0" oninput="calcBasic()"></div>
@@ -476,7 +476,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
         <h2 style="font-size:20px;font-weight:900;margin-bottom:16px">تسعيرة باقات الاشتراك</h2>
         <div class="cic-card">
           <div class="cic-toggle" onclick="this.closest('.cic-card').classList.toggle('open')">
-            <span id="cic_label_pkg">👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">(اختياري)</small></span>
+            <span id="cic_label_pkg">👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small></span>
             <span class="cic-arrow">▾</span>
           </div>
           <div class="cic-body">
@@ -526,7 +526,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
         <h2 style="font-size:20px;font-weight:900;margin-bottom:16px">حساب تكلفة الساعة</h2>
         <div class="cic-card">
           <div class="cic-toggle" onclick="this.closest('.cic-card').classList.toggle('open')">
-            <span id="cic_label_labor">👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">(اختياري)</small></span>
+            <span id="cic_label_labor">👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small></span>
             <span class="cic-arrow">▾</span>
           </div>
           <div class="cic-body">
@@ -545,10 +545,10 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
           </div>
           <div class="form-row">
             <div class="form-group"><label>أيام العمل شهرياً</label><input type="number" class="form-control" id="lb_days" value="22" oninput="calcLabor()"></div>
-            <div class="form-group"><label>% مهام غير مُدفوعة (اجتماعات، إدارة)</label><input type="number" class="form-control" id="lb_overhead" value="30" oninput="calcLabor()"></div>
+            <div class="form-group"><label>% مهام غير مُدفوعة (اجتماعات إدارة)</label><input type="number" class="form-control" id="lb_overhead" value="30" oninput="calcLabor()"></div>
           </div>
           <div class="form-row">
-            <div class="form-group"><label>تكاليف شهرية إضافية (أدوات، اشتراكات)</label><input type="number" class="form-control" id="lb_extra" value="0" oninput="calcLabor()"></div>
+            <div class="form-group"><label>تكاليف شهرية إضافية (أدوات اشتراكات)</label><input type="number" class="form-control" id="lb_extra" value="0" oninput="calcLabor()"></div>
             <div class="form-group"><label>هامش الربح المستهدف %</label><input type="number" class="form-control" id="lb_profit" value="30" oninput="calcLabor()"></div>
           </div>
         </div>
@@ -567,7 +567,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
         <h2 style="font-size:20px;font-weight:900;margin-bottom:16px">تسعيرة المتجر الإلكتروني</h2>
         <div class="cic-card">
           <div class="cic-toggle" onclick="this.closest('.cic-card').classList.toggle('open')">
-            <span id="cic_label_store">👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">(اختياري)</small></span>
+            <span id="cic_label_store">👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small></span>
             <span class="cic-arrow">▾</span>
           </div>
           <div class="cic-body">
@@ -613,7 +613,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
         <h2 style="font-size:20px;font-weight:900;margin-bottom:16px">تسعيرة المكتب والوكالة</h2>
         <div class="cic-card">
           <div class="cic-toggle" onclick="this.closest('.cic-card').classList.toggle('open')">
-            <span id="cic_label_office">👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">(اختياري)</small></span>
+            <span id="cic_label_office">👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small></span>
             <span class="cic-arrow">▾</span>
           </div>
           <div class="cic-body">
@@ -654,7 +654,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
         <h2 style="font-size:20px;font-weight:900;margin-bottom:16px">تسعيرة حرة مخصصة</h2>
         <div class="cic-card">
           <div class="cic-toggle" onclick="this.closest('.cic-card').classList.toggle('open')">
-            <span id="cic_label_custom">👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">(اختياري)</small></span>
+            <span id="cic_label_custom">👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small></span>
             <span class="cic-arrow">▾</span>
           </div>
           <div class="cic-body">
@@ -738,7 +738,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
         <div class="sub-plan">
           <div class="sub-plan-name"><?= $p['name_ar'] ?> <span class="badge badge-<?= $slug ?>"><?= $p['name_en'] ?></span></div>
           <div class="sub-plan-price"><?= $p['price'] === 0 ? 'مجاني' : $p['price'] . ' ر.س' ?><small>/شهر</small></div>
-          <div class="sub-plan-feat"><?= implode(' · ', $p['features_ar']) ?></div>
+          <div class="sub-plan-feat"><?= implode(' ', $p['features_ar']) ?></div>
           <div style="margin-top:10px;font-size:12px;color:var(--muted)">
             مستخدمو هذه الخطة: <strong id="planCount_<?= $slug ?>">...</strong>
           </div>
@@ -790,7 +790,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
           <div style="font-size:12px;color:var(--muted);margin-bottom:6px">خطة الاشتراك الحالية</div>
           <div style="font-size:18px;font-weight:900"><?= $plan['name_ar'] ?></div>
           <div style="font-size:12px;color:var(--muted);margin-top:4px">
-            <?= $plan['price'] === 0 ? 'مجاني' : $plan['price'] . ' ر.س/شهر' ?> ·
+            <?= $plan['price'] === 0 ? 'مجاني' : $plan['price'] . ' ر.س/شهر' ?>  
             <?= $plan['max_quotes'] === -1 ? 'عروض أسعار غير محدودة' : $plan['max_quotes'] . ' عروض/شهر' ?>
           </div>
           <?php if ($user['plan_expires_at']): ?>
@@ -798,7 +798,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
           <?php endif; ?>
         </div>
         <div class="form-group">
-          <label>كلمة مرور جديدة <small style="color:var(--muted);font-weight:400">(اتركه فارغاً للإبقاء على الحالية)</small></label>
+          <label>كلمة مرور جديدة <small style="color:var(--muted);font-weight:400">اتركه فارغاً للإبقاء على الحالية</small></label>
           <input type="password" class="form-control" id="accPass" placeholder="••••••••" autocomplete="new-password">
         </div>
         <div id="accMsg" class="hidden mb-8"></div>
@@ -866,7 +866,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
       </select>
     </div>
     <div class="form-group">
-      <label>تاريخ الانتهاء (اختياري)</label>
+      <label>تاريخ الانتهاء اختياري</label>
       <input type="date" class="form-control" id="pmExpires">
     </div>
     <div id="pmMsg" class="hidden mb-8"></div>
@@ -927,7 +927,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
       <button class="btn btn-primary flex-1" onclick="saveToolQuote()">💾 حفظ كمسودة</button>
       <button class="btn btn-ghost" onclick="document.getElementById('toolQuoteModal').classList.add('hidden')">إلغاء</button>
     </div>
-    <p style="font-size:11px;color:var(--muted);margin-top:10px;text-align:center">يُحفظ كمسودة — يمكنك تعديله وإرساله للعميل من قسم عروض الأسعار</p>
+    <p style="font-size:11px;color:var(--muted);margin-top:10px;text-align:center">يُحفظ كمسودة يمكنك تعديله وإرساله للعميل من قسم عروض الأسعار</p>
   </div>
 </div>
 

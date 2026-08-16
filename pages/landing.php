@@ -13,7 +13,7 @@ if ($user) { header('Location: /dashboard'); exit; }
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="تسعيرة — منصة عربية سعودية للتسعير وعروض الأسعار وإدارة العملاء">
+  <meta name="description" content="تسعيرة منصة عربية سعودية للتسعير وعروض الأسعار وإدارة العملاء">
   <link rel="icon" type="image/png" href="/assets/logo.png">
   <title>تسعيرة | منصة التسعير العربية</title>
   <link rel="stylesheet" href="/assets/css/app.css?v=<?= filemtime(__DIR__.'/../assets/css/app.css') ?>">
@@ -60,14 +60,14 @@ if ($user) { header('Location: /dashboard'); exit; }
 <section>
   <div class="hero">
     <div class="hero-content">
-      <div class="hero-eyebrow" data-ar="منصة سعودية · SaaS للتسعير" data-en="Saudi Platform · Pricing SaaS">
-        منصة سعودية · SaaS للتسعير
+      <div class="hero-eyebrow" data-ar="منصة سعودية SaaS للتسعير" data-en="Saudi Platform Pricing SaaS">
+        منصة سعودية SaaS للتسعير
       </div>
-      <h1 data-ar="<em>سعّر</em> بثقة،<br><span class='em-gold'>أدِر</span> بذكاء." data-en="<em>Price</em> with confidence,<br><span class='em-gold'>manage</span> with clarity.">
-        <em>سعّر</em> بثقة،<br><span class="em-gold">أدِر</span> بذكاء.
+      <h1 data-ar="<em>سعّر</em> بثقة<br><span class='em-gold'>أدِر</span> بذكاء." data-en="<em>Price</em> with confidence,<br><span class='em-gold'>manage</span> with clarity.">
+        <em>سعّر</em> بثقة<br><span class="em-gold">أدِر</span> بذكاء.
       </h1>
-      <p class="hero-sub" data-ar="أدوات تسعير احترافية، عروض أسعار PDF، إدارة عملاء، ورسائل داخلية — كل شيء في منصة عربية واحدة." data-en="Professional pricing tools, PDF quotes, client management, and internal messaging — all in one Arabic platform.">
-        أدوات تسعير احترافية، عروض أسعار PDF، إدارة عملاء، ورسائل داخلية — كل شيء في منصة عربية واحدة.
+      <p class="hero-sub" data-ar="أدوات تسعير احترافية عروض أسعار PDF إدارة عملاء ورسائل داخلية كل شيء في منصة عربية واحدة." data-en="Professional pricing tools, PDF quotes, client management, and internal messaging all in one Arabic platform.">
+        أدوات تسعير احترافية عروض أسعار PDF إدارة عملاء ورسائل داخلية كل شيء في منصة عربية واحدة.
       </p>
       <div class="hero-btns">
         <button class="btn btn-primary btn-lg" onclick="showAuth('register')" data-ar="جرّب مجاناً" data-en="Try for free">جرّب مجاناً</button>
@@ -75,7 +75,7 @@ if ($user) { header('Location: /dashboard'); exit; }
       </div>
       <p class="hero-note">
         <span>✦</span>
-        <span data-ar="لا يلزم بطاقة ائتمان · بيانات آمنة محلياً" data-en="No credit card · Data stored locally">لا يلزم بطاقة ائتمان · بيانات آمنة محلياً</span>
+        <span data-ar="لا يلزم بطاقة ائتمان بيانات آمنة محلياً" data-en="No credit card Data stored locally">لا يلزم بطاقة ائتمان بيانات آمنة محلياً</span>
       </p>
     </div>
 
@@ -87,7 +87,7 @@ if ($user) { header('Location: /dashboard'); exit; }
           </div>
           <div>
             <div class="hero-card-title">لوحة تحكم تسعيرة</div>
-            <div class="hero-card-sub">نظرة عامة — هذا الشهر</div>
+            <div class="hero-card-sub">نظرة عامة هذا الشهر</div>
           </div>
         </div>
         <div class="hero-stat-row">
@@ -129,7 +129,7 @@ if ($user) { header('Location: /dashboard'); exit; }
     <div class="feat-card">
       <img src="/assets/img-pricing.png" alt="أدوات التسعير" class="feat-icon-img" style="background:var(--p-d);padding:8px;border-radius:10px;">
       <h3 data-ar="أدوات التسعير" data-en="Pricing Tools">أدوات التسعير</h3>
-      <p data-ar="٥ أدوات متخصصة لحساب تسعيرة الخدمات، الباقات، المتاجر، والمكاتب بمنهجية احترافية واضحة." data-en="5 specialized tools for pricing services, packages, stores and offices with clear methodology.">٥ أدوات متخصصة لحساب تسعيرة الخدمات، الباقات، المتاجر، والمكاتب بمنهجية احترافية واضحة.</p>
+      <p data-ar="٥ أدوات متخصصة لحساب تسعيرة الخدمات الباقات المتاجر والمكاتب بمنهجية احترافية واضحة." data-en="5 specialized tools for pricing services, packages, stores and offices with clear methodology.">٥ أدوات متخصصة لحساب تسعيرة الخدمات الباقات المتاجر والمكاتب بمنهجية احترافية واضحة.</p>
     </div>
     <!-- 2 -->
     <div class="feat-card">
@@ -141,25 +141,25 @@ if ($user) { header('Location: /dashboard'); exit; }
     <div class="feat-card">
       <img src="/assets/img-devices.jpg" alt="متعدد الأجهزة" class="feat-icon-img">
       <h3 data-ar="متعدد الأجهزة" data-en="All Devices">متعدد الأجهزة</h3>
-      <p data-ar="يعمل على الجوال، التابلت، والكمبيوتر بتصميم متجاوب يتكيف مع شاشتك تلقائياً." data-en="Works on mobile, tablet and desktop with a fully responsive design.">يعمل على الجوال، التابلت، والكمبيوتر بتصميم متجاوب يتكيف مع شاشتك تلقائياً.</p>
+      <p data-ar="يعمل على الجوال التابلت والكمبيوتر بتصميم متجاوب يتكيف مع شاشتك تلقائياً." data-en="Works on mobile, tablet and desktop with a fully responsive design.">يعمل على الجوال التابلت والكمبيوتر بتصميم متجاوب يتكيف مع شاشتك تلقائياً.</p>
     </div>
     <!-- 4 -->
     <div class="feat-card">
       <img src="/assets/img-support.jpg" alt="الرسائل الداخلية" class="feat-icon-img">
       <h3 data-ar="الرسائل الداخلية" data-en="Messaging">الرسائل الداخلية</h3>
-      <p data-ar="تواصل مباشر بين العملاء والموظفين والمدير داخل النظام — بدون واتساب أو إيميل خارجي." data-en="Direct communication between clients, staff and admin inside the system.">تواصل مباشر بين العملاء والموظفين والمدير داخل النظام — بدون واتساب أو إيميل خارجي.</p>
+      <p data-ar="تواصل مباشر بين العملاء والموظفين والمدير داخل النظام بدون واتساب أو إيميل خارجي." data-en="Direct communication between clients, staff and admin inside the system.">تواصل مباشر بين العملاء والموظفين والمدير داخل النظام بدون واتساب أو إيميل خارجي.</p>
     </div>
     <!-- 5 -->
     <div class="feat-card">
       <img src="/assets/img-3.png" alt="إدارة متكاملة" class="feat-icon-img" style="background:var(--p-d);padding:8px;border-radius:10px;">
       <h3 data-ar="إدارة متكاملة" data-en="Full Management">إدارة متكاملة</h3>
-      <p data-ar="سجل كامل لكل عميل مع عروضه وملفاته ومحادثاته، ولوحة إدارة شاملة مع إحصاءات حية." data-en="Full client records with quotes, files and conversations plus a live admin dashboard.">سجل كامل لكل عميل مع عروضه وملفاته ومحادثاته، ولوحة إدارة شاملة مع إحصاءات حية.</p>
+      <p data-ar="سجل كامل لكل عميل مع عروضه وملفاته ومحادثاته ولوحة إدارة شاملة مع إحصاءات حية." data-en="Full client records with quotes, files and conversations plus a live admin dashboard.">سجل كامل لكل عميل مع عروضه وملفاته ومحادثاته ولوحة إدارة شاملة مع إحصاءات حية.</p>
     </div>
     <!-- 6 -->
     <div class="feat-card">
       <div class="feat-icon">🔒</div>
       <h3 data-ar="نظام الخطط" data-en="Plan System">نظام الخطط</h3>
-      <p data-ar="ثلاث خطط مرنة يتحكم فيها المدير لكل مستخدم على حدة — مجاني، محترف، مؤسسة." data-en="Three flexible plans the admin controls per user — free, pro, enterprise.">ثلاث خطط مرنة يتحكم فيها المدير لكل مستخدم على حدة — مجاني، محترف، مؤسسة.</p>
+      <p data-ar="ثلاث خطط مرنة يتحكم فيها المدير لكل مستخدم على حدة مجاني محترف مؤسسة." data-en="Three flexible plans the admin controls per user free, pro, enterprise.">ثلاث خطط مرنة يتحكم فيها المدير لكل مستخدم على حدة مجاني محترف مؤسسة.</p>
     </div>
   </div>
 </section>
@@ -202,7 +202,7 @@ if ($user) { header('Location: /dashboard'); exit; }
 <div class="trust-strip">
   <div class="trust-inner">
     <div>
-      <h2 data-ar="جاهز للبدء؟ النظام يعمل الآن." data-en="Ready to start? The platform is live.">جاهز للبدء؟ النظام يعمل الآن.</h2>
+      <h2 data-ar="جاهز للبدء النظام يعمل الآن." data-en="Ready to start? The platform is live.">جاهز للبدء النظام يعمل الآن.</h2>
       <p data-ar="سجّل حسابك في أقل من دقيقة وابدأ بالتسعير" data-en="Create your account in under a minute and start pricing">سجّل حسابك في أقل من دقيقة وابدأ بالتسعير</p>
     </div>
     <div class="trust-actions">
@@ -222,12 +222,12 @@ if ($user) { header('Location: /dashboard'); exit; }
         بُنيت لأصحاب المشاريع العربية
       </h2>
       <p style="color:var(--muted);font-size:15px;line-height:2;margin-bottom:8px">
-        تسعيرة مبادرة من <strong style="color:var(--text)">Qirox Studio Group</strong> لتمكين أصحاب المشاريع والفرق العربية من إدارة أعمالهم باحترافية — من أول لحظة تسعير للخدمة حتى إرسال الفاتورة.
+        تسعيرة مبادرة من <strong style="color:var(--text)">Qirox Studio Group</strong> لتمكين أصحاب المشاريع والفرق العربية من إدارة أعمالهم باحترافية من أول لحظة تسعير للخدمة حتى إرسال الفاتورة.
       </p>
       <div class="about-stats">
         <div>
           <div class="about-stat-num">١٠٠٪</div>
-          <div class="about-stat-lbl" data-ar="عربي · RTL كامل" data-en="Arabic · Full RTL">عربي · RTL كامل</div>
+          <div class="about-stat-lbl" data-ar="عربي RTL كامل" data-en="Arabic Full RTL">عربي RTL كامل</div>
         </div>
         <div>
           <div class="about-stat-num" style="color:var(--gold)">٥</div>
@@ -242,7 +242,7 @@ if ($user) { header('Location: /dashboard'); exit; }
     <div class="about-values">
       <div class="about-values-title" data-ar="قيمنا" data-en="Our Values">قيمنا</div>
       <?php foreach ([
-        ['الشفافية', 'أدوات تسعير مبنية على منهجية واضحة — لا أرقام عشوائية.'],
+        ['الشفافية', 'أدوات تسعير مبنية على منهجية واضحة لا أرقام عشوائية.'],
         ['الاحترافية', 'واجهة عربية تعكس هوية عملك أمام عملائك.'],
         ['البساطة', 'نظام واحد يجمع كل احتياجاتك بدون تعقيد.'],
       ] as [$t, $d]): ?>
@@ -263,7 +263,7 @@ if ($user) { header('Location: /dashboard'); exit; }
   <div class="contact-section">
     <div>
       <div class="eyebrow" style="display:inline-block">تواصل معنا</div>
-      <h2 style="font-size:clamp(20px,3vw,30px);font-weight:900;margin:14px 0 10px">لديك سؤال؟</h2>
+      <h2 style="font-size:clamp(20px,3vw,30px);font-weight:900;margin:14px 0 10px">لديك سؤال</h2>
       <p style="color:var(--muted);font-size:14px;line-height:2;margin-bottom:22px">فريقنا يرد خلال يوم عمل واحد.</p>
 
       <div class="contact-info-item">
@@ -318,7 +318,7 @@ if ($user) { header('Location: /dashboard'); exit; }
           </div>
         </div>
         <div class="footer-gold-line"></div>
-        <p style="font-size:12px;color:rgba(255,255,255,.55);line-height:2;max-width:260px">منصة عربية لإدارة التسعير، عروض الأسعار، والتواصل مع العملاء.</p>
+        <p style="font-size:12px;color:rgba(255,255,255,.55);line-height:2;max-width:260px">منصة عربية لإدارة التسعير عروض الأسعار والتواصل مع العملاء.</p>
         <p style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.35)">
           صُنع بـ <a href="https://qiroxstudio.online" target="_blank" rel="noopener" style="color:var(--gold)">Qirox Studio Group</a>
         </p>
@@ -351,7 +351,7 @@ if ($user) { header('Location: /dashboard'); exit; }
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© <?= date('Y') ?> تسعيرة · Qirox Studio Group · جميع الحقوق محفوظة</span>
+      <span>© <?= date('Y') ?> تسعيرة Qirox Studio Group جميع الحقوق محفوظة</span>
       <span>🇸🇦 المملكة العربية السعودية</span>
     </div>
   </div>
@@ -542,9 +542,9 @@ document.addEventListener('keydown', e => {
 const POLICIES = {
   privacy: {
     title: 'سياسة الخصوصية',
-    body: `<p style="color:var(--muted);font-size:12px;margin-bottom:22px">آخر تحديث: ${new Date().getFullYear()} — تسعيرة / Qirox Studio Group</p>
+    body: `<p style="color:var(--muted);font-size:12px;margin-bottom:22px">آخر تحديث: ${new Date().getFullYear()} تسعيرة / Qirox Studio Group</p>
     <h3 style="font-size:15px;font-weight:800;margin:20px 0 10px;color:var(--p)">١. المعلومات التي نجمعها</h3>
-    <p style="color:var(--muted);font-size:13px;line-height:2">نجمع المعلومات التي تقدمها مباشرةً عند إنشاء حساب (الاسم، البريد الإلكتروني، كلمة المرور المشفرة). لا نجمع بيانات الدفع مباشرةً.</p>
+    <p style="color:var(--muted);font-size:13px;line-height:2">نجمع المعلومات التي تقدمها مباشرةً عند إنشاء حساب (الاسم البريد الإلكتروني كلمة المرور المشفرة). لا نجمع بيانات الدفع مباشرةً.</p>
     <h3 style="font-size:15px;font-weight:800;margin:20px 0 10px;color:var(--p)">٢. استخدام المعلومات</h3>
     <p style="color:var(--muted);font-size:13px;line-height:2">نستخدم بياناتك لتشغيل الخدمة وتحسين التجربة. لا نبيع بياناتك ولا نشاركها مع أطراف ثالثة لأغراض تسويقية.</p>
     <h3 style="font-size:15px;font-weight:800;margin:20px 0 10px;color:var(--p)">٣. الأمان</h3>
@@ -601,7 +601,7 @@ function submitContact() {
     fb.textContent = 'يرجى تعبئة جميع الحقول'; return;
   }
   fb.style.display = 'block'; fb.style.color = 'var(--green)';
-  fb.textContent = '✓ شكراً! تم استلام رسالتك وسنرد خلال يوم عمل.';
+  fb.textContent = 'تم استلام رسالتك وسنرد خلال يوم عمل.';
   document.getElementById('ctName').value  = '';
   document.getElementById('ctEmail').value = '';
   document.getElementById('ctMsg').value   = '';

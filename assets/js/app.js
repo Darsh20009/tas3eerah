@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════
-   Tas3eerah — Main App JS
+   Tas3eerah Main App JS
    ═══════════════════════════════════════ */
 
 'use strict';
@@ -185,7 +185,7 @@ async function viewQuote(id) {
       <div class="pdf-total-row grand"><span>الإجمالي</span><span>${fmt(q.total)} ر.س</span></div>
     </div>
     ${q.notes ? `<div style="margin-top:16px;padding:12px;background:var(--paper);border-radius:8px;font-size:13px"><strong>ملاحظات:</strong> ${esc(q.notes)}</div>` : ''}
-    <div class="pdf-footer">تسعيرة — منصة التسعير الذكي</div>
+    <div class="pdf-footer">تسعيرة منصة التسعير الذكي</div>
   `;
   document.getElementById('pdfOverlay').classList.remove('hidden');
 }
@@ -235,7 +235,7 @@ function populateClientSelect(clients) {
   if (!sel) return;
   const cur = sel.value;
   sel.innerHTML = '<option value="">اختر العميل...</option>' +
-    clients.map(c => `<option value="${c.id}" ${c.id == cur ? 'selected' : ''}>${esc(c.name)} — ${esc(c.email)}</option>`).join('');
+    clients.map(c => `<option value="${c.id}" ${c.id == cur ? 'selected' : ''}>${esc(c.name)} ${esc(c.email)}</option>`).join('');
 }
 
 function addItem(desc = '', qty = 1, price = 0) {
@@ -390,7 +390,7 @@ async function openThread(id) {
       <div>
         <div class="bubble ${m.sender_id == APP.uid ? 'mine' : 'theirs'}">${esc(m.body)}</div>
         <div class="bubble-meta" style="${m.sender_id == APP.uid ? 'text-align:right' : ''}">
-          ${esc(m.sender_name)} · ${(m.created_at||'').slice(0,16).replace('T',' ')}
+          ${esc(m.sender_name)} ${(m.created_at||'').slice(0,16).replace('T',' ')}
         </div>
       </div>
     `).join('');
@@ -495,7 +495,7 @@ function updateCicLabel(toolId) {
   if (!lbl) return;
   lbl.innerHTML = name
     ? `👤 <strong>${esc(name)}</strong>`
-    : `👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">(اختياري)</small>`;
+    : `👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small>`;
 }
 
 function showPlanUpgrade() {
@@ -766,7 +766,7 @@ async function openToolQuote(slug, toolName) {
   const sel = document.getElementById('tqmClient');
   if (sel && clientsCache) {
     sel.innerHTML = '<option value="">اختر العميل...</option>' +
-      clientsCache.map(c => `<option value="${c.id}">${esc(c.name)} — ${esc(c.email)}</option>`).join('');
+      clientsCache.map(c => `<option value="${c.id}">${esc(c.name)} ${esc(c.email)}</option>`).join('');
   }
 
   document.getElementById('toolQuoteModal').classList.remove('hidden');
@@ -970,7 +970,7 @@ async function loadSubscriptions() {
       <td style="direction:ltr;text-align:right;font-size:12px">${esc(u.email)}</td>
       <td><span class="badge badge-${u.role}">${roleLabel(u.role)}</span></td>
       <td><span class="badge badge-${u.plan}">${planLabel(u.plan)}</span></td>
-      <td style="font-size:12px;color:var(--muted)">${u.plan_expires_at || '—'}</td>
+      <td style="font-size:12px;color:var(--muted)">${u.plan_expires_at || ''}</td>
       <td>
         <select class="form-control" style="width:110px" onchange="quickPlan(${u.id},this.value)">
           <option value="free"       ${u.plan==='free'       ?'selected':''}>مجاني</option>
@@ -1003,10 +1003,10 @@ async function loadActivity() {
   tb.innerHTML = r.data.map(l => `
     <tr>
       <td>${esc(l.user_name || 'النظام')}</td>
-      <td>${l.user_role ? `<span class="badge badge-${l.user_role}">${roleLabel(l.user_role)}</span>` : '—'}</td>
+      <td>${l.user_role ? `<span class="badge badge-${l.user_role}">${roleLabel(l.user_role)}</span>` : ''}</td>
       <td>${actionLabels[l.action] || l.action}</td>
-      <td style="font-size:12px;color:var(--muted)">${esc(l.details || '—')}</td>
-      <td style="font-size:11px;direction:ltr">${l.ip || '—'}</td>
+      <td style="font-size:12px;color:var(--muted)">${esc(l.details || '')}</td>
+      <td style="font-size:11px;direction:ltr">${l.ip || ''}</td>
       <td style="font-size:11px;color:var(--muted)">${(l.created_at||'').slice(0,16).replace('T',' ')}</td>
     </tr>
   `).join('');

@@ -154,7 +154,7 @@ function userDelete(array $me, array $b): never {
         $db->commit();
     } catch (Throwable $e) {
         $db->rollBack();
-        Response::err('فشل حذف المستخدم، يرجى المحاولة مجدداً');
+        Response::err('فشل حذف المستخدم يرجى المحاولة مجدداً');
     }
 
     DB::run("INSERT INTO activity_log (user_id,action,details) VALUES (?,?,?)",
