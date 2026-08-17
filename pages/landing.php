@@ -21,6 +21,35 @@ if ($user) { header('Location: /dashboard'); exit; }
 </head>
 <body>
 
+<!-- ═══ SPLASH SCREEN ═══ -->
+<div id="splash-screen" role="status" aria-label="جارٍ التحميل">
+  <div class="splash-icon-wrap">
+    <img src="/assets/icon.png" alt="تسعيرة" class="splash-icon" id="splashIcon">
+    <div class="splash-spinner" id="splashSpinner"></div>
+  </div>
+  <div class="splash-brand" id="splashBrand">
+    <span class="splash-brand-text">تسعيرة</span>
+    <span class="splash-brand-sub">منصة التسعير العربية</span>
+  </div>
+</div>
+<script>
+(function(){
+  var splash  = document.getElementById('splash-screen');
+  var icon    = document.getElementById('splashIcon');
+  var spinner = document.getElementById('splashSpinner');
+  var brand   = document.getElementById('splashBrand');
+  setTimeout(function(){
+    if(icon)    icon.classList.add('clear');
+    if(spinner) spinner.classList.add('done');
+    if(brand)   brand.classList.add('show');
+  }, 1400);
+  setTimeout(function(){
+    splash.classList.add('fade-out');
+    setTimeout(function(){ if(splash.parentNode) splash.parentNode.removeChild(splash); }, 650);
+  }, 2800);
+})();
+</script>
+
 <!-- ═══ شريط التنقل ═══ -->
 <nav class="land-nav">
   <a class="land-brand" href="/">
