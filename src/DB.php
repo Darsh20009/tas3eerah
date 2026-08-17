@@ -350,16 +350,17 @@ class DB {
             return $id;
         }
 
-        // SQLite
-        $id         = self::sNextSeq($col);
-        $data['id'] = $id;
+        // SQLite — let AUTOINCREMENT assign the id to avoid counter-sync issues
+        unset($data['id']);
         // JSON-encode array fields (e.g. items)
         foreach ($data as $k => $v) {
             if (is_array($v)) $data[$k] = json_encode($v, JSON_UNESCAPED_UNICODE);
         }
-        $cols  = implode(',', array_keys($data));
-        $ph    = implode(',', array_fill(0, count($data), '?'));
-        self::get()->prepare("INSERT INTO {$col} ({$cols}) VALUES ({$ph})")->execute(array_values($data));
+        $cols = implode(',', array_keys($data));
+        $ph   = implode(',', array_fill(0, count($data), '?'));
+        $pdo  = self::get();
+        $pdo->prepare("INSERT INTO {$col} ({$cols}) VALUES ({$ph})")->execute(array_values($data));
+        $id = (int)$pdo->lastInsertId();
         self::$lastId = $id;
         return $id;
     }
