@@ -102,8 +102,15 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
 
     <?php if ($role === 'client'): ?>
     <div class="sb-section">عروض الأسعار</div>
+    <button class="sb-item" data-panel="quote-new" onclick="nav(this)">
+      <span class="sb-icon">✦</span> طلب تسعيرة جديدة
+    </button>
     <button class="sb-item" data-panel="quotes" onclick="nav(this)">
-      <span class="sb-icon">◧</span> عروضي
+      <span class="sb-icon">◧</span> تسعيراتي
+    </button>
+    <div class="sb-section">حسابي</div>
+    <button class="sb-item" data-panel="subscription" onclick="nav(this)">
+      <span class="sb-icon">◈</span> خطة الاشتراك
     </button>
     <?php endif; ?>
 
@@ -172,6 +179,10 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
       <?php if ($role === 'employee' || $role === 'admin'): ?>
       <button class="btn btn-primary btn-sm" onclick="navDirect('quote-new')">
         + عرض سعر
+      </button>
+      <?php elseif ($role === 'client'): ?>
+      <button class="btn btn-primary btn-sm" onclick="navDirect('quote-new')">
+        + تسعيرة جديدة
       </button>
       <?php endif; ?>
     </div>
@@ -313,26 +324,32 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
       </div>
     </div>
 
-    <!-- ══ NEW QUOTE ══ -->
-    <?php if ($role === 'employee' || $role === 'admin'): ?>
+    <!-- ══ NEW QUOTE (all roles) ══ -->
     <div class="section-panel" id="panel-quote-new">
       <div class="card quote-builder">
         <div class="card-header">
-          <h3 id="qFormTitle">عرض سعر جديد</h3>
+          <h3 id="qFormTitle"><?= $role === 'client' ? 'طلب تسعيرة جديدة' : 'عرض سعر جديد' ?></h3>
           <button class="btn btn-ghost btn-sm" onclick="resetQuoteForm()">مسح</button>
         </div>
+        <?php if ($role === 'client'): ?>
+        <div class="plan-usage-bar" id="planUsageBar" style="margin-bottom:16px"></div>
+        <?php endif; ?>
         <input type="hidden" id="qEditId" value="">
         <div class="form-row">
           <div class="form-group">
-            <label>عنوان العرض *</label>
+            <label><?= $role === 'client' ? 'عنوان التسعيرة *' : 'عنوان العرض *' ?></label>
             <input type="text" class="form-control" id="qTitle" placeholder="تصميم موقع إلكتروني...">
           </div>
+          <?php if ($role !== 'client'): ?>
           <div class="form-group">
             <label>العميل *</label>
             <select class="form-control" id="qClient">
               <option value="">اختر العميل...</option>
             </select>
           </div>
+          <?php else: ?>
+          <input type="hidden" id="qClient" value="<?= (int)$user['id'] ?>">
+          <?php endif; ?>
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -375,6 +392,63 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
           <button class="btn btn-ghost" onclick="nav(document.querySelector('[data-panel=quotes]'))">إلغاء</button>
         </div>
         <div id="quoteMsg" class="mt-8 hidden"></div>
+      </div>
+    </div><!-- /panel-quote-new -->
+
+    <!-- ══ CLIENT: SUBSCRIPTION PANEL ══ -->
+    <?php if ($role === 'client'): ?>
+    <div class="section-panel" id="panel-subscription">
+      <div class="card">
+        <div class="card-header">
+          <h3>خطة الاشتراك</h3>
+          <span class="badge badge-<?= $effectivePlan ?>"><?= PLANS[$effectivePlan]['name_ar'] ?></span>
+        </div>
+
+        <!-- Usage summary -->
+        <div class="upgrade-current" style="margin-bottom:24px">
+          <div class="upgrade-usage">
+            <span>عروض الأسعار هذا الشهر</span>
+            <span id="subUsageCount">—</span>
+          </div>
+          <div class="upgrade-bar-wrap">
+            <div class="upgrade-bar-fill" id="subUsageBar" style="width:0%"></div>
+          </div>
+          <p style="font-size:11px;color:var(--muted);margin-top:6px">
+            الحد الأقصى: <?= PLANS[$effectivePlan]['max_quotes'] === -1 ? 'غير محدود' : PLANS[$effectivePlan]['max_quotes'] ?> عرض/شهر
+          </p>
+        </div>
+
+        <!-- Plan comparison -->
+        <h4 style="font-size:13px;font-weight:800;margin-bottom:16px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">مقارنة الخطط</h4>
+        <div class="sub-plan-cards">
+          <?php foreach (PLANS as $pKey => $pVal): ?>
+          <div class="sub-plan <?= $effectivePlan === $pKey ? 'sub-plan-current' : '' ?>">
+            <?php if ($effectivePlan === $pKey): ?>
+            <div style="font-size:10px;font-weight:800;color:var(--p);letter-spacing:.5px;margin-bottom:6px">خطتك الحالية</div>
+            <?php endif; ?>
+            <div class="sub-plan-name">
+              <span class="badge badge-<?= $pKey ?>"><?= $pVal['name_ar'] ?></span>
+            </div>
+            <div class="sub-plan-price">
+              <?= $pVal['price'] === 0 ? 'مجاني' : number_format($pVal['price']) ?>
+              <?php if ($pVal['price'] > 0): ?><small>ر.س / شهر</small><?php endif; ?>
+            </div>
+            <div class="sub-plan-feat">
+              <?php foreach ($pVal['features_ar'] as $feat): ?>
+              ✓ <?= htmlspecialchars($feat) ?><br>
+              <?php endforeach; ?>
+            </div>
+            <?php if ($effectivePlan !== $pKey && $pVal['price'] > 0): ?>
+            <button class="btn btn-outline btn-sm" style="width:100%;margin-top:12px"
+                    onclick="requestUpgrade('<?= $pKey ?>', '<?= $pVal['name_ar'] ?>')">
+              طلب الترقية
+            </button>
+            <?php endif; ?>
+          </div>
+          <?php endforeach; ?>
+        </div>
+
+        <div id="upgradeRequestMsg" class="hidden mt-16" style="padding:14px;border-radius:var(--r);text-align:center;font-size:13px"></div>
       </div>
     </div>
     <?php endif; ?>
@@ -980,10 +1054,18 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
 <div class="pdf-overlay hidden" id="pdfOverlay">
   <div style="max-width:760px;width:100%">
     <div class="pdf-doc" id="pdfDoc"></div>
-    <div class="pdf-actions">
-      <button class="btn btn-primary" onclick="window.print()">طباعة / PDF</button>
+    <div class="pdf-actions no-print">
+      <button class="btn btn-primary" onclick="window.print()">
+        <span>🖨</span> طباعة / تحميل PDF
+      </button>
+      <?php if ($role !== 'client'): ?>
+      <button class="btn btn-outline" id="pdfEmailBtn" onclick="sendQuoteByEmail()">
+        <span>✉</span> إرسال للعميل بالبريد
+      </button>
+      <?php endif; ?>
       <button class="btn btn-ghost" onclick="document.getElementById('pdfOverlay').classList.add('hidden')">إغلاق</button>
     </div>
+    <div id="pdfEmailMsg" class="hidden mt-8" style="text-align:center;font-size:13px;padding:8px 14px;border-radius:var(--r)"></div>
   </div>
 </div>
 
@@ -1022,8 +1104,15 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
   <div class="modal-box" style="text-align:center">
     <div style="font-size:40px;margin-bottom:12px">🔒</div>
     <h3 style="margin-bottom:8px">ترقية الخطة مطلوبة</h3>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:20px">هذه الأداة متاحة في خطة المحترف أو المؤسسة. تواصل مع مدير النظام لترقية خطتك.</p>
-    <button class="btn btn-primary" onclick="document.getElementById('upgradeModal').classList.add('hidden')">حسناً</button>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:20px">هذه الأداة متاحة في خطة المحترف أو المؤسسة.</p>
+    <div class="flex gap-8" style="justify-content:center">
+      <?php if ($role === 'client'): ?>
+      <button class="btn btn-primary" onclick="document.getElementById('upgradeModal').classList.add('hidden');navDirect('subscription')">عرض خطط الاشتراك</button>
+      <?php else: ?>
+      <button class="btn btn-primary" onclick="document.getElementById('upgradeModal').classList.add('hidden')">حسناً</button>
+      <?php endif; ?>
+      <button class="btn btn-ghost" onclick="document.getElementById('upgradeModal').classList.add('hidden')">إغلاق</button>
+    </div>
   </div>
 </div>
 

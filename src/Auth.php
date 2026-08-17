@@ -119,8 +119,10 @@ class Auth {
         $max  = PLANS[$plan]['max_quotes'] ?? PLANS['free']['max_quotes'];
         if ($max === -1) return true;
         $month = date('Y-m');
+        // Clients are counted by client_id, employees/admins by employee_id
+        $field = $user['role'] === 'client' ? 'client_id' : 'employee_id';
         $count = DB::count('quotes', [
-            'employee_id' => (int)$user['id'],
+            $field        => (int)$user['id'],
             'created_at'  => ['$regex' => '^' . $month],
         ]);
         return $count < $max;
