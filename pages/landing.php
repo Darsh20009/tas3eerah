@@ -584,7 +584,7 @@ async function doRegister() {
   const email = document.getElementById('regEmail').value.trim();
   const pass  = document.getElementById('regPass').value;
   if (!name || !email || !pass) { showErr('يرجى تعبئة جميع الحقول'); return; }
-  if (pass.length < 6) { showErr('كلمة المرور يجب أن تكون ٦ أحرف على الأقل'); return; }
+  if (pass.length < 8) { showErr('كلمة المرور يجب أن تكون ٨ أحرف على الأقل'); return; }
   const res = await apiPost('/api/auth', { action: 'register', name, email, password: pass });
   if (res.success) location.href = '/dashboard';
   else showErr(res.error || 'خطأ في إنشاء الحساب');

@@ -687,6 +687,7 @@ select.form-control { cursor: pointer; }
   display: none; position: fixed; inset: 0; background: rgba(13,43,28,.65);
   z-index: 55; backdrop-filter: blur(4px);
 }
+.sb-overlay.open { display: block; }
 
 
 /* ── المنطقة الرئيسية ── */
@@ -851,7 +852,7 @@ select.form-control { cursor: pointer; }
     z-index: 60; border-left: 1px solid var(--sb-line);
   }
   .sidebar.open { transform: translateX(0); }
-  .sb-overlay.active { display: block; }
+  .sb-overlay.open { display: block; }
   .sb-close-btn { display: flex; }
   .hamburger { display: flex; }
   .workspace { padding: 16px; }
@@ -890,4 +891,261 @@ select.form-control { cursor: pointer; }
 @media (max-width: 380px) {
   .stats-grid { grid-template-columns: 1fr; }
   .tool-grid  { grid-template-columns: 1fr; }
+}
+
+
+/* ══════════════════════════════════════════════════
+   شاشة البداية (Splash Screen)
+   ══════════════════════════════════════════════════ */
+#splash-screen {
+  position: fixed; inset: 0; background: #0D2B1C;
+  z-index: 9999; display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 32px;
+  transition: opacity .6s ease, visibility .6s ease;
+}
+#splash-screen.fade-out { opacity: 0; visibility: hidden; pointer-events: none; }
+.splash-icon-wrap {
+  position: relative; width: 130px; height: 130px;
+  display: flex; align-items: center; justify-content: center;
+}
+.splash-icon {
+  width: 80px; height: 80px; object-fit: contain;
+  filter: blur(3px) brightness(.85);
+  transition: filter .7s ease, transform .7s ease;
+  position: relative; z-index: 1;
+}
+.splash-icon.clear { filter: blur(0) brightness(1); }
+.splash-spinner {
+  position: absolute; inset: 0;
+  border: 3px solid rgba(201,167,65,.15);
+  border-top-color: #C9A741;
+  border-radius: 50%;
+  animation: splash-spin 1s linear infinite;
+}
+.splash-spinner.done { border-top-color: rgba(201,167,65,.4); animation: none; transition: opacity .4s; opacity: 0; }
+@keyframes splash-spin { to { transform: rotate(360deg); } }
+.splash-brand {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  opacity: 0; transform: translateY(12px);
+  transition: opacity .5s ease, transform .5s ease;
+}
+.splash-brand.show { opacity: 1; transform: translateY(0); }
+.splash-brand-text {
+  font-family: 'BritishCouncil', 'Arial', sans-serif;
+  font-size: 36px; font-weight: 900; color: #C9A741; letter-spacing: 3px;
+}
+.splash-brand-sub {
+  font-family: 'BritishCouncil', 'Arial', sans-serif;
+  font-size: 13px; color: rgba(143,176,154,.7); letter-spacing: 1px; font-weight: 600;
+}
+
+
+/* ══════════════════════════════════════════════════
+   لوحات الأدوات
+   ══════════════════════════════════════════════════ */
+.tool-panel { display: none; }
+.tool-panel.active { display: block; }
+#toolsMenu { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 14px; }
+
+/* بطاقة الأداة */
+.tool-card { position: relative; text-align: right; }
+.tool-tag {
+  font-size: 10px; color: var(--muted); font-weight: 700;
+  text-transform: uppercase; letter-spacing: .4px; margin-bottom: 8px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tool-card.locked { opacity: .6; cursor: not-allowed !important; }
+.tool-card.locked:hover { border-color: var(--line) !important; box-shadow: none !important; transform: none !important; }
+.tool-lock { position: absolute; top: 10px; left: 10px; font-size: 18px; }
+
+/* بطاقة بيانات العميل داخل الأداة */
+.cic-card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r); margin-bottom: 16px; overflow: hidden;
+}
+.cic-toggle {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 11px 14px; cursor: pointer; font-size: 12px; font-weight: 700;
+  user-select: none; color: var(--text2); gap: 8px;
+}
+.cic-toggle:hover { background: rgba(26,75,51,.04); }
+.cic-arrow { transition: transform .2s; font-size: 13px; color: var(--muted); flex-shrink: 0; }
+.cic-card.open .cic-arrow { transform: rotate(180deg); }
+.cic-body { display: none; padding: 12px 14px; border-top: 1px solid var(--line); }
+.cic-card.open .cic-body { display: block; }
+
+/* أقسام الحساب */
+.calc-section {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--r); padding: 16px; margin-bottom: 14px;
+}
+.calc-section h4 {
+  font-size: 11px; font-weight: 800; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .4px; margin-bottom: 14px;
+  padding-bottom: 8px; border-bottom: 1px solid var(--line2);
+}
+
+/* نتيجة الحساب */
+.calc-result {
+  background: var(--p-d); border-radius: var(--r-lg); padding: 20px;
+  margin-top: 16px; color: white;
+}
+.calc-result-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 0; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.calc-result-row:last-child { border-bottom: none; }
+.calc-result-row.big {
+  font-size: 20px; font-weight: 900;
+  border-top: 1px solid rgba(201,167,65,.3); border-bottom: none;
+  padding-top: 12px; margin-top: 6px; color: #C9A741;
+}
+
+/* شبكة الحقول */
+.field-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(130px,1fr)); gap: 8px;
+}
+.field-btn {
+  padding: 9px 10px; border: 1.5px solid var(--line); border-radius: var(--r);
+  font-size: 12px; font-weight: 700; cursor: pointer; text-align: center;
+  background: var(--card); transition: .14s; color: var(--text2);
+}
+.field-btn:hover { border-color: var(--p-m); background: var(--p-l); color: var(--p); }
+.field-btn.active { border-color: var(--p); background: var(--p); color: white; }
+
+/* شبكة الخدمات */
+.svc-grid-2 {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 8px;
+}
+.svc-btn {
+  padding: 8px 12px; border: 1.5px solid var(--line); border-radius: var(--r);
+  font-size: 12px; font-weight: 600; cursor: pointer; text-align: center;
+  background: var(--card); transition: .14s; color: var(--text2);
+}
+.svc-btn:hover { border-color: var(--p-m); background: var(--p-l); }
+.svc-btn.active { border-color: var(--gold); background: var(--gold-l); color: var(--gold-d); font-weight: 800; }
+
+/* زر حفظ كعرض سعر */
+.tool-quote-btn {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 11px 18px; border-radius: var(--r); background: var(--gold);
+  color: white; border: none; font-size: 13px; font-weight: 700;
+  cursor: pointer; margin-top: 16px; transition: background .15s; width: 100%;
+}
+.tool-quote-btn:hover { background: var(--gold-d); }
+
+
+/* ══════════════════════════════════════════════════
+   نظام الرسائل
+   ══════════════════════════════════════════════════ */
+.msg-layout {
+  display: grid; grid-template-columns: 290px 1fr; gap: 0;
+  height: 560px; border: 1px solid var(--line); border-radius: var(--r-lg);
+  overflow: hidden; background: var(--card);
+}
+.msg-list {
+  background: var(--surface); border-left: 1px solid var(--line);
+  display: flex !important; flex-direction: column !important;
+  max-height: none !important; padding: 0 !important; gap: 0 !important;
+  overflow-y: auto !important;
+}
+.msg-list-header {
+  padding: 12px 14px; font-size: 13px; font-weight: 700;
+  border-bottom: 1px solid var(--line); flex-shrink: 0;
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--surface); position: sticky; top: 0; z-index: 1;
+}
+.msg-item {
+  border-radius: 0 !important; border-right: none !important;
+  border-left: none !important; border-top: none !important;
+  border-bottom: 1px solid var(--line2) !important;
+}
+.msg-item.unread { border-right: 3px solid var(--p) !important; }
+.msg-item-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.msg-item-preview { font-size: 12px; color: var(--muted); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.msg-item-time { font-size: 11px; color: var(--muted2); margin-top: 3px; }
+.msg-thread {
+  display: flex; flex-direction: column; background: var(--card); min-height: 0; overflow: hidden;
+}
+.msg-thread-header {
+  padding: 14px 16px; border-bottom: 1px solid var(--line);
+  font-weight: 700; font-size: 13px; flex-shrink: 0; background: var(--card);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.msg-bubbles {
+  flex: 1; overflow-y: auto; padding: 16px; display: flex;
+  flex-direction: column; gap: 10px; background: var(--bg);
+}
+.msg-compose {
+  border-top: 1px solid var(--line); padding: 12px;
+  display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; background: var(--card);
+}
+.msg-compose textarea {
+  flex: 1; border: 1.5px solid var(--line); border-radius: var(--r);
+  padding: 9px 12px; font-size: 13px; resize: none;
+  min-height: 58px; max-height: 110px; outline: none; font-family: inherit;
+}
+.msg-compose textarea:focus { border-color: var(--p); box-shadow: 0 0 0 3px var(--p-xs); }
+.bubble {
+  padding: 10px 14px; border-radius: 14px; max-width: 72%;
+  font-size: 13px; line-height: 1.75; word-break: break-word;
+}
+.bubble.mine {
+  background: var(--p); color: white; align-self: flex-end;
+  border-bottom-left-radius: 4px;
+}
+.bubble.theirs {
+  background: var(--card); color: var(--text); align-self: flex-start;
+  border: 1px solid var(--line); border-bottom-right-radius: 4px;
+}
+.bubble-meta { font-size: 11px; color: var(--muted2); margin: 2px 4px 6px; }
+
+
+/* ══════════════════════════════════════════════════
+   بطاقات الخطط الإدارية
+   ══════════════════════════════════════════════════ */
+.sub-plan-cards {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 24px;
+}
+.sub-plan {
+  background: var(--card); border: 1.5px solid var(--line);
+  border-radius: var(--r-xl); padding: 20px; transition: .15s;
+}
+.sub-plan:hover { border-color: var(--p); box-shadow: var(--sh-md); }
+.sub-plan-name {
+  font-size: 13px; font-weight: 800; display: flex;
+  align-items: center; gap: 8px; margin-bottom: 8px; color: var(--text);
+}
+.sub-plan-price { font-size: 28px; font-weight: 900; color: var(--p); line-height: 1; }
+.sub-plan-price small { font-size: 12px; color: var(--muted); font-weight: 400; margin-right: 3px; }
+.sub-plan-feat { font-size: 11px; color: var(--muted); line-height: 1.9; margin-top: 8px; }
+
+
+/* ══════════════════════════════════════════════════
+   تحسينات إضافية على الجداول
+   ══════════════════════════════════════════════════ */
+.card { overflow-x: auto; }
+.data-table { min-width: 500px; }
+
+
+/* ══════════════════════════════════════════════════
+   استجابة الموبايل — لوحة التحكم
+   ══════════════════════════════════════════════════ */
+@media (max-width: 960px) {
+  .msg-layout { grid-template-columns: 240px 1fr; height: 500px; }
+  .sub-plan-cards { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .msg-layout { grid-template-columns: 1fr; height: auto; }
+  .msg-list { max-height: 260px !important; }
+  .msg-thread { height: 380px; }
+  #toolsMenu { grid-template-columns: 1fr 1fr; }
+  .sub-plan-cards { grid-template-columns: 1fr; }
+  .field-grid { grid-template-columns: repeat(auto-fill, minmax(110px,1fr)); }
+  .svc-grid-2 { grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); }
+  .topbar-actions .btn:not(.btn-primary) { display: none; }
+}
+@media (max-width: 480px) {
+  #toolsMenu { grid-template-columns: 1fr; }
+  .calc-result-row.big { font-size: 16px; }
 }

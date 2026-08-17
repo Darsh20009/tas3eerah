@@ -100,6 +100,29 @@ function nav(btn) {
   if (panel === 'quote-new')       initQuoteForm();
 }
 
+// ─── DIRECT NAVIGATION (by panel id, no sidebar button required) ─────
+function navDirect(panelId) {
+  closeSidebar();
+  document.querySelectorAll('.sb-item').forEach(b => b.classList.remove('active'));
+  const sideBtn = document.querySelector(`[data-panel="${panelId}"]`);
+  if (sideBtn) sideBtn.classList.add('active');
+
+  document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+  const panel = document.getElementById('panel-' + panelId);
+  if (panel) panel.classList.add('active');
+
+  const titleEl = document.getElementById('topbarTitle');
+  if (titleEl) titleEl.textContent = panelTitles[panelId] || '';
+
+  if (panelId === 'quote-new')     initQuoteForm();
+  if (panelId === 'quotes')        loadQuotes();
+  if (panelId === 'messages')      loadInbox();
+  if (panelId === 'users')         loadUsers();
+  if (panelId === 'subscriptions') loadSubscriptions();
+  if (panelId === 'activity')      loadActivity();
+  if (panelId === 'settings')      loadSettings();
+}
+
 // ─── AUTH ────────────────────────────────
 async function doLogout() {
   await api('auth', { action: 'logout' });
@@ -1126,6 +1149,28 @@ function showInModal(id, msg, isErr) {
   el.className = `alert alert-${isErr ? 'danger' : 'success'}`;
   el.textContent = msg;
 }
+
+// ─── SPLASH SCREEN ───────────────────────
+(function initSplash() {
+  const splash   = document.getElementById('splash-screen');
+  if (!splash) return;
+  const icon     = document.getElementById('splashIcon');
+  const spinner  = document.getElementById('splashSpinner');
+  const brand    = document.getElementById('splashBrand');
+
+  // Phase 2 at 1.4s — clear blur, show brand text
+  setTimeout(() => {
+    if (icon)    icon.classList.add('clear');
+    if (spinner) spinner.classList.add('done');
+    if (brand)   brand.classList.add('show');
+  }, 1400);
+
+  // Phase 3 at 2.8s — fade out
+  setTimeout(() => {
+    splash.classList.add('fade-out');
+    setTimeout(() => { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 650);
+  }, 2800);
+})();
 
 // ─── INIT ────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {

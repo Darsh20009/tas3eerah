@@ -50,6 +50,19 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
   <meta name="csrf-token" content="<?= htmlspecialchars(Auth::csrfToken(), ENT_QUOTES) ?>">
 </head>
 <body>
+
+<!-- ═══ SPLASH SCREEN ═══ -->
+<div id="splash-screen" role="status" aria-label="جارٍ التحميل">
+  <div class="splash-icon-wrap">
+    <img src="/assets/icon.png" alt="تسعيرة" class="splash-icon" id="splashIcon">
+    <div class="splash-spinner" id="splashSpinner"></div>
+  </div>
+  <div class="splash-brand" id="splashBrand">
+    <span class="splash-brand-text">تسعيرة</span>
+    <span class="splash-brand-sub">منصة التسعير العربية</span>
+  </div>
+</div>
+
 <div class="app-shell">
 
 <!-- Mobile sidebar overlay -->
@@ -157,7 +170,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
     <div class="topbar-actions">
       <button class="btn btn-ghost btn-sm" onclick="toggleLang()" id="langBtn">EN</button>
       <?php if ($role === 'employee' || $role === 'admin'): ?>
-      <button class="btn btn-primary btn-sm" onclick="nav(document.querySelector('[data-panel=quote-new]') || document.querySelector('[data-panel=quotes]'))">
+      <button class="btn btn-primary btn-sm" onclick="navDirect('quote-new')">
         + عرض سعر
       </button>
       <?php endif; ?>
@@ -722,8 +735,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
         </div>
       </div>
 
-    </div>
-    </div>
+    </div><!-- /panel-tools -->
 
     <!-- ══ ADMIN: USERS ══ -->
     <?php if ($role === 'admin'): ?>
