@@ -407,6 +407,11 @@ if ($user) { header('Location: /dashboard'); exit; }
     </div>
 
     <div id="authError" class="auth-error hidden"></div>
+    <?php if (!empty($_GET['oauth_error'])): ?>
+    <div class="auth-error" style="display:block;margin-bottom:12px">
+      ⚠️ <?= htmlspecialchars($_GET['oauth_error'], ENT_QUOTES) ?>
+    </div>
+    <?php endif; ?>
 
     <!-- تسجيل الدخول -->
     <div id="loginForm">
@@ -414,6 +419,47 @@ if ($user) { header('Location: /dashboard'); exit; }
         <div class="auth-tab active" onclick="showAuth('login')" data-ar="تسجيل الدخول" data-en="Sign in">تسجيل الدخول</div>
         <div class="auth-tab"        onclick="showAuth('register')" data-ar="إنشاء حساب" data-en="Create account">إنشاء حساب</div>
       </div>
+
+      <!-- أزرار الدخول الاجتماعي -->
+      <div class="social-btns">
+        <?php if (GOOGLE_CLIENT_ID): ?>
+        <a href="/auth/google" class="social-btn social-btn-google">
+          <svg width="18" height="18" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" fill="#FFC107"/>
+            <path d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z" fill="#FF3D00"/>
+            <path d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0124 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" fill="#4CAF50"/>
+            <path d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 01-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z" fill="#1976D2"/>
+          </svg>
+          <span data-ar="المتابعة عبر Google" data-en="Continue with Google">المتابعة عبر Google</span>
+        </a>
+        <?php endif; ?>
+        <?php if (APPLE_CLIENT_ID): ?>
+        <a href="/auth/apple" class="social-btn social-btn-apple">
+          <svg width="18" height="18" viewBox="0 0 814 1000" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-37.5-166.8-106.6c-52.3-61.7-96.5-156.4-96.5-246.5C0 378.1 113.5 234.5 217.4 234.5c50.8 0 97.9 34.5 130.6 34.5 31.1 0 84.4-36.9 144.5-36.9 23.1 0 111.1 2.6 178.1 80.2zm-190.5-113.7c-29.1-36.9-66.4-64.9-105.4-64.9-2.6 0-5.2.3-7.8.6 1.3 41.5 19.5 83 47.5 111.7 28 28.6 67 47.5 102.7 47.5 2.6 0 5.2-.3 7.8-.6-1.3-39-19.5-77.3-44.8-94.3z"/>
+          </svg>
+          <span data-ar="المتابعة عبر Apple" data-en="Continue with Apple">المتابعة عبر Apple</span>
+        </a>
+        <?php endif; ?>
+        <?php if (!GOOGLE_CLIENT_ID && !APPLE_CLIENT_ID): ?>
+        <div class="social-not-configured">
+          <a href="/auth/google" class="social-btn social-btn-google" style="opacity:.55;cursor:not-allowed;pointer-events:none">
+            <svg width="18" height="18" viewBox="0 0 48 48" fill="none"><path d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" fill="#FFC107"/><path d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z" fill="#FF3D00"/><path d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0124 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" fill="#4CAF50"/><path d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 01-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z" fill="#1976D2"/></svg>
+            <span>Google</span>
+          </a>
+          <a href="/auth/apple" class="social-btn social-btn-apple" style="opacity:.55;cursor:not-allowed;pointer-events:none">
+            <svg width="18" height="18" viewBox="0 0 814 1000" fill="currentColor"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-37.5-166.8-106.6c-52.3-61.7-96.5-156.4-96.5-246.5C0 378.1 113.5 234.5 217.4 234.5c50.8 0 97.9 34.5 130.6 34.5 31.1 0 84.4-36.9 144.5-36.9 23.1 0 111.1 2.6 178.1 80.2zm-190.5-113.7c-29.1-36.9-66.4-64.9-105.4-64.9-2.6 0-5.2.3-7.8.6 1.3 41.5 19.5 83 47.5 111.7 28 28.6 67 47.5 102.7 47.5 2.6 0 5.2-.3 7.8-.6-1.3-39-19.5-77.3-44.8-94.3z"/></svg>
+            <span>Apple</span>
+          </a>
+        </div>
+        <?php endif; ?>
+      </div>
+      <?php if (!GOOGLE_CLIENT_ID && !APPLE_CLIENT_ID): ?>
+      <p class="social-config-note">⚙️ يحتاج الدخول الاجتماعي إلى إعداد — <a href="#" style="color:var(--p)">اطلع على الإعداد</a></p>
+      <?php endif; ?>
+
+      <div class="social-divider"><span data-ar="أو سجّل بالبريد" data-en="or use email">أو سجّل بالبريد</span></div>
+
       <form onsubmit="doLogin();return false;" autocomplete="on">
         <div class="form-group">
           <label data-ar="البريد الإلكتروني" data-en="Email">البريد الإلكتروني</label>
@@ -467,6 +513,37 @@ if ($user) { header('Location: /dashboard'); exit; }
         <div class="auth-tab"        onclick="showAuth('login')"    data-ar="تسجيل الدخول" data-en="Sign in">تسجيل الدخول</div>
         <div class="auth-tab active" onclick="showAuth('register')" data-ar="إنشاء حساب"  data-en="Create account">إنشاء حساب</div>
       </div>
+
+      <!-- أزرار التسجيل الاجتماعي -->
+      <div class="social-btns">
+        <?php if (GOOGLE_CLIENT_ID): ?>
+        <a href="/auth/google" class="social-btn social-btn-google">
+          <svg width="18" height="18" viewBox="0 0 48 48" fill="none"><path d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" fill="#FFC107"/><path d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z" fill="#FF3D00"/><path d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0124 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" fill="#4CAF50"/><path d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 01-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z" fill="#1976D2"/></svg>
+          <span data-ar="التسجيل عبر Google" data-en="Sign up with Google">التسجيل عبر Google</span>
+        </a>
+        <?php endif; ?>
+        <?php if (APPLE_CLIENT_ID): ?>
+        <a href="/auth/apple" class="social-btn social-btn-apple">
+          <svg width="18" height="18" viewBox="0 0 814 1000" fill="currentColor"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-37.5-166.8-106.6c-52.3-61.7-96.5-156.4-96.5-246.5C0 378.1 113.5 234.5 217.4 234.5c50.8 0 97.9 34.5 130.6 34.5 31.1 0 84.4-36.9 144.5-36.9 23.1 0 111.1 2.6 178.1 80.2zm-190.5-113.7c-29.1-36.9-66.4-64.9-105.4-64.9-2.6 0-5.2.3-7.8.6 1.3 41.5 19.5 83 47.5 111.7 28 28.6 67 47.5 102.7 47.5 2.6 0 5.2-.3 7.8-.6-1.3-39-19.5-77.3-44.8-94.3z"/></svg>
+          <span data-ar="التسجيل عبر Apple" data-en="Sign up with Apple">التسجيل عبر Apple</span>
+        </a>
+        <?php endif; ?>
+        <?php if (!GOOGLE_CLIENT_ID && !APPLE_CLIENT_ID): ?>
+        <a href="#" class="social-btn social-btn-google" style="opacity:.55;pointer-events:none">
+          <svg width="18" height="18" viewBox="0 0 48 48" fill="none"><path d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" fill="#FFC107"/><path d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z" fill="#FF3D00"/><path d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0124 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" fill="#4CAF50"/><path d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 01-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z" fill="#1976D2"/></svg>
+          <span>Google</span>
+        </a>
+        <a href="#" class="social-btn social-btn-apple" style="opacity:.55;pointer-events:none">
+          <svg width="18" height="18" viewBox="0 0 814 1000" fill="currentColor"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-37.5-166.8-106.6c-52.3-61.7-96.5-156.4-96.5-246.5C0 378.1 113.5 234.5 217.4 234.5c50.8 0 97.9 34.5 130.6 34.5 31.1 0 84.4-36.9 144.5-36.9 23.1 0 111.1 2.6 178.1 80.2zm-190.5-113.7c-29.1-36.9-66.4-64.9-105.4-64.9-2.6 0-5.2.3-7.8.6 1.3 41.5 19.5 83 47.5 111.7 28 28.6 67 47.5 102.7 47.5 2.6 0 5.2-.3 7.8-.6-1.3-39-19.5-77.3-44.8-94.3z"/></svg>
+          <span>Apple</span>
+        </a>
+        <?php endif; ?>
+      </div>
+      <?php if (!GOOGLE_CLIENT_ID && !APPLE_CLIENT_ID): ?>
+      <p class="social-config-note">⚙️ يحتاج إلى إعداد credentials</p>
+      <?php endif; ?>
+      <div class="social-divider"><span data-ar="أو سجّل بالبريد" data-en="or use email">أو سجّل بالبريد</span></div>
+
       <form onsubmit="doRegister();return false;" autocomplete="on">
         <div class="form-group">
           <label data-ar="الاسم الكامل" data-en="Full Name">الاسم الكامل</label>

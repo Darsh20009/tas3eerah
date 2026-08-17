@@ -46,6 +46,14 @@ define('PLANS', [
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
+// OAuth credentials
+define('GOOGLE_CLIENT_ID',     $_ENV['GOOGLE_CLIENT_ID']     ?? getenv('GOOGLE_CLIENT_ID')     ?: '');
+define('GOOGLE_CLIENT_SECRET', $_ENV['GOOGLE_CLIENT_SECRET'] ?? getenv('GOOGLE_CLIENT_SECRET') ?: '');
+define('APPLE_CLIENT_ID',      $_ENV['APPLE_CLIENT_ID']      ?? getenv('APPLE_CLIENT_ID')      ?: '');
+define('APPLE_TEAM_ID',        $_ENV['APPLE_TEAM_ID']        ?? getenv('APPLE_TEAM_ID')        ?: '');
+define('APPLE_KEY_ID',         $_ENV['APPLE_KEY_ID']         ?? getenv('APPLE_KEY_ID')         ?: '');
+define('APPLE_PRIVATE_KEY',    $_ENV['APPLE_PRIVATE_KEY']    ?? getenv('APPLE_PRIVATE_KEY')    ?: '');
+
 // Composer autoloader (MongoDB PHP library)
 $_autoload = __DIR__ . '/vendor/autoload.php';
 if (file_exists($_autoload)) {

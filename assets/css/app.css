@@ -895,6 +895,32 @@ select.form-control { cursor: pointer; }
 
 
 /* ══════════════════════════════════════════════════
+   أزرار الدخول الاجتماعي (Google / Apple)
+   ══════════════════════════════════════════════════ */
+.social-btns {
+  display: flex; flex-direction: column; gap: 10px; margin-bottom: 4px;
+}
+.social-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 10px 16px; border-radius: var(--r); font-size: 13px; font-weight: 600;
+  text-decoration: none; transition: .15s; border: 1.5px solid var(--line);
+  color: var(--text); background: var(--card);
+}
+.social-btn:hover { box-shadow: var(--sh-sm); border-color: var(--muted2); background: var(--surface); }
+.social-btn-google { }
+.social-btn-apple  { background: #000; color: #fff; border-color: #000; }
+.social-btn-apple:hover { background: #1a1a1a; border-color: #1a1a1a; }
+.social-divider {
+  display: flex; align-items: center; gap: 10px;
+  color: var(--muted); font-size: 12px; margin: 14px 0 12px;
+}
+.social-divider::before,
+.social-divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.social-config-note {
+  font-size: 11px; color: var(--muted); text-align: center; margin: -4px 0 10px; line-height: 1.6;
+}
+
+/* ══════════════════════════════════════════════════
    شاشة البداية (Splash Screen)
    ══════════════════════════════════════════════════ */
 #splash-screen {

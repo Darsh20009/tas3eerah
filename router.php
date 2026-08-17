@@ -2,6 +2,7 @@
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/src/DB.php';
 require_once __DIR__ . '/src/Auth.php';
+require_once __DIR__ . '/src/OAuth.php';
 require_once __DIR__ . '/src/Response.php';
 
 // Security headers
@@ -64,6 +65,43 @@ if (str_starts_with($uri, '/api/')) {
         Response::err("API not found: $segment", 404);
     }
     exit;
+}
+
+// OAuth routes (GET — no CSRF needed, handled internally via state)
+if ($uri === '/auth/google') {
+    Auth::start();
+    if (!OAuth::googleEnabled()) { header('Location: /?oauth_error=google_not_configured'); exit; }
+    header('Location: ' . OAuth::googleAuthUrl()); exit;
+}
+if ($uri === '/auth/google/callback') {
+    Auth::start();
+    $code  = $_GET['code']  ?? '';
+    $state = $_GET['state'] ?? '';
+    $err   = $_GET['error'] ?? '';
+    if ($err || !$code) { header('Location: /?oauth_error=' . urlencode($err ?: 'cancelled')); exit; }
+    $result = OAuth::googleCallback($code, $state);
+    if (is_string($result)) { header('Location: /?oauth_error=' . urlencode($result)); exit; }
+    $user = OAuth::loginOrRegister($result);
+    if (is_string($user)) { header('Location: /?oauth_error=' . urlencode($user)); exit; }
+    header('Location: /dashboard'); exit;
+}
+if ($uri === '/auth/apple') {
+    Auth::start();
+    if (!OAuth::appleEnabled()) { header('Location: /?oauth_error=apple_not_configured'); exit; }
+    header('Location: ' . OAuth::appleAuthUrl()); exit;
+}
+// Apple sends a POST to the callback
+if ($uri === '/auth/apple/callback') {
+    Auth::start();
+    $post = $_POST;
+    if (empty($post['code']) && empty($post['id_token'])) {
+        header('Location: /?oauth_error=apple_no_data'); exit;
+    }
+    $result = OAuth::appleCallback($post);
+    if (is_string($result)) { header('Location: /?oauth_error=' . urlencode($result)); exit; }
+    $user = OAuth::loginOrRegister($result);
+    if (is_string($user)) { header('Location: /?oauth_error=' . urlencode($user)); exit; }
+    header('Location: /dashboard'); exit;
 }
 
 // App pages
