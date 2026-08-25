@@ -13,7 +13,7 @@ if ($user) { header('Location: /dashboard'); exit; }
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="تسعيرة منصة عربية سعودية للتسعير وعروض الأسعار وإدارة العملاء">
+  <meta name="description" content="تسعيرة منصة سعودية ذكية لحساب الأسعار في سبعة قطاعات">
   <link rel="icon" type="image/png" href="/assets/logo.png">
   <title>تسعيرة | منصة التسعير العربية</title>
   <link rel="stylesheet" href="/assets/css/app.css?v=<?= filemtime(__DIR__.'/../assets/css/app.css') ?>">
@@ -92,8 +92,8 @@ if ($user) { header('Location: /dashboard'); exit; }
       <h1 data-ar="<em>سعّر</em> بثقة<br><span class='em-gold'>أدِر</span> بذكاء." data-en="<em>Price</em> with confidence,<br><span class='em-gold'>manage</span> with clarity.">
         <em>سعّر</em> بثقة<br><span class="em-gold">أدِر</span> بذكاء.
       </h1>
-      <p class="hero-sub" data-ar="أدوات تسعير احترافية · عروض أسعار PDF · إدارة عملاء · رسائل داخلية — كل شيء في منصة عربية واحدة." data-en="Professional pricing tools · PDF quotes · client management · internal messaging — all in one platform.">
-        أدوات تسعير احترافية · عروض أسعار PDF · إدارة عملاء · رسائل داخلية — كل شيء في منصة عربية واحدة.
+      <p class="hero-sub" data-ar="٧ أدوات تسعير متخصصة · قطاعات متعددة · حسابات واضحة — كل ما تحتاجه لتسعّر مشروعك بثقة في منصة عربية واحدة." data-en="7 specialized pricing tools · multiple sectors · clear calculations — everything you need to price confidently in one Arabic platform.">
+        ٧ أدوات تسعير متخصصة · قطاعات متعددة · حسابات واضحة — كل ما تحتاجه لتسعّر مشروعك بثقة في منصة عربية واحدة.
       </p>
       <div class="hero-btns">
         <button class="btn btn-primary btn-lg" onclick="showAuth('register')" data-ar="جرّب مجاناً" data-en="Try for free">جرّب مجاناً</button>
@@ -117,8 +117,8 @@ if ($user) { header('Location: /dashboard'); exit; }
           </div>
         </div>
         <div class="hero-stat-row">
-          <span class="hero-stat-label">عروض الأسعار</span>
-          <span class="hero-stat-val" style="color:var(--p)">٢٤ عرض</span>
+          <span class="hero-stat-label">أدوات التسعير</span>
+          <span class="hero-stat-val" style="color:var(--p)">٧ أدوات</span>
         </div>
         <div class="hero-stat-row">
           <span class="hero-stat-label">إجمالي مقبول</span>
@@ -160,8 +160,8 @@ if ($user) { header('Location: /dashboard'); exit; }
     <!-- 2 -->
     <div class="feat-card">
       <div class="feat-icon">📄</div>
-      <h3 data-ar="عروض الأسعار" data-en="Quotations">عروض الأسعار</h3>
-      <p data-ar="أنشئ عروض أسعار احترافية بتفاصيل كاملة واطبعها PDF في ثوانٍ مع شعار علامتك التجارية." data-en="Create professional quotes with full details and print as PDF instantly with your brand logo.">أنشئ عروض أسعار احترافية بتفاصيل كاملة واطبعها PDF في ثوانٍ مع شعار علامتك التجارية.</p>
+      <h3 data-ar="٧ قطاعات متخصصة" data-en="7 specialized sectors">٧ قطاعات متخصصة</h3>
+      <p data-ar="من الخدمات والمطاعم إلى التجزئة والمشاريع التقنية والتصميم المعماري، لكل نشاط طريقة تسعير مناسبة." data-en="From services and restaurants to retail, technology and architecture, each sector gets the right pricing method.">من الخدمات والمطاعم إلى التجزئة والمشاريع التقنية والتصميم المعماري، لكل نشاط طريقة تسعير مناسبة.</p>
     </div>
     <!-- 3 -->
     <div class="feat-card">
@@ -248,9 +248,9 @@ if ($user) { header('Location: /dashboard'); exit; }
         بُنيت لأصحاب المشاريع العربية
       </h2>
       <p style="color:var(--muted);font-size:15px;line-height:2;margin-bottom:8px"
-         data-ar="تسعيرة منصة عربية متكاملة تُمكّن أصحاب المشاريع والفرق من إدارة أعمالهم باحترافية — من أول لحظة تسعير حتى إرسال الفاتورة."
-         data-en="Tas3eerah is an all-in-one Arabic platform that empowers businesses and teams to manage their work professionally — from the first pricing moment to the final invoice.">
-        تسعيرة منصة عربية متكاملة تُمكّن أصحاب المشاريع والفرق من إدارة أعمالهم باحترافية — من أول لحظة تسعير حتى إرسال الفاتورة.
+         data-ar="تسعيرة منصة عربية تساعد أصحاب المشاريع على معرفة التكلفة الحقيقية وتحديد السعر العادل قبل تقديم أي خدمة أو منتج."
+         data-en="Tas3eerah helps business owners understand their real costs and set a fair price before offering any service or product.">
+        تسعيرة منصة عربية تساعد أصحاب المشاريع على معرفة التكلفة الحقيقية وتحديد السعر العادل قبل تقديم أي خدمة أو منتج.
       </p>
       <div class="about-stats">
         <div>
@@ -258,7 +258,7 @@ if ($user) { header('Location: /dashboard'); exit; }
           <div class="about-stat-lbl" data-ar="عربي RTL كامل" data-en="Arabic Full RTL">عربي RTL كامل</div>
         </div>
         <div>
-          <div class="about-stat-num" style="color:var(--gold)">٥</div>
+          <div class="about-stat-num" style="color:var(--gold)">٧</div>
           <div class="about-stat-lbl" data-ar="أدوات تسعير" data-en="Pricing tools">أدوات تسعير</div>
         </div>
         <div>
@@ -354,7 +354,7 @@ if ($user) { header('Location: /dashboard'); exit; }
           </div>
         </div>
         <div class="footer-gold-line"></div>
-        <p style="font-size:12px;color:rgba(255,255,255,.55);line-height:2;max-width:260px">منصة عربية لإدارة التسعير عروض الأسعار والتواصل مع العملاء.</p>
+        <p style="font-size:12px;color:rgba(255,255,255,.55);line-height:2;max-width:260px">منصة عربية لحساب الأسعار وإدارة التكلفة في قطاعات الأعمال المختلفة.</p>
       </div>
       <div>
         <div class="footer-col-title">المنصة</div>

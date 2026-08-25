@@ -1179,18 +1179,18 @@ function showInModal(id, msg, isErr) {
   const spinner  = document.getElementById('splashSpinner');
   const brand    = document.getElementById('splashBrand');
 
-  // Phase 2 at 1.4s — clear blur, show brand text
+  // Keep the intro brief so the workspace is immediately usable.
   setTimeout(() => {
     if (icon)    icon.classList.add('clear');
     if (spinner) spinner.classList.add('done');
     if (brand)   brand.classList.add('show');
-  }, 1400);
+  }, 350);
 
-  // Phase 3 at 2.8s — fade out
+  // Fade out after the brand mark has appeared.
   setTimeout(() => {
     splash.classList.add('fade-out');
     setTimeout(() => { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 650);
-  }, 2800);
+  }, 850);
 })();
 
 // ─── INIT ────────────────────────────────
