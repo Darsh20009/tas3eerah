@@ -634,6 +634,7 @@ select.form-control { cursor: pointer; }
 .sb-logo {
   padding: 14px 14px 12px; display: flex; align-items: center; justify-content: center;
   border-bottom: 1px solid var(--sb-line); flex-shrink: 0;
+  text-decoration: none;
 }
 .sb-logo-img {
   width: 174px; height: 56px; display: block; border-radius: 8px;
@@ -712,6 +713,7 @@ select.form-control { cursor: pointer; }
 .hamburger span { display: block; width: 18px; height: 2px; background: var(--text); border-radius: 2px; transition: .2s; }
 
 .workspace { flex: 1; overflow-y: auto; padding: 24px; -webkit-overflow-scrolling: touch; }
+.workspace > #panel-tools { max-width: 1040px; margin-inline: auto; }
 
 .section-panel        { display: none; }
 .section-panel.active { display: block; }

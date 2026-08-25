@@ -71,9 +71,9 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
 <!-- ═══ SIDEBAR ═══ -->
 <aside class="sidebar" id="sidebar">
   <button class="sb-close-btn" onclick="closeSidebar()" aria-label="إغلاق القائمة">✕</button>
-  <div class="sb-logo">
+  <a class="sb-logo" href="/" aria-label="الصفحة الرئيسية">
     <img class="sb-logo-img" src="/assets/logo.png" alt="تسعيرة">
-  </div>
+  </a>
   <div class="sb-gold-stripe"></div>
   <div class="sb-user">
     <div class="sb-user-name"><?= htmlspecialchars($user['name']) ?></div>
@@ -175,6 +175,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
     <div class="topbar-title" id="topbarTitle">اختر أداة التسعير المناسبة</div>
     </div>
     <div class="topbar-actions">
+      <a class="btn btn-ghost btn-sm dashboard-home-link" href="/">الصفحة الرئيسية</a>
       <button class="btn btn-ghost btn-sm" onclick="toggleLang()" id="langBtn">EN</button>
       <?php if ($role === 'employee' || $role === 'admin'): ?>
       <button class="btn btn-primary btn-sm" onclick="navDirect('quote-new')">
