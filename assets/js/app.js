@@ -536,6 +536,11 @@ function closeTool() {
   document.getElementById('toolsMenu').style.display = '';
 }
 
+// Open the complete sector calculator that matches the reference workflows.
+function openLegacyTool(tool) {
+  window.location.href = '/legacy-calculator.html#' + encodeURIComponent(tool);
+}
+
 // Update client info card label when name is typed
 function updateCicLabel(toolId) {
   const name = (document.getElementById('ci_name_' + toolId)?.value || '').trim();
@@ -794,6 +799,7 @@ async function openToolQuote(slug, toolName) {
     slug === 'pkg'    ? 'pkgResult'    :
     slug === 'labor'  ? 'laborResult'  :
     slug === 'store'  ? 'storeResult'  :
+    slug === 'menu'   ? 'menuResult'   :
     slug === 'office' ? 'officeResult' : 'customResult'
   );
   const amount = parseFloat(resultEl?.getAttribute('data-amount') || '0');
@@ -837,7 +843,7 @@ async function saveToolQuote() {
   if (!clientId) { showMsg('يرجى اختيار العميل', true); return; }
 
   const toolLabel = {
-    basic: 'التسعير الأساسي', pkg: 'باقات الاشتراك',
+    basic: 'التسعير الأساسي', pkg: 'باقات الاشتراك', menu: 'قائمة المطاعم والكافيهات',
     labor: 'تكلفة الساعة',    store: 'المتجر الإلكتروني',
     office: 'تكلفة المكتب',   custom: 'تسعيرة مخصصة',
   };
