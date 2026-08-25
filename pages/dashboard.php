@@ -524,13 +524,20 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
         foreach ($toolCards as [$slug, $name, $sectors, $desc, $icon, $tone]):
           $locked = !in_array($slug, $userTools) && !in_array('all', $userTools);
         ?>
-        <div class="tool-card sector-card tone-<?= $tone ?> <?= $locked ? 'locked' : '' ?>" onclick="<?= $locked ? "showPlanUpgrade()" : "openTool('$slug')" ?>">
+        <?php
+          $legacyTools = [
+            'calc_basic' => 'services', 'calc_store' => 'packages', 'calc_menu' => 'menu',
+            'calc_custom' => 'retail', 'calc_labor' => 'tech', 'calc_pkg' => 'saas', 'calc_office' => 'design'
+          ];
+          $legacyHash = $legacyTools[$slug] ?? 'services';
+        ?>
+        <div class="tool-card sector-card tone-<?= $tone ?> <?= $locked ? 'locked' : '' ?>" onclick="<?= $locked ? "showPlanUpgrade()" : "openLegacyTool('$legacyHash')" ?>">
           <?php if ($locked): ?><div class="tool-lock">🔒</div><?php endif; ?>
           <div class="sector-icon"><?= $icon ?></div>
           <div class="tool-tag"><?= $locked ? 'متاح في خطة أعلى' : $sectors ?></div>
           <h3><?= $name ?></h3>
           <p><?= $desc ?></p>
-          <div class="sector-action"><?= $locked ? 'ترقية الخطة' : 'ابدأ التسعير' ?><span>←</span></div>
+          <div class="sector-action"><?= $locked ? 'ترقية الخطة' : 'فتح الحاسبة الكاملة' ?><span>←</span></div>
         </div>
         <?php endforeach; ?>
       </div>
