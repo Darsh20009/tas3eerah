@@ -101,7 +101,7 @@ if ($user) { header('Location: /dashboard'); exit; }
       </div>
       <p class="hero-note">
         <span>✦</span>
-        <span data-ar="لا يلزم بطاقة ائتمان · بيانات آمنة محلياً" data-en="No credit card required · Data stored securely">لا يلزم بطاقة ائتمان · بيانات آمنة محلياً</span>
+         <span data-ar="الوصول المجاني لجميع الأدوات خلال فترة الإطلاق" data-en="Free access to all tools during launch">الوصول المجاني لجميع الأدوات خلال فترة الإطلاق</span>
       </p>
     </div>
 
@@ -191,7 +191,7 @@ if ($user) { header('Location: /dashboard'); exit; }
 </section>
 
 <!-- ═══ الأسعار ═══ -->
-<div class="pricing-section">
+<?php if (!OPEN_ACCESS_MODE): ?><div class="pricing-section">
 <section id="pricing" class="pricing">
   <div class="section-head">
     <div class="eyebrow" data-ar="الأسعار" data-en="Pricing">الأسعار</div>
@@ -222,7 +222,7 @@ if ($user) { header('Location: /dashboard'); exit; }
     <?php endforeach; ?>
   </div>
 </section>
-</div>
+</div><?php endif; ?>
 
 <!-- ═══ CTA ═══ -->
 <div class="trust-strip">

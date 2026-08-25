@@ -9,7 +9,7 @@ $user          = Auth::require();
 $role          = $user['role'];
 $effectivePlan = Auth::effectivePlan($user);
 $plan          = PLANS[$effectivePlan] ?? PLANS['free'];
-$isPaid        = in_array($effectivePlan, ['pro', 'enterprise']);
+$isPaid        = OPEN_ACCESS_MODE || in_array($effectivePlan, ['pro', 'enterprise']);
 
 $roleLabel = ['admin' => 'مدير النظام', 'employee' => 'موظف', 'client' => 'عميل'][$role] ?? $role;
 $planName  = $plan['name_ar'];
@@ -100,7 +100,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
     </button>
     <?php endif; ?>
 
-    <?php if ($role === 'client'): ?>
+    <?php if ($role === 'client' && !OPEN_ACCESS_MODE): ?>
     <div class="sb-section">عروض الأسعار</div>
     <button class="sb-item" data-panel="quote-new" onclick="nav(this)">
       <span class="sb-icon">✦</span> طلب تسعيرة جديدة
@@ -494,7 +494,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
     <!-- ══ TOOLS ══ -->
     <div class="section-panel active" id="panel-tools">
       <?php
-        $userTools = $plan['tools'];
+  $userTools = OPEN_ACCESS_MODE ? ['all'] : $plan['tools'];
       ?>
 
       <!-- ═ TOOLS MENU ═ -->
@@ -502,7 +502,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
         <div>
           <div class="tools-kicker">منصة تسعيرة</div>
           <h1>اختر الأداة المناسبة لمشروعك</h1>
-          <p>احسب السعر العادل لخدماتك وتكاليفك في دقائق، بمنهجية واضحة تناسب نشاطك.</p>
+          <p>احسب السعر العادل لخدماتك وتكاليفك في دقائق، بمنهجية واضحة تناسب نشاطك. <strong>جميع الأدوات مجانية خلال فترة الإطلاق.</strong></p>
         </div>
         <div class="tools-intro-mark"><img src="/assets/icon.png" alt=""></div>
       </div>

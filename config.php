@@ -9,17 +9,19 @@ define('DB_PATH',     __DIR__ . '/database/tas3eerah.db');
 
 define('APP_LOGO', '/assets/brand-logo-transparent.png');
 define('SESSION_LIFETIME', 60 * 60 * 24 * 30);
+// Temporary launch mode: all pricing tools are open while the platform is being validated.
+define('OPEN_ACCESS_MODE', true);
 
 define('PLANS', [
     'free' => [
         'name_ar'     => 'مجاني',
         'name_en'     => 'Free',
         'price'       => 0,
-        'max_quotes'  => 5,
-        'max_msgs'    => 30,
-        'tools'       => ['calc_basic'],
+        'max_quotes'  => -1,
+        'max_msgs'    => -1,
+        'tools'       => ['all'],
         'badge'       => '#7890a6',
-        'features_ar' => ['5 عروض أسعار شهرياً', 'أداة التسعير الأساسية', '30 رسالة شهرياً'],
+        'features_ar' => ['الوصول إلى جميع أدوات التسعير', 'جميع الحاسبات متاحة مجاناً', 'خلال فترة الإطلاق'],
     ],
     'pro' => [
         'name_ar'     => 'محترف',
