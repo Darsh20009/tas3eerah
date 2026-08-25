@@ -500,6 +500,7 @@ function openTool(slug) {
   // Restore sessionStorage state
   restoreToolState(slug);
   // Trigger initial calculation
+  if (slug === 'calc_menu')   calcMenu();
   if (slug === 'calc_pkg')    calcPkg();
   if (slug === 'calc_labor')  calcLabor();
   if (slug === 'calc_store')  calcStore();
@@ -508,6 +509,26 @@ function openTool(slug) {
     if (!document.getElementById('custItemsBody').children.length) addCustomItem();
     calcCustom();
   }
+}
+
+function calcMenu() {
+  const ingredients = Math.max(0, parseFloat(document.getElementById('mn_ingredients')?.value) || 0);
+  const waste = Math.max(0, parseFloat(document.getElementById('mn_waste')?.value) || 0);
+  const units = Math.max(1, parseFloat(document.getElementById('mn_units')?.value) || 1);
+  const ops = Math.max(0, parseFloat(document.getElementById('mn_ops')?.value) || 0);
+  const profit = Math.max(0, parseFloat(document.getElementById('mn_profit')?.value) || 0);
+  const tax = Math.max(0, parseFloat(document.getElementById('mn_tax')?.value) || 0);
+  const ingredientCost = ingredients * (1 + waste / 100);
+  const opsPerUnit = ops / units;
+  const base = ingredientCost + opsPerUnit;
+  const priceBeforeTax = base * (1 + profit / 100);
+  const finalPrice = priceBeforeTax * (1 + tax / 100);
+  setText('mn_rCost', fmt(ingredientCost) + ' ر.س');
+  setText('mn_rOps', fmt(opsPerUnit) + ' ر.س');
+  setText('mn_rBase', fmt(base) + ' ر.س');
+  setText('mn_rFinal', fmt(finalPrice) + ' ر.س');
+  const result = document.getElementById('menuResult');
+  if (result) result.dataset.amount = finalPrice;
 }
 
 function closeTool() {

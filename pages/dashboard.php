@@ -84,7 +84,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
   <nav class="sb-nav">
     <!-- Common -->
     <div class="sb-section">الرئيسية</div>
-    <button class="sb-item active" data-panel="overview" onclick="nav(this)">
+    <button class="sb-item" data-panel="overview" onclick="nav(this)">
       <span class="sb-icon">◈</span> نظرة عامة
     </button>
 
@@ -128,7 +128,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
     </button>
 
     <div class="sb-section">الأدوات</div>
-    <button class="sb-item" data-panel="tools" onclick="nav(this)">
+    <button class="sb-item active" data-panel="tools" onclick="nav(this)">
       <span class="sb-icon">◈</span> أدوات التسعير
     </button>
 
@@ -172,7 +172,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
       <button class="hamburger" id="hamburgerBtn" onclick="openSidebar()" aria-label="القائمة">
         <span></span><span></span><span></span>
       </button>
-      <div class="topbar-title" id="topbarTitle">نظرة عامة</div>
+    <div class="topbar-title" id="topbarTitle">اختر أداة التسعير المناسبة</div>
     </div>
     <div class="topbar-actions">
       <button class="btn btn-ghost btn-sm" onclick="toggleLang()" id="langBtn">EN</button>
@@ -196,7 +196,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
   <div class="workspace" id="workspace">
 
     <!-- ══ OVERVIEW ══ -->
-    <div class="section-panel active" id="panel-overview">
+    <div class="section-panel" id="panel-overview">
       <div class="stats-grid" id="statsGrid">
         <?php
         $month = date('Y-m');
@@ -492,35 +492,80 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
     </div>
 
     <!-- ══ TOOLS ══ -->
-    <div class="section-panel" id="panel-tools">
+    <div class="section-panel active" id="panel-tools">
       <?php
         $userTools = $plan['tools'];
       ?>
 
       <!-- ═ TOOLS MENU ═ -->
+      <div class="tools-intro">
+        <div>
+          <div class="tools-kicker">منصة تسعيرة</div>
+          <h1>اختر الأداة المناسبة لمشروعك</h1>
+          <p>احسب السعر العادل لخدماتك وتكاليفك في دقائق، بمنهجية واضحة تناسب نشاطك.</p>
+        </div>
+        <div class="tools-intro-mark"><img src="/assets/icon.png" alt=""></div>
+      </div>
+      <div class="tools-section-head">
+        <div><span class="step-number">١</span><h2>اختر المجال</h2></div>
+        <span>٧ أدوات تسعير متخصصة</span>
+      </div>
       <div id="toolsMenu">
         <?php
         $toolCards = [
-          ['calc_basic',  'أداة التسعير الأساسية',   'مواقع تطبيقات هوية إنتاج استشارة',  'احسب سعر خدمتك بدقة اختر نوع المشروع وأدخل تكاليفك.'],
-          ['calc_pkg',    'تسعيرة باقات الاشتراك',    'SaaS منتجات رقمية',                   'احسب سعر باقاتك الشهرية بناءً على تكاليفك وعدد المشتركين.'],
-          ['calc_store',  'تسعيرة المتجر الإلكتروني', 'تجارة إلكترونية متاجر',               'سعّر مشاريع التجارة الإلكترونية مع حساب الربحية الكاملة.'],
-          ['calc_office', 'تسعيرة المكتب والوكالة',   'مكاتب وكالات تسويق',                  'احسب التسعيرة الصحيحة لمكتبك بناءً على تكاليف التشغيل.'],
-          ['calc_labor',  'حساب تكلفة الساعة',        'مستقل فريلانسر',                      'احسب تكلفة ساعة عملك الحقيقية مع هامش الربح المناسب.'],
-          ['calc_custom', 'تسعيرة حرة مخصصة',         'مؤسسات خدمات متعددة',                 'أنشئ تسعيرة ببنود مخصصة حرة بلا قيود على نوع المشروع.'],
+          ['calc_basic',  'تسعير الخدمات',             'خدمات · تدريب · تصوير · هدايا',       'احسب السعر العادل لخدماتك بناءً على التكاليف والهامش المناسب.', '⚖️', 'warm'],
+          ['calc_store',  'تسعير الباقات والاشتراكات', 'تجارة إلكترونية · منصات رقمية',       'سعّر باقاتك ومنتجاتك مع توزيع التكاليف على المشتركين.', '📦', 'blue'],
+          ['calc_menu',   'تسعير قائمة المطاعم والكافيهات','كافيه · مطعم · حلويات · مشروبات', 'ابنِ سعر طبقك بدقة من تكلفة المكونات والهدر والهامش.', '☕', 'green'],
+          ['calc_custom', 'تسعير التجزئة والجملة',     'ملابس · إلكترونيات · بقالة',          'حدد سعر البيع والربحية لكل منتج أو مجموعة منتجات.', '🏪', 'gold'],
+          ['calc_labor',  'تسعير المشاريع التقنية',    'تطبيقات · ERP · مواقع · أجهزة ذكية',  'احسب تكلفة المشروع التقني حسب الساعات والموارد والنطاق.', '💻', 'blue'],
+          ['calc_pkg',    'تسعير الشركات التقنية',     'SaaS · استضافة · صيانة · تراخيص',    'احسب سعر الاشتراك والخدمات المتكررة على أساس تكاليفك الحقيقية.', '↻', 'purple'],
+          ['calc_office', 'تسعير التصميم الداخلي والمعماري','سكني · تجاري · معماري',          'سعّر مشاريع التصميم والتنفيذ وفق المساحة والمراحل والتكاليف.', '⌂', 'sand'],
         ];
-        foreach ($toolCards as [$slug, $name, $sectors, $desc]):
+        foreach ($toolCards as [$slug, $name, $sectors, $desc, $icon, $tone]):
           $locked = !in_array($slug, $userTools) && !in_array('all', $userTools);
         ?>
-        <div class="tool-card <?= $locked ? 'locked' : '' ?>" onclick="<?= $locked ? "showPlanUpgrade()" : "openTool('$slug')" ?>">
+        <div class="tool-card sector-card tone-<?= $tone ?> <?= $locked ? 'locked' : '' ?>" onclick="<?= $locked ? "showPlanUpgrade()" : "openTool('$slug')" ?>">
           <?php if ($locked): ?><div class="tool-lock">🔒</div><?php endif; ?>
-          <div class="tool-tag"><?= $locked ? 'مقفل يتطلب ترقية' : $sectors ?></div>
+          <div class="sector-icon"><?= $icon ?></div>
+          <div class="tool-tag"><?= $locked ? 'متاح في خطة أعلى' : $sectors ?></div>
           <h3><?= $name ?></h3>
           <p><?= $desc ?></p>
-          <?php if (!$locked): ?>
-          <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:12px;color:var(--p);font-weight:700">ابدأ التسعير ←</div>
-          <?php endif; ?>
+          <div class="sector-action"><?= $locked ? 'ترقية الخطة' : 'ابدأ التسعير' ?><span>←</span></div>
         </div>
         <?php endforeach; ?>
+      </div>
+      <div class="tools-note"><span>ⓘ</span> يمكنك العودة لاحقاً إلى أي أداة ومراجعة حساباتك المحفوظة.</div>
+
+      <!-- ═ TOOL: Menu Pricing ═ -->
+      <div class="tool-panel" id="tool-calc_menu">
+        <button class="btn btn-ghost btn-sm mb-16" onclick="closeTool()">← الأدوات</button>
+        <div class="tool-heading"><div class="tool-heading-icon tone-green">☕</div><div><div class="tools-kicker">تسعير المطاعم والكافيهات</div><h2>تسعير صنف في القائمة</h2></div></div>
+        <div class="calc-section">
+          <h4>بيانات الصنف</h4>
+          <div class="form-row">
+            <div class="form-group"><label>اسم الصنف</label><input type="text" class="form-control" id="mn_name" placeholder="لاتيه مثلج"></div>
+            <div class="form-group"><label>عدد الوحدات المباعة شهرياً</label><input type="number" class="form-control" id="mn_units" value="100" min="1" oninput="calcMenu()"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>تكلفة المكونات للوحدة (ر.س)</label><input type="number" class="form-control" id="mn_ingredients" value="4" min="0" step=".1" oninput="calcMenu()"></div>
+            <div class="form-group"><label>نسبة الهدر %</label><input type="number" class="form-control" id="mn_waste" value="5" min="0" max="100" oninput="calcMenu()"></div>
+          </div>
+        </div>
+        <div class="calc-section">
+          <h4>التكاليف والهامش</h4>
+          <div class="form-row">
+            <div class="form-group"><label>التكاليف التشغيلية الشهرية (ر.س)</label><input type="number" class="form-control" id="mn_ops" value="8000" min="0" oninput="calcMenu()"></div>
+            <div class="form-group"><label>هامش الربح المستهدف %</label><input type="number" class="form-control" id="mn_profit" value="35" min="0" max="200" oninput="calcMenu()"></div>
+          </div>
+          <div class="form-group"><label>ضريبة القيمة المضافة %</label><input type="number" class="form-control" id="mn_tax" value="15" min="0" oninput="calcMenu()"></div>
+        </div>
+        <div class="calc-result" id="menuResult" data-amount="0">
+          <div class="calc-result-row"><span>تكلفة المكونات بعد الهدر</span><span id="mn_rCost">-</span></div>
+          <div class="calc-result-row"><span>نصيب الصنف من التشغيل</span><span id="mn_rOps">-</span></div>
+          <div class="calc-result-row"><span>التكلفة الفعلية للوحدة</span><span id="mn_rBase">-</span></div>
+          <div class="calc-result-row big"><span>سعر البيع المقترح شامل الضريبة</span><span id="mn_rFinal">-</span></div>
+          <?= toolSaveBtn($isPaid, 'menu', 'تسعير قائمة المطاعم والكافيهات') ?>
+        </div>
       </div>
 
       <!-- ═ TOOL: Basic Pricing ═ -->
