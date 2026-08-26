@@ -38,15 +38,10 @@ if ($user) { header('Location: /dashboard'); exit; }
   var icon    = document.getElementById('splashIcon');
   var spinner = document.getElementById('splashSpinner');
   var brand   = document.getElementById('splashBrand');
-  setTimeout(function(){
-    if(icon)    icon.classList.add('clear');
-    if(spinner) spinner.classList.add('done');
-    if(brand)   brand.classList.add('show');
-  }, 1400);
-  setTimeout(function(){
-    splash.classList.add('fade-out');
-    setTimeout(function(){ if(splash.parentNode) splash.parentNode.removeChild(splash); }, 650);
-  }, 2800);
+  if(icon)    icon.classList.add('clear');
+  if(spinner) spinner.classList.add('done');
+  if(brand)   brand.classList.add('show');
+  if(splash)  splash.remove();
 })();
 </script>
 
