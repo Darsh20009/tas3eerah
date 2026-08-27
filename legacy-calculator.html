@@ -630,6 +630,58 @@ button,input,select,textarea{font-family:inherit}
 .pkg-result-name,.pkg-result-price{color:var(--green)}
 .menu-table th{background:var(--surface);color:var(--muted)}
 .site-footer{border-top-color:var(--border);color:var(--muted)}
+
+/* Unified inner-tool layout */
+.tabs{
+  max-width:920px;margin:14px auto 0;border:1px solid var(--border);
+  border-radius:12px;background:var(--card);overflow:hidden;box-shadow:0 1px 5px rgba(26,43,32,.035)
+}
+.tab{padding:12px 10px;color:var(--muted);border-bottom:2px solid transparent}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+.tab.active .badge{background:#E6EFE9;color:var(--green)}
+.page{max-width:960px;margin:0 auto;padding:20px 20px 40px}
+.wrap{max-width:none}
+.step-row{
+  display:flex;align-items:center;gap:10px;margin:24px 0 10px;
+  color:var(--text)
+}
+.step-num{box-shadow:none}
+.step-title{font-weight:800}
+.field-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.field-btn{min-height:88px;padding:15px 8px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ficon{font-size:20px;margin-bottom:7px}
+.fname{font-size:12px}
+.svc-grid{grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px}
+.svc-btn{padding:13px 8px;min-height:64px}
+.sname{font-size:11px}
+.g2,.g3{gap:14px}
+.f{gap:6px}
+.f label{font-size:12px;color:var(--text2,#2D4036)}
+.f input,.f select,.f textarea,.pkg-input,.menu-input-sm,.ing-input{
+  min-height:42px;padding:10px 12px;background:#fff;border:1px solid var(--border);border-radius:9px
+}
+.glbl,.pkg-section-title{color:var(--green);letter-spacing:0}
+.pricing-method-wrap{border-bottom-color:var(--border)}
+.lvl-grid{gap:10px}
+.lvl-btn{min-height:118px;padding:17px 9px}
+.save-btn{min-height:46px}
+.res-card{box-shadow:0 2px 12px rgba(26,43,32,.05)}
+.price-out .pbig{font-size:40px}
+.menu-add-row{background:#F5F8F5;border-color:#C8DBCC;color:var(--green)}
+.ing-panel{background:#F5F8F5;border-color:#C8DBCC}
+.ing-table th{background:#E6EFE9;color:var(--green)}
+.share-cta{background:#F5F8F5;border-color:#C8DBCC}
+@media(max-width:560px){
+  .page{padding:16px 12px 32px}
+  .back-bar{padding:10px 12px;flex-wrap:wrap}
+  .back-tool-name{width:100%;order:3;padding-top:3px}
+  .tabs{margin:10px 12px 0}
+  .field-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .field-btn{min-height:78px}
+  .svc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .card,.card.purple-card,.card.gold-card{padding:14px;border-radius:13px}
+  .step-row{margin-top:20px}
+}
 </style>
 </head>
 <body>
