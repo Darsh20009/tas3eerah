@@ -544,6 +544,92 @@ hr{border:none;border-top:1px solid var(--border);margin:11px 0}
 .footer-link:hover{text-decoration:underline}
 .footer-sep{color:rgba(184,133,58,0.35);font-size:12px}
 .footer-copy{font-size:11px;color:var(--muted)}
+
+/* ============================================================
+   Tas3eerah design system
+   Keep the complete calculator logic, but use the same visual
+   language as the new public page and dashboard.
+   ============================================================ */
+@font-face{font-family:'BritishCouncil';src:url('/assets/fonts/BritishCouncil-Arabic.ttf') format('truetype');font-display:swap}
+:root{
+  --bg:#F8F5ED;--surface:#EDE9DF;--card:#FFFFFF;--border:#D5CEC0;
+  --gold:#C9A741;--gold-light:#A8882C;--gold-dim:#FAF3DE;
+  --text:#1A2B20;--muted:#6B7C73;--soft:#2D4036;
+  --green:#2E8B57;--blue:#2471A3;--red:#C0392B;--purple:#6650A5;
+}
+html{background:var(--bg)}
+body{font-family:'BritishCouncil','Tajawal','Arial',sans-serif;background:var(--bg);color:var(--text);line-height:1.65}
+button,input,select,textarea{font-family:inherit}
+.platform-header{background:var(--card);border-bottom:1px solid var(--border);padding:18px 20px 16px}
+.platform-header::before{display:none}
+.platform-tagline{color:var(--muted);font-size:13px}
+.currency-bar select,.menu-cat-select,.pricing-method-wrap select,.pkg-input{
+  background:var(--card);border-color:var(--border);color:var(--text);border-radius:9px
+}
+.currency-bar select:focus,.menu-cat-select:focus,.pricing-method-wrap select:focus,.pkg-input:focus{border-color:var(--green)}
+.tools-section{max-width:920px;padding:34px 20px 18px}
+.tools-title{color:var(--text);font-size:17px;font-weight:900;letter-spacing:0;margin-bottom:18px}
+.tool-card,.tool-card.gold,.tool-card.blue,.tool-card.green{
+  background:var(--card)!important;border:1px solid var(--border)!important;border-radius:16px;
+  padding:19px 20px;margin-bottom:12px;box-shadow:0 2px 10px rgba(26,43,32,.04)
+}
+.tool-card::before{display:none}
+.tool-card:hover,.tool-card.gold:hover,.tool-card.blue:hover,.tool-card.green:hover{
+  transform:none;border-color:var(--green)!important;box-shadow:0 4px 16px rgba(26,43,32,.08)
+}
+.tool-icon{width:48px;height:48px;border-radius:12px;background:var(--surface)!important;font-size:28px}
+.tool-name,.tool-card.gold .tool-name,.tool-card.blue .tool-name,.tool-card.green .tool-name{
+  color:var(--text)!important;font-size:15px
+}
+.tool-desc{font-size:12px;color:var(--muted);line-height:1.7}
+.tool-tag,.gold .tool-tag,.blue .tool-tag,.green .tool-tag{
+  background:var(--surface)!important;color:var(--muted)!important;border-color:var(--border)!important
+}
+.tool-arrow{color:var(--green)!important}
+.free-badge{background:#E6EFE9;color:var(--green);border-color:rgba(46,139,87,.2)}
+.back-bar{background:var(--card);border-bottom:1px solid var(--border);padding:11px 20px}
+.back-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px}
+.back-btn:hover{background:var(--gold-dim);border-color:var(--gold)}
+.back-tool-name{color:var(--text)}
+.page{padding:24px 20px}
+.wrap{max-width:920px}
+.step-row{margin:22px 0 11px}
+.step-num{background:var(--green);color:#fff;width:27px;height:27px;font-size:12px}
+.step-title{color:var(--text);font-size:15px}
+.card,.card.purple-card,.card.gold-card{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;
+  box-shadow:0 2px 10px rgba(26,43,32,.035)
+}
+.field-btn,.svc-btn,.lvl-btn{background:var(--card);border:1px solid var(--border);border-radius:11px}
+.field-btn:hover,.svc-btn:hover,.lvl-btn:hover{border-color:var(--green);transform:none}
+.field-btn.active,.lvl-btn.picked{
+  border-color:var(--green);background:#E6EFE9;box-shadow:0 0 0 1px rgba(46,139,87,.14)
+}
+.field-btn.active .fname,.lvl-btn.picked .lname,.lvl-btn.picked .lpct{color:var(--green)}
+.svc-btn.active{border-color:var(--blue);background:#EDF4F8;box-shadow:0 0 0 1px rgba(36,113,163,.12)}
+.f input,.f select,.f textarea{
+  background:var(--card);border:1px solid var(--border);border-radius:9px;color:var(--text)
+}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--green)}
+.f input[readonly]{background:#F5F8F5;border-color:#D8E6DB;color:var(--green)}
+.costs-block{border-top-color:var(--border)}
+.ibox.pu,.ibox.go{background:#F5F8F5;border-color:#D8E6DB;color:var(--soft)}
+.ibox.pu b,.ibox.go b{color:var(--green)}
+.addbtn{background:#F5F8F5;border-color:#C8DBCC;color:var(--green)}
+.addbtn:hover{background:#E6EFE9}
+.save-btn{background:var(--green);color:#fff;border-radius:10px;box-shadow:none}
+.save-btn:hover{background:#236E45;opacity:1;transform:none}
+.res-card{background:#F5F8F5;border:1px solid #C8DBCC;border-radius:16px}
+.price-out{border-top-color:#C8DBCC}
+.pbig,.bv.go,.totrow span:last-child{color:var(--green)}
+.pill.pg{background:#E6EFE9;color:var(--green);border-color:#C8DBCC}
+.log-item{background:var(--card);border-color:var(--border);border-radius:14px;box-shadow:0 2px 10px rgba(26,43,32,.035)}
+.li-title,.li-cval.go{color:var(--green)}
+.li-cell{background:var(--surface)}
+.pkg-result-card{background:#F5F8F5;border-color:#C8DBCC}
+.pkg-result-name,.pkg-result-price{color:var(--green)}
+.menu-table th{background:var(--surface);color:var(--muted)}
+.site-footer{border-top-color:var(--border);color:var(--muted)}
 </style>
 </head>
 <body>
