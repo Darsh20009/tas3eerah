@@ -150,7 +150,7 @@ if ($user) { header('Location: /dashboard'); exit; }
     <div class="feat-card">
       <img src="/assets/img-pricing.png" alt="أدوات التسعير" class="feat-icon-img" style="background:var(--p-d);padding:8px;border-radius:10px;">
       <h3 data-ar="أدوات التسعير" data-en="Pricing Tools">أدوات التسعير</h3>
-      <p data-ar="٥ أدوات متخصصة لحساب تسعيرة الخدمات الباقات المتاجر والمكاتب بمنهجية احترافية واضحة." data-en="5 specialized tools for pricing services, packages, stores and offices with clear methodology.">٥ أدوات متخصصة لحساب تسعيرة الخدمات الباقات المتاجر والمكاتب بمنهجية احترافية واضحة.</p>
+       <p data-ar="أدوات متخصصة للخدمات والباقات والمطاعم والتجزئة والمشاريع التقنية والتصميم." data-en="Specialized tools for services, packages, restaurants, retail, technology and design.">أدوات متخصصة للخدمات والباقات والمطاعم والتجزئة والمشاريع التقنية والتصميم.</p>
     </div>
     <!-- 2 -->
     <div class="feat-card">
@@ -174,13 +174,13 @@ if ($user) { header('Location: /dashboard'); exit; }
     <div class="feat-card">
       <img src="/assets/img-3.png" alt="إدارة متكاملة" class="feat-icon-img" style="background:var(--p-d);padding:8px;border-radius:10px;">
       <h3 data-ar="إدارة متكاملة" data-en="Full Management">إدارة متكاملة</h3>
-      <p data-ar="سجل كامل لكل عميل مع عروضه وملفاته ومحادثاته ولوحة إدارة شاملة مع إحصاءات حية." data-en="Full client records with quotes, files and conversations plus a live admin dashboard.">سجل كامل لكل عميل مع عروضه وملفاته ومحادثاته ولوحة إدارة شاملة مع إحصاءات حية.</p>
+      <p data-ar="سجل كامل للمشاريع والخدمات والمنتجات مع تقارير ولوحة إدارة مترابطة." data-en="A connected record for projects, services and products with reports and administration.">سجل كامل للمشاريع والخدمات والمنتجات مع تقارير ولوحة إدارة مترابطة.</p>
     </div>
     <!-- 6 -->
     <div class="feat-card">
       <div class="feat-icon">🔒</div>
       <h3 data-ar="نظام الخطط" data-en="Plan System">نظام الخطط</h3>
-      <p data-ar="ثلاث خطط مرنة يتحكم فيها المدير لكل مستخدم على حدة مجاني محترف مؤسسة." data-en="Three flexible plans the admin controls per user free, pro, enterprise.">ثلاث خطط مرنة يتحكم فيها المدير لكل مستخدم على حدة مجاني محترف مؤسسة.</p>
+      <p data-ar="ثلاث باقات واضحة: مجاني وPlus وPro، تناسب احتياجك وعدد أفراد فريقك." data-en="Three clear plans: Free, Plus and Pro, sized for your needs and team.">ثلاث باقات واضحة: مجاني وPlus وPro، تناسب احتياجك وعدد أفراد فريقك.</p>
     </div>
   </div>
 </section>
@@ -191,7 +191,7 @@ if ($user) { header('Location: /dashboard'); exit; }
   <div class="section-head">
     <div class="eyebrow" data-ar="الأسعار" data-en="Pricing">الأسعار</div>
     <h2 data-ar="خطط واضحة بدون مفاجآت" data-en="Clear plans, no surprises">خطط واضحة بدون مفاجآت</h2>
-    <p data-ar="المدير يتحكم في خطة كل مستخدم ويغيرها في أي وقت" data-en="The admin controls each user's plan and can change it anytime">المدير يتحكم في خطة كل مستخدم ويغيرها في أي وقت</p>
+    <p data-ar="اختر الباقة التي تناسب طريقة عملك وعدد أفراد فريقك" data-en="Choose the plan that fits your workflow and team size">اختر الباقة التي تناسب طريقة عملك وعدد أفراد فريقك</p>
   </div>
   <div class="plan-grid">
     <?php foreach (PLANS as $slug => $plan): ?>
