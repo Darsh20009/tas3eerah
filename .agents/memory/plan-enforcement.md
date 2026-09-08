@@ -14,7 +14,7 @@ description: كيفية تطبيق حدود الخطط وانتهاء الصلا
 ## dashboard.php
 
 - `$effectivePlan = Auth::effectivePlan($user)` في الأعلى
-- `$isPaid = in_array($effectivePlan, ['pro','enterprise'])`
+- أدوات المستخدم تُبنى من `PLANS[$effectivePlan]['tools']`، والباقات الحالية هي free/plus/pro.
 - `$plan = PLANS[$effectivePlan]`
 - بانر انتهاء الصلاحية: يظهر عند أقل من 7 أيام أو عند الانتهاء الفعلي
 
@@ -26,7 +26,7 @@ description: كيفية تطبيق حدود الخطط وانتهاء الصلا
 ## Message Limits
 
 - `api/messages.php`: send() تفحص عدد الرسائل الشهرية المرسلة مقابل `PLANS[effectivePlan][max_msgs]`
-- -1 = غير محدود (pro/enterprise)
+- -1 = غير محدود (pro)
 
 ## APP_URL
 

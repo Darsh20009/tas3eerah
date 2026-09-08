@@ -245,20 +245,20 @@ if ($user) { header('Location: /dashboard'); exit; }
       <p style="color:var(--muted);font-size:15px;line-height:2;margin-bottom:8px"
          data-ar="تسعيرة منصة عربية تساعد أصحاب المشاريع على معرفة التكلفة الحقيقية وتحديد السعر العادل قبل تقديم أي خدمة أو منتج."
          data-en="Tas3eerah helps business owners understand their real costs and set a fair price before offering any service or product.">
-        تسعيرة منصة عربية تساعد أصحاب المشاريع على معرفة التكلفة الحقيقية وتحديد السعر العادل قبل تقديم أي خدمة أو منتج.
+        تسعيرة أول منصة سعودية تساعد أصحاب المشاريع على تنظيم تسعير خدماتهم ومنتجاتهم قبل تقديمها.
       </p>
       <div class="about-stats">
         <div>
-          <div class="about-stat-num">١٠٠٪</div>
-          <div class="about-stat-lbl" data-ar="عربي RTL كامل" data-en="Arabic Full RTL">عربي RTL كامل</div>
+          <div class="about-stat-num">سعودية</div>
+          <div class="about-stat-lbl" data-ar="هوية ومنهجية محلية" data-en="Local identity and methodology">هوية ومنهجية محلية</div>
         </div>
         <div>
           <div class="about-stat-num" style="color:var(--gold)">٧</div>
-          <div class="about-stat-lbl" data-ar="أدوات تسعير" data-en="Pricing tools">أدوات تسعير</div>
+          <div class="about-stat-lbl" data-ar="قطاعات متخصصة" data-en="Specialized sectors">قطاعات متخصصة</div>
         </div>
         <div>
           <div class="about-stat-num" style="color:var(--green)">٣</div>
-          <div class="about-stat-lbl" data-ar="خطط مرنة" data-en="Flexible plans">خطط مرنة</div>
+          <div class="about-stat-lbl" data-ar="باقات واضحة" data-en="Clear plans">باقات واضحة</div>
         </div>
       </div>
     </div>
@@ -301,7 +301,7 @@ if ($user) { header('Location: /dashboard'); exit; }
         <div class="contact-info-icon">✉</div>
         <div>
           <div style="font-size:11px;color:var(--muted);font-weight:700">البريد الإلكتروني</div>
-          <div style="font-weight:700;font-size:13px;direction:ltr">support@tas3eerah.com</div>
+          <div style="font-weight:700;font-size:13px;direction:ltr">info@tas3eerah.com</div>
         </div>
       </div>
       <div class="contact-info-item">
@@ -349,7 +349,7 @@ if ($user) { header('Location: /dashboard'); exit; }
           </div>
         </div>
         <div class="footer-gold-line"></div>
-        <p style="font-size:12px;color:rgba(255,255,255,.55);line-height:2;max-width:260px">منصة عربية لحساب الأسعار وإدارة التكلفة في قطاعات الأعمال المختلفة.</p>
+        <p style="font-size:12px;color:rgba(255,255,255,.55);line-height:2;max-width:260px">أول منصة سعودية متخصصة في أدوات التسعير وإدارة الخدمات والمنتجات.</p>
       </div>
       <div>
         <div class="footer-col-title">المنصة</div>
@@ -710,7 +710,7 @@ const POLICIES = {
     <h3 style="font-size:15px;font-weight:800;margin:20px 0 10px;color:var(--p)">٣. الأمان</h3>
     <p style="color:var(--muted);font-size:13px;line-height:2">كلمات المرور مشفرة بخوارزمية bcrypt. نطبق بروتوكولات أمان معيارية لحماية بياناتك.</p>
     <h3 style="font-size:15px;font-weight:800;margin:20px 0 10px;color:var(--p)">٤. حقوقك</h3>
-    <p style="color:var(--muted);font-size:13px;line-height:2">يحق لك الاطلاع على بياناتك أو طلب حذفها. تواصل معنا على support@tas3eerah.com</p>`
+    <p style="color:var(--muted);font-size:13px;line-height:2">يحق لك الاطلاع على بياناتك أو طلب حذفها. تواصل معنا على info@tas3eerah.com</p>`
   },
   terms: {
     title: 'شروط الاستخدام',

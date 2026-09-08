@@ -9,7 +9,7 @@ $user          = Auth::require();
 $role          = $user['role'];
 $effectivePlan = Auth::effectivePlan($user);
 $plan          = PLANS[$effectivePlan] ?? PLANS['free'];
-$isPaid        = OPEN_ACCESS_MODE || in_array($effectivePlan, ['pro', 'enterprise']);
+$canSaveQuote  = true;
 
 $roleLabel = ['admin' => 'مدير النظام', 'employee' => 'موظف', 'client' => 'عميل'][$role] ?? $role;
 $planName  = $plan['name_ar'];
@@ -31,12 +31,12 @@ if ($user['plan_expires_at'] && $user['plan'] !== 'free') {
     }
 }
 
-function toolSaveBtn(bool $paid, string $slug, string $name): string {
+function toolSaveBtn(bool $canSave, string $slug, string $name): string {
   $style = 'margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15)';
-  if ($paid) {
+  if ($canSave) {
     return "<div style='$style'><button class='btn btn-success w-full' onclick=\"openToolQuote('$slug','$name')\">💾 حفظ كعرض سعر</button></div>";
   }
-  return "<div style='$style'><button class='btn btn-ghost w-full' onclick='showPlanUpgrade()'>🔒 حفظ كعرض سعر يتطلب خطة محترف</button></div>";
+  return "<div style='$style'><button class='btn btn-ghost w-full' onclick='showPlanUpgrade()'>🔒 حفظ كعرض سعر يتطلب ترقية</button></div>";
 }
 ?>
 <!DOCTYPE html>
@@ -206,7 +206,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
             ['المستخدمون', DB::count('users'), 'إجمالي المستخدمين', 'accent'],
             ['عروض الأسعار', DB::count('quotes'), 'كل العروض', 'green'],
             ['هذا الشهر', DB::count('quotes', ['created_at' => ['$regex' => '^' . $month]]), 'عروض هذا الشهر', ''],
-            ['الإيراد', number_format(DB::sumField('quotes', ['status' => 'accepted'], 'total'), 0) . ' ر.س', 'مجموع المقبول', 'gold'],
+            ['المستخدمون النشطون', DB::count('users', ['is_active' => 1]), 'حسابات نشطة', 'gold'],
           ];
         elseif ($role === 'employee'):
           $uid = $user['id'];
@@ -215,14 +215,14 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
           $stats = [
             ['عروضي', DB::count('quotes', ['employee_id' => (int)$uid]), 'إجمالي عروضي', 'accent'],
             ['هذا الشهر', DB::count('quotes', ['employee_id' => (int)$uid, 'created_at' => ['$regex' => '^' . $month]]), 'عروض هذا الشهر', ''],
-            ['مقبولة', DB::count('quotes', ['employee_id' => (int)$uid, 'status' => 'accepted']), 'عروض مقبولة', 'green'],
+            ['مرسلة', DB::count('quotes', ['employee_id' => (int)$uid, 'status' => 'sent']), 'بانتظار الرد', 'green'],
             ['العملاء', $distinctClients, 'عملاء لديّ', ''],
           ];
         else:
           $uid = $user['id'];
           $stats = [
             ['عروضي', DB::count('quotes', ['client_id' => (int)$uid]), 'إجمالي عروضي', 'accent'],
-            ['مقبولة', DB::count('quotes', ['client_id' => (int)$uid, 'status' => 'accepted']), 'مقبولة', 'green'],
+            ['مرسلة', DB::count('quotes', ['client_id' => (int)$uid, 'status' => 'sent']), 'بانتظار الرد', 'green'],
             ['قيد الانتظار', DB::count('quotes', ['client_id' => (int)$uid, 'status' => 'sent']), 'بانتظار ردك', 'gold'],
             ['خطتك', $plan['name_ar'], 'مستوى الاشتراك', ''],
           ];
@@ -503,7 +503,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
         <div>
           <div class="tools-kicker">منصة تسعيرة</div>
           <h1>اختر الأداة المناسبة لمشروعك</h1>
-          <p>احسب السعر العادل لخدماتك وتكاليفك في دقائق، بمنهجية واضحة تناسب نشاطك. <strong>جميع الأدوات مجانية خلال فترة الإطلاق.</strong></p>
+          <p>نظّم تسعير خدماتك ومنتجاتك في دقائق، بمنهجية واضحة تناسب نشاطك. <strong><?= htmlspecialchars($planName) ?> · <?= $plan['max_quotes'] === -1 ? 'تسعير غير محدود' : $plan['max_quotes'] . ' تسعيرات شهرياً' ?></strong></p>
         </div>
         <div class="tools-intro-mark"><img src="/assets/icon.png" alt=""></div>
       </div>
@@ -517,7 +517,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
           ['calc_basic',  'تسعير الخدمات',             'خدمات · تدريب · تصوير · هدايا',       'احسب السعر العادل لخدماتك بناءً على التكاليف والهامش المناسب.', '⚖️', 'warm'],
           ['calc_store',  'تسعير الباقات والاشتراكات', 'تجارة إلكترونية · منصات رقمية',       'سعّر باقاتك ومنتجاتك مع توزيع التكاليف على المشتركين.', '📦', 'blue'],
           ['calc_menu',   'تسعير قائمة المطاعم والكافيهات','كافيه · مطعم · حلويات · مشروبات', 'ابنِ سعر طبقك بدقة من تكلفة المكونات والهدر والهامش.', '☕', 'green'],
-          ['calc_custom', 'تسعير التجزئة والجملة',     'ملابس · إلكترونيات · بقالة',          'حدد سعر البيع والربحية لكل منتج أو مجموعة منتجات.', '🏪', 'gold'],
+          ['calc_custom', 'تسعير التجزئة والجملة',     'ملابس · إلكترونيات · بقالة',          'حدد سعر البيع بناءً على تكلفة كل منتج أو مجموعة منتجات.', '🏪', 'gold'],
           ['calc_labor',  'تسعير المشاريع التقنية',    'تطبيقات · ERP · مواقع · أجهزة ذكية',  'احسب تكلفة المشروع التقني حسب الساعات والموارد والنطاق.', '💻', 'blue'],
           ['calc_pkg',    'تسعير الشركات التقنية',     'SaaS · استضافة · صيانة · تراخيص',    'احسب سعر الاشتراك والخدمات المتكررة على أساس تكاليفك الحقيقية.', '↻', 'purple'],
           ['calc_office', 'تسعير التصميم الداخلي والمعماري','سكني · تجاري · معماري',          'سعّر مشاريع التصميم والتنفيذ وفق المساحة والمراحل والتكاليف.', '⌂', 'sand'],
@@ -572,7 +572,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
           <div class="calc-result-row"><span>نصيب الصنف من التشغيل</span><span id="mn_rOps">-</span></div>
           <div class="calc-result-row"><span>التكلفة الفعلية للوحدة</span><span id="mn_rBase">-</span></div>
           <div class="calc-result-row big"><span>سعر البيع المقترح شامل الضريبة</span><span id="mn_rFinal">-</span></div>
-          <?= toolSaveBtn($isPaid, 'menu', 'تسعير قائمة المطاعم والكافيهات') ?>
+          <?= toolSaveBtn($canSaveQuote, 'menu', 'تسعير قائمة المطاعم والكافيهات') ?>
         </div>
       </div>
 
@@ -633,7 +633,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
           <div class="calc-result-row"><span>هامش الربح</span><span id="rProfit">-</span></div>
           <div class="calc-result-row"><span>ضريبة القيمة المضافة</span><span id="rTax">-</span></div>
           <div class="calc-result-row big"><span>السعر النهائي للعميل</span><span id="rFinal">-</span></div>
-          <?= toolSaveBtn($isPaid, 'basic', 'أداة التسعير الأساسية') ?>
+          <?= toolSaveBtn($canSaveQuote, 'basic', 'أداة التسعير الأساسية') ?>
         </div>
       </div>
 
@@ -683,7 +683,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
           <div class="calc-result-row big"><span>سعر الباقة الأساسية / شهر</span><span id="pkg_r1">-</span></div>
           <div class="calc-result-row big"><span>سعر الباقة المتوسطة / شهر</span><span id="pkg_r2">-</span></div>
           <div class="calc-result-row big"><span>سعر الباقة المتقدمة / شهر</span><span id="pkg_r3">-</span></div>
-          <?= toolSaveBtn($isPaid, 'pkg', 'تسعيرة باقات الاشتراك') ?>
+          <?= toolSaveBtn($canSaveQuote, 'pkg', 'تسعيرة باقات الاشتراك') ?>
         </div>
       </div>
 
@@ -724,7 +724,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
           <div class="calc-result-row"><span>ساعات العمل الفعلية المُدفوعة</span><span id="lb_rHrs">-</span></div>
           <div class="calc-result-row"><span>تكلفة الساعة (بدون ربح)</span><span id="lb_rBase">-</span></div>
           <div class="calc-result-row big"><span>سعر الساعة للعميل (مع الربح)</span><span id="lb_rFinal">-</span></div>
-          <?= toolSaveBtn($isPaid, 'labor', 'حساب تكلفة الساعة') ?>
+          <?= toolSaveBtn($canSaveQuote, 'labor', 'حساب تكلفة الساعة') ?>
         </div>
       </div>
 
@@ -770,7 +770,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
           <div class="calc-result-row"><span>إجمالي التكلفة</span><span id="st_rCost">-</span></div>
           <div class="calc-result-row"><span>هامش الربح</span><span id="st_rProfit">-</span></div>
           <div class="calc-result-row big"><span>السعر النهائي (شامل الضريبة)</span><span id="st_rFinal">-</span></div>
-          <?= toolSaveBtn($isPaid, 'store', 'تسعيرة المتجر الإلكتروني') ?>
+          <?= toolSaveBtn($canSaveQuote, 'store', 'تسعيرة المتجر الإلكتروني') ?>
         </div>
       </div>
 
@@ -813,7 +813,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
           <div class="calc-result-row"><span>إجمالي التكاليف الشهرية</span><span id="of_rCost">-</span></div>
           <div class="calc-result-row"><span>تكلفة المشروع الواحد</span><span id="of_rPerProj">-</span></div>
           <div class="calc-result-row big"><span>الحد الأدنى لسعر المشروع (مع الربح)</span><span id="of_rMin">-</span></div>
-          <?= toolSaveBtn($isPaid, 'office', 'تسعيرة المكتب والوكالة') ?>
+          <?= toolSaveBtn($canSaveQuote, 'office', 'تسعيرة المكتب والوكالة') ?>
         </div>
       </div><!-- /tool-calc_office -->
 
@@ -858,7 +858,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
           <div class="calc-result-row"><span>الخصم</span><span id="cu_rDis">-</span></div>
           <div class="calc-result-row"><span id="cu_rTaxLbl">ضريبة (15%)</span><span id="cu_rTax">-</span></div>
           <div class="calc-result-row big"><span>الإجمالي النهائي</span><span id="cu_rFinal">-</span></div>
-          <?= toolSaveBtn($isPaid, 'custom', 'تسعيرة حرة مخصصة') ?>
+          <?= toolSaveBtn($canSaveQuote, 'custom', 'تسعيرة حرة مخصصة') ?>
         </div>
       </div>
 
@@ -882,8 +882,8 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
           <select class="form-control" id="uPlanFilter" onchange="loadUsers()" style="width:130px">
             <option value="">كل الخطط</option>
             <option value="free">مجاني</option>
-            <option value="pro">محترف</option>
-            <option value="enterprise">مؤسسة</option>
+            <option value="plus">Plus</option>
+            <option value="pro">Pro</option>
           </select>
           <input class="form-control" id="uSearch" placeholder="بحث بالاسم أو البريد..." onkeyup="loadUsers()" style="flex:1">
         </div>
@@ -959,7 +959,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
           <div style="font-size:18px;font-weight:900"><?= $plan['name_ar'] ?></div>
           <div style="font-size:12px;color:var(--muted);margin-top:4px">
             <?= $plan['price'] === 0 ? 'مجاني' : $plan['price'] . ' ر.س/شهر' ?>  
-            <?= $plan['max_quotes'] === -1 ? 'عروض أسعار غير محدودة' : $plan['max_quotes'] . ' عروض/شهر' ?>
+            <?= $plan['max_quotes'] === -1 ? 'تسعير غير محدود' : $plan['max_quotes'] . ' تسعيرات/شهر' ?>
           </div>
           <?php if ($user['plan_expires_at']): ?>
           <div style="font-size:12px;color:var(--warn);margin-top:4px">تنتهي في: <?= $user['plan_expires_at'] ?></div>
@@ -995,7 +995,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
           <h3 style="font-size:15px;font-weight:800;margin-bottom:18px;color:var(--p)">معلومات التواصل</h3>
           <div class="form-group">
             <label>بريد الدعم الفني</label>
-            <input type="email" class="form-control" id="setContactEmail" placeholder="support@tas3eerah.com" dir="ltr">
+            <input type="email" class="form-control" id="setContactEmail" placeholder="info@tas3eerah.com" dir="ltr">
           </div>
           <div class="form-group">
             <label>رقم واتساب الدعم</label>
@@ -1048,8 +1048,8 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
         <label>الخطة</label>
         <select class="form-control" id="umPlan">
           <option value="free">مجاني</option>
-          <option value="pro">محترف</option>
-          <option value="enterprise">مؤسسة</option>
+          <option value="plus">Plus</option>
+          <option value="pro">Pro</option>
         </select>
       </div>
     </div>
@@ -1074,8 +1074,8 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
       <label>الخطة الجديدة</label>
       <select class="form-control" id="pmPlan">
         <option value="free">مجاني</option>
-        <option value="pro">محترف</option>
-        <option value="enterprise">مؤسسة</option>
+        <option value="plus">Plus</option>
+        <option value="pro">Pro</option>
       </select>
     </div>
     <div class="form-group">
@@ -1157,7 +1157,7 @@ function toolSaveBtn(bool $paid, string $slug, string $name): string {
   <div class="modal-box" style="text-align:center">
     <div style="font-size:40px;margin-bottom:12px">🔒</div>
     <h3 style="margin-bottom:8px">ترقية الخطة مطلوبة</h3>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:20px">هذه الأداة متاحة في خطة المحترف أو المؤسسة.</p>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:20px">هذه الأداة متاحة بعد اختيارها ضمن باقة Plus أو Pro.</p>
     <div class="flex gap-8" style="justify-content:center">
       <?php if ($role === 'client'): ?>
       <button class="btn btn-primary" onclick="document.getElementById('upgradeModal').classList.add('hidden');navDirect('subscription')">عرض خطط الاشتراك</button>
@@ -1175,7 +1175,7 @@ const APP = <?= json_encode([
   'uid'           => (int)$user['id'],
   'plan'          => $user['plan'],
   'effectivePlan' => $effectivePlan,
-  'isPaid'        => (bool)$isPaid,
+  'isPaid'        => true,
   'name'          => $user['name'],
 ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 </script>

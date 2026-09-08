@@ -1011,8 +1011,8 @@ async function loadSubscriptions() {
   const r = await api('admin?action=stats');
   if (r.success) {
     setText('planCount_free',       r.data.plan_free);
+    setText('planCount_plus',       r.data.plan_plus);
     setText('planCount_pro',        r.data.plan_pro);
-    setText('planCount_enterprise', r.data.plan_enterprise);
   }
 
   const r2 = await api('admin?action=users');
@@ -1028,8 +1028,8 @@ async function loadSubscriptions() {
       <td>
         <select class="form-control" style="width:110px" onchange="quickPlan(${u.id},this.value)">
           <option value="free"       ${u.plan==='free'       ?'selected':''}>مجاني</option>
-          <option value="pro"        ${u.plan==='pro'        ?'selected':''}>محترف</option>
-          <option value="enterprise" ${u.plan==='enterprise' ?'selected':''}>مؤسسة</option>
+          <option value="plus"        ${u.plan==='plus'        ?'selected':''}>Plus</option>
+          <option value="pro"         ${u.plan==='pro'         ?'selected':''}>Pro</option>
         </select>
       </td>
     </tr>
@@ -1168,7 +1168,7 @@ function roleLabel(r) {
   return { admin:'مدير', employee:'موظف', client:'عميل' }[r] || r;
 }
 function planLabel(p) {
-  return { free:'مجاني', pro:'محترف', enterprise:'مؤسسة' }[p] || p;
+  return { free:'مجاني', plus:'Plus', pro:'Pro', enterprise:'Pro' }[p] || p;
 }
 function showInModal(id, msg, isErr) {
   const el = document.getElementById(id);

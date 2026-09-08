@@ -42,6 +42,8 @@ class DB {
             self::$mdb->users->createIndex(['id'    => 1], ['unique' => true, 'sparse' => false]);
             self::$mdb->quotes->createIndex(['id'   => 1], ['unique' => true, 'sparse' => false]);
         } catch (\Throwable) {}
+        // Preserve legacy enterprise access under the new Pro plan.
+        try { self::$mdb->users->updateMany(['plan' => 'enterprise'], ['$set' => ['plan' => 'pro']]); } catch (\Throwable) {}
         if (self::$mdb->users->countDocuments(['role' => 'admin']) === 0) {
             self::mSeed();
         }
@@ -50,7 +52,7 @@ class DB {
     private static function mSeed(): void {
         $h = fn(string $p) => password_hash($p, PASSWORD_BCRYPT);
         self::insertDoc('users', ['name' => 'مدير النظام', 'email' => 'admin@tas3eerah.com',
-            'password_hash' => $h('Admin@2025'), 'role' => 'admin', 'plan' => 'enterprise',
+            'password_hash' => $h('Admin@2025'), 'role' => 'admin', 'plan' => 'pro',
             'plan_expires_at' => null, 'is_active' => 1]);
         if (!defined('APP_ENV') || APP_ENV !== 'production') {
             self::insertDoc('users', ['name' => 'أحمد الموظف', 'email' => 'employee@tas3eerah.com',
@@ -179,13 +181,15 @@ class DB {
         foreach ($addIfMissing as $sql) {
             try { self::$pdo->exec($sql); } catch (\Throwable) {}
         }
+        // Preserve legacy enterprise access under the new Pro plan.
+        try { self::$pdo->exec("UPDATE users SET plan = 'pro' WHERE plan = 'enterprise'"); } catch (\Throwable) {}
 
         // Ensure admin exists
         $has = self::$pdo->query("SELECT id FROM users WHERE role='admin' LIMIT 1")->fetch();
         if ($has) return;
         $h = fn($p) => password_hash($p, PASSWORD_BCRYPT);
         $ins = self::$pdo->prepare("INSERT INTO users (name,email,password_hash,role,plan,is_active) VALUES (?,?,?,?,?,1)");
-        $ins->execute(['مدير النظام', 'admin@tas3eerah.com', $h('Admin@2025'), 'admin', 'enterprise']);
+        $ins->execute(['مدير النظام', 'admin@tas3eerah.com', $h('Admin@2025'), 'admin', 'pro']);
         if (!defined('APP_ENV') || APP_ENV !== 'production') {
             $ins->execute(['أحمد الموظف',  'employee@tas3eerah.com', $h('Demo@2025'), 'employee', 'pro']);
             $ins->execute(['سارة العميلة', 'client@tas3eerah.com',   $h('Demo@2025'), 'client',   'free']);

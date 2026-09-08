@@ -37,11 +37,10 @@ function stats(): never {
         'employees'       => DB::count('users',  ['role' => 'employee']),
         'quotes_total'    => DB::count('quotes'),
         'quotes_month'    => DB::count('quotes', ['created_at' => ['$regex' => '^' . $month]]),
-        'revenue_total'   => DB::sumField('quotes', ['status' => 'accepted'], 'total'),
         'messages_total'  => DB::count('messages'),
         'plan_free'       => DB::count('users', ['plan' => 'free']),
+        'plan_plus'       => DB::count('users', ['plan' => 'plus']),
         'plan_pro'        => DB::count('users', ['plan' => 'pro']),
-        'plan_enterprise' => DB::count('users', ['plan' => 'enterprise']),
     ]);
 }
 
