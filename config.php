@@ -9,39 +9,50 @@ define('DB_PATH',     __DIR__ . '/database/tas3eerah.db');
 
 define('APP_LOGO', '/assets/brand-logo-transparent.png');
 define('SESSION_LIFETIME', 60 * 60 * 24 * 30);
-// Temporary launch mode: all pricing tools are open while the platform is being validated.
-define('OPEN_ACCESS_MODE', true);
+// The launch offer is now represented by the published plan limits.
+define('OPEN_ACCESS_MODE', false);
 
 define('PLANS', [
     'free' => [
         'name_ar'     => 'مجاني',
         'name_en'     => 'Free',
         'price'       => 0,
-        'max_quotes'  => -1,
-        'max_msgs'    => -1,
+        'max_quotes'  => 5,
+        'max_msgs'    => 0,
+        'max_pdf_reports' => 3,
+        'history_limit'  => 3,
+        'max_users'      => 1,
         'tools'       => ['all'],
-        'badge'       => '#7890a6',
-        'features_ar' => ['الوصول إلى جميع أدوات التسعير', 'جميع الحاسبات متاحة مجاناً', 'خلال فترة الإطلاق'],
+        'badge'       => '#6B7C73',
+        'features_ar' => ['٥ تسعيرات للخدمات أو المنتجات شهرياً', 'تصدير ٣ تقارير PDF', 'سجل يعرض ٣ خدمات أو منتجات', 'مستخدم واحد', 'دعم عبر البريد خلال ٣ أيام'],
+    ],
+    'plus' => [
+        'name_ar'     => 'Plus',
+        'name_en'     => 'Plus',
+        'price'       => 49,
+        'max_quotes'  => 15,
+        'max_msgs'    => 0,
+        'max_pdf_reports' => 15,
+        'history_limit'  => -1,
+        'max_users'      => 2,
+        'tools'       => ['all'],
+        'tool_limit'  => 2,
+        'badge'       => '#2471A3',
+        'features_ar' => ['اختيار أداتي تسعير حسب احتياجك', '١٥ تسعيراً للخدمات أو المنتجات شهرياً', 'تصدير ١٥ تقرير PDF', 'سجل مشاريع كامل', 'مستخدمان', 'دعم عبر البريد خلال ٤٨ ساعة'],
     ],
     'pro' => [
-        'name_ar'     => 'محترف',
+        'name_ar'     => 'Pro',
         'name_en'     => 'Pro',
-        'price'       => 99,
+        'price'       => 79,
         'max_quotes'  => -1,
         'max_msgs'    => -1,
-        'tools'       => ['calc_basic', 'calc_pkg', 'calc_store', 'calc_office', 'calc_labor'],
-        'badge'       => '#79d5e6',
-        'features_ar' => ['عروض أسعار غير محدودة', 'جميع أدوات التسعير', 'رسائل غير محدودة', 'طباعة PDF'],
-    ],
-    'enterprise' => [
-        'name_ar'     => 'مؤسسة',
-        'name_en'     => 'Enterprise',
-        'price'       => 299,
-        'max_quotes'  => -1,
-        'max_msgs'    => -1,
-        'tools'       => ['calc_basic', 'calc_pkg', 'calc_store', 'calc_office', 'calc_labor', 'calc_custom'],
-        'badge'       => '#d7ae61',
-        'features_ar' => ['كل ما في المحترف', 'أداة تسعير حر مخصصة', 'علامة تجارية مخصصة', 'أولوية الدعم الفني', 'تقارير متقدمة'],
+        'max_pdf_reports' => -1,
+        'history_limit'  => -1,
+        'max_users'      => 4,
+        'tools'       => ['all'],
+        'tool_limit'  => 3,
+        'badge'       => '#C9A741',
+        'features_ar' => ['اختيار ٣ أدوات تسعير حسب احتياجك', 'تسعير غير محدود للخدمات أو المنتجات', 'حتى ٤ مستخدمين للفريق', 'رسائل داخلية بين أعضاء الفريق', 'تقارير PDF غير محدودة مع شعار العميل', 'أولوية الدعم خلال ٢٤ ساعة عبر البريد وواتساب'],
     ],
 ]);
 
