@@ -500,10 +500,15 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
 
       <!-- ═ TOOLS MENU ═ -->
       <div class="tools-intro">
-        <div>
+        <div class="tools-intro-copy">
           <div class="tools-kicker">منصة تسعيرة</div>
           <h1>اختر الأداة المناسبة لمشروعك</h1>
           <p>نظّم تسعير خدماتك ومنتجاتك في دقائق، بمنهجية واضحة تناسب نشاطك. <strong><?= htmlspecialchars($planName) ?> · <?= $plan['max_quotes'] === -1 ? 'تسعير غير محدود' : $plan['max_quotes'] . ' تسعيرات شهرياً' ?></strong></p>
+          <div class="tools-intro-meta">
+            <span class="tools-plan-chip"><?= htmlspecialchars($planName) ?></span>
+            <span><?= count($userTools) === 1 && $userTools[0] === 'all' ? 'كل القطاعات متاحة' : count($userTools) . ' أدوات متاحة في باقتك' ?></span>
+            <span><?= $plan['max_pdf_reports'] === -1 ? 'تقارير PDF غير محدودة' : $plan['max_pdf_reports'] . ' تقارير PDF' ?></span>
+          </div>
         </div>
         <div class="tools-intro-mark"><img src="/assets/icon.png" alt=""></div>
       </div>
@@ -535,7 +540,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
         <div class="tool-card sector-card tone-<?= $tone ?> <?= $locked ? 'locked' : '' ?>" onclick="<?= $locked ? "showPlanUpgrade()" : "openLegacyTool('$legacyHash')" ?>">
           <?php if ($locked): ?><div class="tool-lock">🔒</div><?php endif; ?>
           <div class="sector-icon"><?= $icon ?></div>
-          <div class="tool-tag"><?= $locked ? 'متاح في خطة أعلى' : $sectors ?></div>
+          <div class="tool-tag"><?= $locked ? 'مقفل في باقتك' : $sectors ?></div>
           <h3><?= $name ?></h3>
           <p><?= $desc ?></p>
           <div class="sector-action"><?= $locked ? 'ترقية الخطة' : 'فتح الحاسبة الكاملة' ?><span>←</span></div>

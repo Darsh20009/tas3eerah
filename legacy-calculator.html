@@ -624,6 +624,22 @@ button,input,select,textarea{font-family:inherit}
 .pbig,.bv.go,.totrow span:last-child{color:var(--green)}
 .pill.pg{background:#E6EFE9;color:var(--green);border-color:#C8DBCC}
 .log-item{background:var(--card);border-color:var(--border);border-radius:14px;box-shadow:0 2px 10px rgba(26,43,32,.035)}
+.sector-result-actions{display:flex;gap:9px;margin-top:12px}
+.sector-result-actions .save-btn,.sector-result-actions .clear-btn{width:auto;flex:1;margin-top:0;min-height:42px;padding:9px 12px;font-size:12px}
+.sector-result-actions .clear-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:10px;cursor:pointer;font-weight:800}
+.sector-result-actions .clear-btn:hover{border-color:var(--green);background:#f5f8f5}
+.sector-log-panel{margin-top:10px;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:14px}
+.sector-log-empty{color:var(--muted);font-size:12px;text-align:center;padding:14px}
+.sector-log-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px;color:var(--text);font-size:12px;font-weight:800}
+.sector-log-clear{border:0;background:transparent;color:var(--red);font:inherit;font-size:10px;cursor:pointer}
+.sector-log-entry{position:relative;background:var(--card);border:1px solid var(--border);border-radius:11px;padding:11px;margin-top:8px}
+.sector-log-entry .li-del{top:9px}
+.sector-log-entry-title{font-weight:800;color:var(--text);font-size:12px;padding-left:22px}
+.sector-log-entry-date{font-size:10px;color:var(--muted);margin-top:2px}
+.sector-log-lines{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:6px;margin-top:9px}
+.sector-log-line{background:var(--surface);border-radius:8px;padding:7px}
+.sector-log-line-label{font-size:10px;color:var(--muted);display:block}
+.sector-log-line-value{font-size:12px;font-weight:800;color:var(--green);display:block;margin-top:2px}
 .li-title,.li-cval.go{color:var(--green)}
 .li-cell{background:var(--surface)}
 .pkg-result-card{background:#F5F8F5;border-color:#C8DBCC}
@@ -1559,6 +1575,11 @@ button,input,select,textarea{font-family:inherit}
     <div class="pkg-result-grid" id="pkg-results">
       <div style="text-align:center;padding:30px;color:var(--muted);grid-column:1/-1"><span style="font-size:30px;display:block;margin-bottom:8px;opacity:0.3">📦</span>أدخل بياناتك أعلاه لتظهر النتائج</div>
     </div>
+    <div class="sector-result-actions">
+      <button class="save-btn" onclick="saveSectorResult('packages')">حفظ نتيجة الباقات</button>
+      <button class="clear-btn" onclick="toggleSectorLog('packages')">السجل <span id="packages-log-count">0</span></button>
+    </div>
+    <div id="packages-sector-log" class="sector-log-panel" hidden></div>
     <div class="muted" style="font-size:11px;margin-top:8px">⚠️ الأسعار أعلاه لا تشمل ضريبة القيمة المضافة — يُرجى إضافتها حسب النظام الضريبي المعمول به في بلدك قبل الفوترة الرسمية.</div>
       <div class="muted" style="font-size:10px;margin-top:6px;padding:0 4px">⚖️ إخلاء مسؤولية: هذه النتيجة حسابية مبنية بالكامل على البيانات التي أدخلتها. تسعيرة أداة إرشادية ولا تتحمّل مسؤولية القرارات المبنية عليها. <span class="legal-link" onclick="showLegalModal()">الشروط والخصوصية</span></div>
       <div class="share-cta" onclick="openTool('share')">
@@ -1664,6 +1685,11 @@ button,input,select,textarea{font-family:inherit}
         <span class="share-cta-text">📊 عجبك السعر؟ شارك سعرك بشكل مجهول لتساعد تجاراً في مجالك على تسعير أفضل</span>
         <span class="share-cta-arrow">←</span>
       </div>
+    <div class="sector-result-actions">
+      <button class="save-btn" onclick="saveSectorResult('menu')">حفظ نتيجة القائمة</button>
+      <button class="clear-btn" onclick="toggleSectorLog('menu')">السجل <span id="menu-log-count">0</span></button>
+    </div>
+    <div id="menu-sector-log" class="sector-log-panel" hidden></div>
 
   </div>
 </div>
@@ -1877,6 +1903,11 @@ button,input,select,textarea{font-family:inherit}
         <span class="share-cta-text">📊 عجبك السعر؟ شارك سعرك بشكل مجهول لتساعد تجاراً في مجالك على تسعير أفضل</span>
         <span class="share-cta-arrow">←</span>
       </div>
+    <div class="sector-result-actions">
+      <button class="save-btn" onclick="saveSectorResult('retail')">حفظ نتيجة التجزئة</button>
+      <button class="clear-btn" onclick="toggleSectorLog('retail')">السجل <span id="retail-log-count">0</span></button>
+    </div>
+    <div id="retail-sector-log" class="sector-log-panel" hidden></div>
 
     <!-- جدول الهوامش -->
     <div class="pkg-section-title" style="margin-top:20px">📌 جدول الهوامش العادلة المحددة</div>
@@ -2891,6 +2922,121 @@ function printPkgReport(){
     </div>`;
   el.classList.add('show');
 }
+
+function sectorLogKey(tool){ return 'sector_results_'+tool; }
+function sectorLogRead(tool){
+  try{
+    const value = JSON.parse(localStorage.getItem(sectorLogKey(tool))||'[]');
+    return Array.isArray(value) ? value : [];
+  }catch(e){ return []; }
+}
+function sectorLogWrite(tool, entries){
+  try{ localStorage.setItem(sectorLogKey(tool), JSON.stringify(entries)); }catch(e){}
+}
+function escapeSectorText(value){
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+}
+function sectorLogCurrency(tool){
+  const curr = tool === 'packages' ? PKG_CURR : MENU_CURR;
+  return curr?.label || 'ريال';
+}
+function buildSectorResult(tool){
+  const currency = sectorLogCurrency(tool);
+  if(tool === 'packages'){
+    if(!pkgLast || pkgLast.length === 0) return null;
+    return {
+      title:'مقارنة الباقات والاشتراكات',
+      lines:pkgLast.map(p => [p.name, p.suggested]),
+      currency
+    };
+  }
+  if(tool === 'menu'){
+    const lines = [];
+    document.querySelectorAll('#menu-rows > tr[id^="menu-row-"]').forEach(row => {
+      const detail = row.dataset.detail ? JSON.parse(row.dataset.detail) : null;
+      if(!detail || !detail.suggested) return;
+      const name = document.getElementById('mname-'+row.id.replace('menu-row-',''))?.value || 'صنف بدون اسم';
+      lines.push([name, detail.suggested]);
+    });
+    if(!lines.length) return null;
+    return {title:'نتيجة قائمة المطعم والكافيه', lines, currency};
+  }
+  if(tool === 'retail'){
+    const lines = [];
+    document.querySelectorAll('#ret-rows > tr[id^="ret-row-"]').forEach(row => {
+      const detail = row.dataset.detail ? JSON.parse(row.dataset.detail) : null;
+      if(!detail || !detail.suggested) return;
+      const name = document.getElementById('rname-'+row.id.replace('ret-row-',''))?.value || 'منتج بدون اسم';
+      lines.push([name, detail.suggested]);
+    });
+    if(!lines.length) return null;
+    return {title:'نتيجة منتجات التجزئة والجملة', lines, currency};
+  }
+  return null;
+}
+function updateSectorLogBadge(tool){
+  const badge = document.getElementById(tool+'-log-count');
+  if(badge) badge.textContent = sectorLogRead(tool).length;
+}
+function saveSectorResult(tool){
+  const result = buildSectorResult(tool);
+  if(!result){
+    alert('أدخل بيانات كافية أولاً حتى تظهر نتيجة يمكن حفظها.');
+    return;
+  }
+  const entries = sectorLogRead(tool);
+  entries.unshift({...result, id:Date.now(), date:new Date().toLocaleDateString('ar-SA')});
+  sectorLogWrite(tool, entries.slice(0,30));
+  updateSectorLogBadge(tool);
+  const panel = document.getElementById(tool+'-sector-log');
+  if(panel && !panel.hidden) renderSectorLog(tool);
+}
+function toggleSectorLog(tool){
+  const panel = document.getElementById(tool+'-sector-log');
+  if(!panel) return;
+  panel.hidden = !panel.hidden;
+  if(!panel.hidden) renderSectorLog(tool);
+}
+function deleteSectorResult(tool, id){
+  sectorLogWrite(tool, sectorLogRead(tool).filter(entry => entry.id !== id));
+  updateSectorLogBadge(tool);
+  renderSectorLog(tool);
+}
+function clearSectorLog(tool){
+  if(!confirm('هل تريد مسح سجل هذا القطاع؟')) return;
+  sectorLogWrite(tool, []);
+  updateSectorLogBadge(tool);
+  renderSectorLog(tool);
+}
+function renderSectorLog(tool){
+  const panel = document.getElementById(tool+'-sector-log');
+  if(!panel) return;
+  const entries = sectorLogRead(tool);
+  if(!entries.length){
+    panel.innerHTML = '<div class="sector-log-empty">لا توجد نتائج محفوظة لهذا القطاع بعد.</div>';
+    updateSectorLogBadge(tool);
+    return;
+  }
+  panel.innerHTML = `
+    <div class="sector-log-head">
+      <span>النتائج المحفوظة (${entries.length})</span>
+      <button class="sector-log-clear" onclick="clearSectorLog('${tool}')">مسح السجل</button>
+    </div>
+    ${entries.map(entry => `
+      <div class="sector-log-entry">
+        <button class="li-del" onclick="deleteSectorResult('${tool}',${entry.id})">✕</button>
+        <div class="sector-log-entry-title">${escapeSectorText(entry.title)}</div>
+        <div class="sector-log-entry-date">${escapeSectorText(entry.date)}</div>
+        <div class="sector-log-lines">
+          ${(entry.lines||[]).map(line => `
+            <div class="sector-log-line">
+              <span class="sector-log-line-label">${escapeSectorText(line[0])}</span>
+              <span class="sector-log-line-value">${Number(line[1]||0).toLocaleString('ar-SA')} ${escapeSectorText(entry.currency||'ريال')}</span>
+            </div>`).join('')}
+        </div>
+      </div>`).join('')}`;
+}
+['packages','menu','retail'].forEach(updateSectorLogBadge);
 
 // ============================================================
 // MENU TOOL LOGIC
