@@ -520,24 +520,17 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
         <?php
         $toolCards = [
           ['calc_basic',  'تسعير الخدمات',             'خدمات · تدريب · تصوير · هدايا',       'احسب السعر العادل لخدماتك بناءً على التكاليف والهامش المناسب.', '⚖️', 'warm'],
-          ['calc_store',  'تسعير الباقات والاشتراكات', 'تجارة إلكترونية · منصات رقمية',       'سعّر باقاتك ومنتجاتك مع توزيع التكاليف على المشتركين.', '📦', 'blue'],
+          ['calc_pkg',    'تسعير الباقات والاشتراكات', 'خدمات · منصات · عضويات',             'سعّر باقاتك مع توزيع التكاليف والهامش على المشتركين.', '📦', 'blue'],
           ['calc_menu',   'تسعير قائمة المطاعم والكافيهات','كافيه · مطعم · حلويات · مشروبات', 'ابنِ سعر طبقك بدقة من تكلفة المكونات والهدر والهامش.', '☕', 'green'],
-          ['calc_custom', 'تسعير التجزئة والجملة',     'ملابس · إلكترونيات · بقالة',          'حدد سعر البيع بناءً على تكلفة كل منتج أو مجموعة منتجات.', '🏪', 'gold'],
+          ['calc_store',  'تسعير التجزئة والجملة',     'ملابس · إلكترونيات · بقالة',          'حدد سعر البيع بناءً على تكلفة المنتج والعمولات والعروض.', '🏪', 'gold'],
           ['calc_labor',  'تسعير المشاريع التقنية',    'تطبيقات · ERP · مواقع · أجهزة ذكية',  'احسب تكلفة المشروع التقني حسب الساعات والموارد والنطاق.', '💻', 'blue'],
-          ['calc_pkg',    'تسعير الشركات التقنية',     'SaaS · استضافة · صيانة · تراخيص',    'احسب سعر الاشتراك والخدمات المتكررة على أساس تكاليفك الحقيقية.', '↻', 'purple'],
+          ['calc_custom', 'تسعير الشركات التقنية',     'SaaS · استضافة · صيانة · تراخيص',    'احسب سعر الاشتراك والخدمات المتكررة على أساس تكاليفك الحقيقية.', '↻', 'purple'],
           ['calc_office', 'تسعير التصميم الداخلي والمعماري','سكني · تجاري · معماري',          'سعّر مشاريع التصميم والتنفيذ وفق المساحة والمراحل والتكاليف.', '⌂', 'sand'],
         ];
         foreach ($toolCards as [$slug, $name, $sectors, $desc, $icon, $tone]):
           $locked = !in_array($slug, $userTools) && !in_array('all', $userTools);
         ?>
-        <?php
-          $legacyTools = [
-            'calc_basic' => 'services', 'calc_store' => 'packages', 'calc_menu' => 'menu',
-            'calc_custom' => 'retail', 'calc_labor' => 'tech', 'calc_pkg' => 'saas', 'calc_office' => 'design'
-          ];
-          $legacyHash = $legacyTools[$slug] ?? 'services';
-        ?>
-        <div class="tool-card sector-card tone-<?= $tone ?> <?= $locked ? 'locked' : '' ?>" onclick="<?= $locked ? "showPlanUpgrade()" : "openLegacyTool('$legacyHash')" ?>">
+        <div class="tool-card sector-card tone-<?= $tone ?> <?= $locked ? 'locked' : '' ?>" onclick="<?= $locked ? "showPlanUpgrade()" : "openTool('$slug')" ?>">
           <?php if ($locked): ?><div class="tool-lock">🔒</div><?php endif; ?>
           <div class="sector-icon"><?= $icon ?></div>
           <div class="tool-tag"><?= $locked ? 'مقفل في باقتك' : $sectors ?></div>
@@ -552,14 +545,15 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
       <!-- ═ TOOL: Menu Pricing ═ -->
       <div class="tool-panel" id="tool-calc_menu">
         <button class="btn btn-ghost btn-sm mb-16" onclick="closeTool()">← الأدوات</button>
-        <div class="tool-heading"><div class="tool-heading-icon tone-green">☕</div><div><div class="tools-kicker">تسعير المطاعم والكافيهات</div><h2>تسعير صنف في القائمة</h2></div></div>
+        <div class="tool-heading"><div class="tool-heading-icon tone-green">☕</div><div><div class="tools-kicker">تسعير المطاعم والكافيهات</div><h2>حاسبة تكلفة الصنف والقائمة</h2></div></div>
         <div class="calc-section">
           <h4>بيانات الصنف</h4>
           <div class="form-row">
             <div class="form-group"><label>اسم الصنف</label><input type="text" class="form-control" id="mn_name" placeholder="لاتيه مثلج"></div>
-            <div class="form-group"><label>عدد الوحدات المباعة شهرياً</label><input type="number" class="form-control" id="mn_units" value="100" min="1" oninput="calcMenu()"></div>
+            <div class="form-group"><label>تصنيف الصنف</label><select class="form-control" id="mn_category" onchange="calcMenu()"><option>مشروبات</option><option>وجبات</option><option>حلويات</option><option>مخبوزات</option><option>إضافات</option></select></div>
           </div>
           <div class="form-row">
+            <div class="form-group"><label>عدد الوحدات المباعة شهرياً</label><input type="number" class="form-control" id="mn_units" value="100" min="1" oninput="calcMenu()"></div>
             <div class="form-group"><label>تكلفة المكونات للوحدة (ر.س)</label><input type="number" class="form-control" id="mn_ingredients" value="4" min="0" step=".1" oninput="calcMenu()"></div>
             <div class="form-group"><label>نسبة الهدر %</label><input type="number" class="form-control" id="mn_waste" value="5" min="0" max="100" oninput="calcMenu()"></div>
           </div>
@@ -567,13 +561,18 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
         <div class="calc-section">
           <h4>التكاليف والهامش</h4>
           <div class="form-row">
+            <div class="form-group"><label>التغليف والإضافات للوحدة (ر.س)</label><input type="number" class="form-control" id="mn_packaging" value="0.5" min="0" step=".1" oninput="calcMenu()"></div>
             <div class="form-group"><label>التكاليف التشغيلية الشهرية (ر.س)</label><input type="number" class="form-control" id="mn_ops" value="8000" min="0" oninput="calcMenu()"></div>
             <div class="form-group"><label>هامش الربح المستهدف %</label><input type="number" class="form-control" id="mn_profit" value="35" min="0" max="200" oninput="calcMenu()"></div>
           </div>
-          <div class="form-group"><label>ضريبة القيمة المضافة %</label><input type="number" class="form-control" id="mn_tax" value="15" min="0" oninput="calcMenu()"></div>
+          <div class="form-row">
+            <div class="form-group"><label>عمولة الدفع أو التوصيل %</label><input type="number" class="form-control" id="mn_fee" value="0" min="0" max="50" oninput="calcMenu()"></div>
+            <div class="form-group"><label>ضريبة القيمة المضافة %</label><input type="number" class="form-control" id="mn_tax" value="15" min="0" oninput="calcMenu()"></div>
+          </div>
         </div>
         <div class="calc-result" id="menuResult" data-amount="0">
           <div class="calc-result-row"><span>تكلفة المكونات بعد الهدر</span><span id="mn_rCost">-</span></div>
+          <div class="calc-result-row"><span>تكلفة التغليف والإضافات</span><span id="mn_rPackaging">-</span></div>
           <div class="calc-result-row"><span>نصيب الصنف من التشغيل</span><span id="mn_rOps">-</span></div>
           <div class="calc-result-row"><span>التكلفة الفعلية للوحدة</span><span id="mn_rBase">-</span></div>
           <div class="calc-result-row big"><span>سعر البيع المقترح شامل الضريبة</span><span id="mn_rFinal">-</span></div>
@@ -584,7 +583,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
       <!-- ═ TOOL: Basic Pricing ═ -->
       <div class="tool-panel" id="tool-calc_basic">
         <button class="btn btn-ghost btn-sm mb-16" onclick="closeTool()">← الأدوات</button>
-        <h2 style="font-size:20px;font-weight:900;margin-bottom:16px">أداة التسعير الأساسية</h2>
+        <div class="tool-heading"><div class="tool-heading-icon tone-warm">⚖️</div><div><div class="tools-kicker">تسعير الخدمات</div><h2>حاسبة الخدمة والمشروع الخدمي</h2></div></div>
 
         <!-- Client info card -->
         <div class="cic-card">
@@ -602,7 +601,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
         </div>
 
         <div class="calc-section">
-          <h4>الخطوة 1 نوع المشروع</h4>
+          <h4>الخطوة 1 نوع الخدمة</h4>
           <div class="field-grid" id="fieldGrid">
             <?php
             $fields = ['موقع إلكتروني','تطبيق موبايل','هوية بصرية','فيديو وإنتاج','تصوير','محتوى & سوشيال','استشارة','برمجة خاصة','ترجمة','أخرى'];
@@ -620,32 +619,33 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
         <div class="calc-section" id="costsSection" style="display:none">
           <h4>الخطوة 3 التكاليف والربحية</h4>
           <div class="form-row">
-            <div class="form-group"><label>تكلفة العمالة (ر.س)</label><input type="number" class="form-control" id="cLbr" value="0" oninput="calcBasic()"></div>
-            <div class="form-group"><label>تكاليف الأدوات والبرامج (ر.س)</label><input type="number" class="form-control" id="cTools" value="0" oninput="calcBasic()"></div>
+            <div class="form-group"><label>ساعات التنفيذ</label><input type="number" class="form-control" id="cHours" value="8" min="0" oninput="calcBasic()"></div>
+            <div class="form-group"><label>سعر ساعة التنفيذ (ر.س)</label><input type="number" class="form-control" id="cRate" value="120" min="0" oninput="calcBasic()"></div>
           </div>
           <div class="form-row">
-            <div class="form-group"><label>تكاليف تشغيلية (ر.س)</label><input type="number" class="form-control" id="cOps" value="0" oninput="calcBasic()"></div>
-            <div class="form-group"><label>هامش الربح %</label><input type="number" class="form-control" id="cProfit" value="30" min="0" max="200" oninput="calcBasic()"></div>
+            <div class="form-group"><label>أدوات ومواد مباشرة (ر.س)</label><input type="number" class="form-control" id="cTools" value="0" oninput="calcBasic()"></div>
+            <div class="form-group"><label>نصيب التشغيل والإدارة (ر.س)</label><input type="number" class="form-control" id="cOps" value="0" oninput="calcBasic()"></div>
           </div>
-          <div class="form-group">
-            <label>ضريبة القيمة المضافة %</label>
-            <input type="number" class="form-control" id="cTax" value="15" min="0" oninput="calcBasic()">
+          <div class="form-row">
+            <div class="form-group"><label>هامش الربح %</label><input type="number" class="form-control" id="cProfit" value="30" min="0" max="200" oninput="calcBasic()"></div>
+            <div class="form-group"><label>ضريبة القيمة المضافة %</label><input type="number" class="form-control" id="cTax" value="15" min="0" oninput="calcBasic()"></div>
           </div>
         </div>
 
         <div class="calc-result" id="basicResult" data-amount="0" style="display:none">
-          <div class="calc-result-row"><span>إجمالي التكاليف</span><span id="rCost">-</span></div>
+          <div class="calc-result-row"><span>تكلفة الجهد</span><span id="rEffort">-</span></div>
+          <div class="calc-result-row"><span>إجمالي التكاليف المباشرة</span><span id="rCost">-</span></div>
           <div class="calc-result-row"><span>هامش الربح</span><span id="rProfit">-</span></div>
           <div class="calc-result-row"><span>ضريبة القيمة المضافة</span><span id="rTax">-</span></div>
           <div class="calc-result-row big"><span>السعر النهائي للعميل</span><span id="rFinal">-</span></div>
-          <?= toolSaveBtn($canSaveQuote, 'basic', 'أداة التسعير الأساسية') ?>
+          <?= toolSaveBtn($canSaveQuote, 'basic', 'تسعير الخدمات') ?>
         </div>
       </div>
 
       <!-- ═ TOOL: Package Pricing ═ -->
       <div class="tool-panel" id="tool-calc_pkg">
         <button class="btn btn-ghost btn-sm mb-16" onclick="closeTool()">← الأدوات</button>
-        <h2 style="font-size:20px;font-weight:900;margin-bottom:16px">تسعيرة باقات الاشتراك</h2>
+        <div class="tool-heading"><div class="tool-heading-icon tone-blue">📦</div><div><div class="tools-kicker">تسعير الباقات والاشتراكات</div><h2>حاسبة توزيع تكلفة الباقات</h2></div></div>
         <div class="cic-card">
           <div class="cic-toggle" onclick="this.closest('.cic-card').classList.toggle('open')">
             <span id="cic_label_pkg">👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small></span>
@@ -657,6 +657,14 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
               <div class="form-group" style="margin-bottom:0"><label>اسم الشركة</label><input type="text" class="form-control" id="ci_company_pkg" placeholder="شركة النجوم"></div>
               <div class="form-group" style="margin-bottom:0"><label>رقم الجوال</label><input type="tel" class="form-control" id="ci_phone_pkg" placeholder="05xxxxxxxx" dir="ltr"></div>
             </div>
+          </div>
+        </div>
+        <div class="calc-section">
+          <h4>أسماء الباقات</h4>
+          <div class="form-row cols-3">
+            <div class="form-group"><label>الباقة الأساسية</label><input type="text" class="form-control" id="pkg_name1" value="أساسية" oninput="calcPkg()"></div>
+            <div class="form-group"><label>الباقة المتوسطة</label><input type="text" class="form-control" id="pkg_name2" value="احترافية" oninput="calcPkg()"></div>
+            <div class="form-group"><label>الباقة المتقدمة</label><input type="text" class="form-control" id="pkg_name3" value="مؤسسات" oninput="calcPkg()"></div>
           </div>
         </div>
         <div class="calc-section">
@@ -692,10 +700,10 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
         </div>
       </div>
 
-      <!-- ═ TOOL: Labor Cost ═ -->
+      <!-- ═ TOOL: Technical Projects Pricing ═ -->
       <div class="tool-panel" id="tool-calc_labor">
         <button class="btn btn-ghost btn-sm mb-16" onclick="closeTool()">← الأدوات</button>
-        <h2 style="font-size:20px;font-weight:900;margin-bottom:16px">حساب تكلفة الساعة</h2>
+        <div class="tool-heading"><div class="tool-heading-icon tone-blue">💻</div><div><div class="tools-kicker">تسعير المشاريع التقنية</div><h2>حاسبة مراحل المشروع التقني</h2></div></div>
         <div class="cic-card">
           <div class="cic-toggle" onclick="this.closest('.cic-card').classList.toggle('open')">
             <span id="cic_label_labor">👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small></span>
@@ -710,33 +718,55 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
           </div>
         </div>
         <div class="calc-section">
-          <h4>بياناتك الشهرية</h4>
+          <h4>نوع المشروع ونطاقه</h4>
           <div class="form-row">
-            <div class="form-group"><label>الراتب أو التكلفة الشهرية (ر.س)</label><input type="number" class="form-control" id="lb_salary" value="5000" oninput="calcLabor()"></div>
-            <div class="form-group"><label>ساعات العمل اليومية</label><input type="number" class="form-control" id="lb_hrs" value="8" oninput="calcLabor()"></div>
+            <div class="form-group"><label>نوع المشروع</label><select class="form-control" id="lb_type" onchange="calcLabor()"><option>تطبيق جوال</option><option>موقع ويب</option><option>نظام ERP</option><option>ذكاء اصطناعي</option><option>جهاز وبرنامج</option></select></div>
+            <div class="form-group"><label>اسم المشروع</label><input type="text" class="form-control" id="lb_name" placeholder="منصة طلبات" oninput="calcLabor()"></div>
+          </div>
+        </div>
+        <div class="calc-section">
+          <h4>ساعات مراحل التنفيذ</h4>
+          <div class="form-row">
+            <div class="form-group"><label>التصميم UX/UI: ساعات</label><input type="number" class="form-control" id="lb_design_h" value="20" min="0" oninput="calcLabor()"></div>
+            <div class="form-group"><label>سعر ساعة التصميم (ر.س)</label><input type="number" class="form-control" id="lb_design_rate" value="150" min="0" oninput="calcLabor()"></div>
           </div>
           <div class="form-row">
-            <div class="form-group"><label>أيام العمل شهرياً</label><input type="number" class="form-control" id="lb_days" value="22" oninput="calcLabor()"></div>
-            <div class="form-group"><label>% مهام غير مُدفوعة (اجتماعات إدارة)</label><input type="number" class="form-control" id="lb_overhead" value="30" oninput="calcLabor()"></div>
+            <div class="form-group"><label>التطوير البرمجي: ساعات</label><input type="number" class="form-control" id="lb_dev_h" value="60" min="0" oninput="calcLabor()"></div>
+            <div class="form-group"><label>سعر ساعة التطوير (ر.س)</label><input type="number" class="form-control" id="lb_dev_rate" value="200" min="0" oninput="calcLabor()"></div>
           </div>
           <div class="form-row">
-            <div class="form-group"><label>تكاليف شهرية إضافية (أدوات اشتراكات)</label><input type="number" class="form-control" id="lb_extra" value="0" oninput="calcLabor()"></div>
-            <div class="form-group"><label>هامش الربح المستهدف %</label><input type="number" class="form-control" id="lb_profit" value="30" oninput="calcLabor()"></div>
+            <div class="form-group"><label>الاختبار والتسليم: ساعات</label><input type="number" class="form-control" id="lb_qa_h" value="16" min="0" oninput="calcLabor()"></div>
+            <div class="form-group"><label>سعر ساعة الاختبار (ر.س)</label><input type="number" class="form-control" id="lb_qa_rate" value="120" min="0" oninput="calcLabor()"></div>
+          </div>
+        </div>
+        <div class="calc-section">
+          <h4>تكاليف المشروع والربحية</h4>
+          <div class="form-row">
+            <div class="form-group"><label>تراخيص وخدمات خارجية (ر.س)</label><input type="number" class="form-control" id="lb_licenses" value="0" min="0" oninput="calcLabor()"></div>
+            <div class="form-group"><label>استضافة وأجهزة (ر.س)</label><input type="number" class="form-control" id="lb_hosting" value="0" min="0" oninput="calcLabor()"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>نصيب الإدارة والتشغيل (ر.س)</label><input type="number" class="form-control" id="lb_overhead" value="1000" min="0" oninput="calcLabor()"></div>
+            <div class="form-group"><label>احتياطي المخاطر %</label><input type="number" class="form-control" id="lb_contingency" value="10" min="0" max="100" oninput="calcLabor()"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>هامش الربح %</label><input type="number" class="form-control" id="lb_profit" value="30" min="0" max="200" oninput="calcLabor()"></div>
+            <div class="form-group"><label>ضريبة القيمة المضافة %</label><input type="number" class="form-control" id="lb_tax" value="15" min="0" oninput="calcLabor()"></div>
           </div>
         </div>
         <div class="calc-result" id="laborResult" data-amount="0">
-          <div class="calc-result-row"><span>إجمالي التكاليف الشهرية</span><span id="lb_rCost">-</span></div>
-          <div class="calc-result-row"><span>ساعات العمل الفعلية المُدفوعة</span><span id="lb_rHrs">-</span></div>
-          <div class="calc-result-row"><span>تكلفة الساعة (بدون ربح)</span><span id="lb_rBase">-</span></div>
-          <div class="calc-result-row big"><span>سعر الساعة للعميل (مع الربح)</span><span id="lb_rFinal">-</span></div>
-          <?= toolSaveBtn($canSaveQuote, 'labor', 'حساب تكلفة الساعة') ?>
+          <div class="calc-result-row"><span>تكلفة الجهد</span><span id="lb_rEffort">-</span></div>
+          <div class="calc-result-row"><span>التكلفة بعد الاحتياطي</span><span id="lb_rCost">-</span></div>
+          <div class="calc-result-row"><span>الربح المستهدف</span><span id="lb_rProfit">-</span></div>
+          <div class="calc-result-row big"><span>سعر المشروع شامل الضريبة</span><span id="lb_rFinal">-</span></div>
+          <?= toolSaveBtn($canSaveQuote, 'labor', 'تسعير المشروع التقني') ?>
         </div>
       </div>
 
-      <!-- ═ TOOL: Store ═ -->
+      <!-- ═ TOOL: Retail Pricing ═ -->
       <div class="tool-panel" id="tool-calc_store">
         <button class="btn btn-ghost btn-sm mb-16" onclick="closeTool()">← الأدوات</button>
-        <h2 style="font-size:20px;font-weight:900;margin-bottom:16px">تسعيرة المتجر الإلكتروني</h2>
+        <div class="tool-heading"><div class="tool-heading-icon tone-gold">🏪</div><div><div class="tools-kicker">تسعير التجزئة والجملة</div><h2>حاسبة سعر المنتج بعد التكلفة والعمولة</h2></div></div>
         <div class="cic-card">
           <div class="cic-toggle" onclick="this.closest('.cic-card').classList.toggle('open')">
             <span id="cic_label_store">👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small></span>
@@ -751,38 +781,42 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
           </div>
         </div>
         <div class="calc-section">
-          <h4>تكاليف المشروع</h4>
+          <h4>بيانات المنتج</h4>
           <div class="form-row">
-            <div class="form-group"><label>ساعات العمل المقدرة</label><input type="number" class="form-control" id="st_hrs" value="0" oninput="calcStore()"></div>
-            <div class="form-group"><label>سعر الساعة (ر.س)</label><input type="number" class="form-control" id="st_rate" value="150" oninput="calcStore()"></div>
+            <div class="form-group"><label>اسم المنتج</label><input type="text" class="form-control" id="st_name" placeholder="حقيبة جلدية" oninput="calcStore()"></div>
+            <div class="form-group"><label>الفئة</label><select class="form-control" id="st_category" onchange="calcStore()"><option>ملابس</option><option>إلكترونيات</option><option>بقالة</option><option>أثاث</option><option>منتجات رقمية</option></select></div>
           </div>
           <div class="form-row">
-            <div class="form-group"><label>تكلفة الاستضافة ودومين سنوياً (ر.س)</label><input type="number" class="form-control" id="st_hosting" value="0" oninput="calcStore()"></div>
-            <div class="form-group"><label>قوالب وإضافات (ر.س)</label><input type="number" class="form-control" id="st_plugins" value="0" oninput="calcStore()"></div>
+            <div class="form-group"><label>تكلفة الشراء للوحدة (ر.س)</label><input type="number" class="form-control" id="st_cost" value="50" min="0" oninput="calcStore()"></div>
+            <div class="form-group"><label>شحن وتخليص للوحدة (ر.س)</label><input type="number" class="form-control" id="st_shipping" value="5" min="0" oninput="calcStore()"></div>
           </div>
           <div class="form-row">
-            <div class="form-group"><label>عدد المنتجات</label><input type="number" class="form-control" id="st_products" value="0" oninput="calcStore()"></div>
-            <div class="form-group"><label>سعر إدخال كل منتج (ر.س)</label><input type="number" class="form-control" id="st_perProd" value="10" oninput="calcStore()"></div>
+            <div class="form-group"><label>تغليف وتجهيز للوحدة (ر.س)</label><input type="number" class="form-control" id="st_packaging" value="2" min="0" oninput="calcStore()"></div>
+            <div class="form-group"><label>الكمية المستهدفة للبيع</label><input type="number" class="form-control" id="st_units" value="100" min="1" oninput="calcStore()"></div>
           </div>
           <div class="form-row">
-            <div class="form-group"><label>هامش الربح %</label><input type="number" class="form-control" id="st_profit" value="30" oninput="calcStore()"></div>
-            <div class="form-group"><label>ضريبة %</label><input type="number" class="form-control" id="st_tax" value="15" oninput="calcStore()"></div>
+            <div class="form-group"><label>هامش الربح المستهدف %</label><input type="number" class="form-control" id="st_profit" value="35" min="0" oninput="calcStore()"></div>
+            <div class="form-group"><label>عمولة المنصة أو الدفع %</label><input type="number" class="form-control" id="st_fee" value="3" min="0" max="50" oninput="calcStore()"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>خصم العروض المتوقع %</label><input type="number" class="form-control" id="st_discount" value="10" min="0" max="90" oninput="calcStore()"></div>
+            <div class="form-group"><label>ضريبة القيمة المضافة %</label><input type="number" class="form-control" id="st_tax" value="15" min="0" oninput="calcStore()"></div>
           </div>
         </div>
         <div class="calc-result" id="storeResult" data-amount="0">
-          <div class="calc-result-row"><span>تكلفة العمل</span><span id="st_rWork">-</span></div>
-          <div class="calc-result-row"><span>تكلفة الإعداد</span><span id="st_rSetup">-</span></div>
-          <div class="calc-result-row"><span>إجمالي التكلفة</span><span id="st_rCost">-</span></div>
+          <div class="calc-result-row"><span>التكلفة الواصلة للوحدة</span><span id="st_rCost">-</span></div>
+          <div class="calc-result-row"><span>سعر التعادل بعد العمولة</span><span id="st_rBreak">-</span></div>
           <div class="calc-result-row"><span>هامش الربح</span><span id="st_rProfit">-</span></div>
-          <div class="calc-result-row big"><span>السعر النهائي (شامل الضريبة)</span><span id="st_rFinal">-</span></div>
-          <?= toolSaveBtn($canSaveQuote, 'store', 'تسعيرة المتجر الإلكتروني') ?>
+          <div class="calc-result-row"><span>سعر العرض قبل الضريبة</span><span id="st_rSale">-</span></div>
+          <div class="calc-result-row big"><span>السعر المقترح للمستهلك شامل الضريبة</span><span id="st_rFinal">-</span></div>
+          <?= toolSaveBtn($canSaveQuote, 'store', 'تسعير منتج التجزئة') ?>
         </div>
       </div>
 
       <!-- ═ TOOL: Office ═ -->
       <div class="tool-panel" id="tool-calc_office">
         <button class="btn btn-ghost btn-sm mb-16" onclick="closeTool()">← الأدوات</button>
-        <h2 style="font-size:20px;font-weight:900;margin-bottom:16px">تسعيرة المكتب والوكالة</h2>
+        <div class="tool-heading"><div class="tool-heading-icon tone-sand">⌂</div><div><div class="tools-kicker">تسعير التصميم الداخلي والمعماري</div><h2>حاسبة المشروع حسب المساحة والمراحل</h2></div></div>
         <div class="cic-card">
           <div class="cic-toggle" onclick="this.closest('.cic-card').classList.toggle('open')">
             <span id="cic_label_office">👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small></span>
@@ -797,35 +831,45 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
           </div>
         </div>
         <div class="calc-section">
-          <h4>تكاليف التشغيل الشهرية</h4>
+          <h4>بيانات المشروع والمساحة</h4>
           <div class="form-row">
-            <div class="form-group"><label>إيجار المكتب (ر.س)</label><input type="number" class="form-control" id="of_rent" value="0" oninput="calcOffice()"></div>
-            <div class="form-group"><label>إجمالي الرواتب (ر.س)</label><input type="number" class="form-control" id="of_salaries" value="0" oninput="calcOffice()"></div>
+            <div class="form-group"><label>نوع المشروع</label><select class="form-control" id="of_type" onchange="calcOffice()"><option>تصميم داخلي سكني</option><option>تصميم داخلي تجاري</option><option>تصميم معماري</option><option>تنفيذ وتجهيز</option></select></div>
+            <div class="form-group"><label>المساحة بالمتر المربع</label><input type="number" class="form-control" id="of_area" value="120" min="1" oninput="calcOffice()"></div>
           </div>
           <div class="form-row">
-            <div class="form-group"><label>اشتراكات وأدوات (ر.س)</label><input type="number" class="form-control" id="of_tools" value="0" oninput="calcOffice()"></div>
-            <div class="form-group"><label>تسويق ومصروفات أخرى (ر.س)</label><input type="number" class="form-control" id="of_other" value="0" oninput="calcOffice()"></div>
+            <div class="form-group"><label>سعر التصميم للمتر (ر.س)</label><input type="number" class="form-control" id="of_designRate" value="80" min="0" oninput="calcOffice()"></div>
+            <div class="form-group"><label>عدد الزيارات الميدانية</label><input type="number" class="form-control" id="of_visits" value="3" min="0" oninput="calcOffice()"></div>
           </div>
         </div>
         <div class="calc-section">
-          <h4>طاقة الإنتاج</h4>
+          <h4>المراحل والتكاليف الإضافية</h4>
           <div class="form-row">
-            <div class="form-group"><label>عدد المشاريع الشهرية</label><input type="number" class="form-control" id="of_proj" value="4" oninput="calcOffice()"></div>
-            <div class="form-group"><label>هامش الربح المستهدف %</label><input type="number" class="form-control" id="of_profit" value="35" oninput="calcOffice()"></div>
+            <div class="form-group"><label>تكلفة الزيارة الواحدة (ر.س)</label><input type="number" class="form-control" id="of_visitRate" value="250" min="0" oninput="calcOffice()"></div>
+            <div class="form-group"><label>مخططات واستشارات (ر.س)</label><input type="number" class="form-control" id="of_consult" value="1500" min="0" oninput="calcOffice()"></div>
           </div>
+          <div class="form-row">
+            <div class="form-group"><label>مواد وتنفيذ مقدّرة (ر.س)</label><input type="number" class="form-control" id="of_execution" value="0" min="0" oninput="calcOffice()"></div>
+            <div class="form-group"><label>نصيب الإشراف والإدارة (ر.س)</label><input type="number" class="form-control" id="of_overhead" value="1000" min="0" oninput="calcOffice()"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>احتياطي التعديلات والمخاطر %</label><input type="number" class="form-control" id="of_contingency" value="10" min="0" max="100" oninput="calcOffice()"></div>
+            <div class="form-group"><label>هامش الربح %</label><input type="number" class="form-control" id="of_profit" value="30" min="0" oninput="calcOffice()"></div>
+          </div>
+          <div class="form-group"><label>ضريبة القيمة المضافة %</label><input type="number" class="form-control" id="of_tax" value="15" min="0" oninput="calcOffice()"></div>
         </div>
         <div class="calc-result" id="officeResult" data-amount="0">
-          <div class="calc-result-row"><span>إجمالي التكاليف الشهرية</span><span id="of_rCost">-</span></div>
-          <div class="calc-result-row"><span>تكلفة المشروع الواحد</span><span id="of_rPerProj">-</span></div>
-          <div class="calc-result-row big"><span>الحد الأدنى لسعر المشروع (مع الربح)</span><span id="of_rMin">-</span></div>
-          <?= toolSaveBtn($canSaveQuote, 'office', 'تسعيرة المكتب والوكالة') ?>
+          <div class="calc-result-row"><span>أتعاب التصميم حسب المساحة</span><span id="of_rDesign">-</span></div>
+          <div class="calc-result-row"><span>إجمالي التكلفة قبل الربح</span><span id="of_rCost">-</span></div>
+          <div class="calc-result-row"><span>احتياطي المشروع</span><span id="of_rReserve">-</span></div>
+          <div class="calc-result-row big"><span>سعر المشروع شامل الضريبة</span><span id="of_rMin">-</span></div>
+          <?= toolSaveBtn($canSaveQuote, 'office', 'تسعير مشروع التصميم') ?>
         </div>
       </div><!-- /tool-calc_office -->
 
-      <!-- ═ TOOL: Custom Free-form ═ -->
+      <!-- ═ TOOL: Technology Company Pricing ═ -->
       <div class="tool-panel" id="tool-calc_custom">
         <button class="btn btn-ghost btn-sm mb-16" onclick="closeTool()">← الأدوات</button>
-        <h2 style="font-size:20px;font-weight:900;margin-bottom:16px">تسعيرة حرة مخصصة</h2>
+        <div class="tool-heading"><div class="tool-heading-icon tone-purple">↻</div><div><div class="tools-kicker">تسعير الشركات التقنية</div><h2>حاسبة الاشتراك والخدمة المتكررة</h2></div></div>
         <div class="cic-card">
           <div class="cic-toggle" onclick="this.closest('.cic-card').classList.toggle('open')">
             <span id="cic_label_custom">👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small></span>
@@ -840,30 +884,40 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
           </div>
         </div>
         <div class="calc-section">
-          <h4>بنود التسعيرة</h4>
-          <table class="items-table">
-            <thead><tr>
-              <th style="width:45%">الوصف</th>
-              <th style="width:18%">الكمية</th>
-              <th style="width:22%">سعر الوحدة (ر.س)</th>
-              <th style="width:15%">الإجمالي</th>
-            </tr></thead>
-            <tbody id="custItemsBody"></tbody>
-          </table>
-          <button class="add-item-btn mt-8" onclick="addCustomItem()">+ إضافة بند</button>
-        </div>
-        <div class="calc-section">
+          <h4>نوع الخدمة والعملاء</h4>
           <div class="form-row">
-            <div class="form-group"><label>ضريبة القيمة المضافة %</label><input type="number" class="form-control" id="cu_tax" value="15" min="0" oninput="calcCustom()"></div>
-            <div class="form-group"><label>خصم (ر.س)</label><input type="number" class="form-control" id="cu_discount" value="0" min="0" oninput="calcCustom()"></div>
+            <div class="form-group"><label>نوع الخدمة</label><select class="form-control" id="cu_type" onchange="calcCustom()"><option>SaaS منصة</option><option>استضافة وخوادم</option><option>صيانة وتطوير</option><option>ترخيص برمجي</option><option>دعم تقني</option></select></div>
+            <div class="form-group"><label>عدد العملاء أو المستخدمين</label><input type="number" class="form-control" id="cu_clients" value="25" min="1" oninput="calcCustom()"></div>
           </div>
         </div>
+        <div class="calc-section">
+          <h4>التكاليف الشهرية</h4>
+          <div class="form-row">
+            <div class="form-group"><label>رواتب الفريق (ر.س)</label><input type="number" class="form-control" id="cu_salaries" value="12000" min="0" oninput="calcCustom()"></div>
+            <div class="form-group"><label>خوادم واستضافة (ر.س)</label><input type="number" class="form-control" id="cu_servers" value="1500" min="0" oninput="calcCustom()"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>تراخيص وأدوات (ر.س)</label><input type="number" class="form-control" id="cu_tools" value="500" min="0" oninput="calcCustom()"></div>
+            <div class="form-group"><label>تشغيل وتسويق (ر.س)</label><input type="number" class="form-control" id="cu_ops" value="1000" min="0" oninput="calcCustom()"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>تكلفة متغيرة لكل عميل (ر.س)</label><input type="number" class="form-control" id="cu_variable" value="20" min="0" oninput="calcCustom()"></div>
+            <div class="form-group"><label>هامش الربح المستهدف %</label><input type="number" class="form-control" id="cu_profit" value="40" min="0" max="200" oninput="calcCustom()"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>دورة الفوترة</label><select class="form-control" id="cu_cycle" onchange="calcCustom()"><option value="1">شهري</option><option value="12">سنوي</option></select></div>
+            <div class="form-group"><label>خصم الاشتراك السنوي %</label><input type="number" class="form-control" id="cu_annualDiscount" value="15" min="0" max="50" oninput="calcCustom()"></div>
+          </div>
+          <div class="form-group"><label>ضريبة القيمة المضافة %</label><input type="number" class="form-control" id="cu_tax" value="15" min="0" oninput="calcCustom()"></div>
+        </div>
         <div class="calc-result" id="customResult" data-amount="0">
-          <div class="calc-result-row"><span>المجموع الفرعي</span><span id="cu_rSub">-</span></div>
-          <div class="calc-result-row"><span>الخصم</span><span id="cu_rDis">-</span></div>
-          <div class="calc-result-row"><span id="cu_rTaxLbl">ضريبة (15%)</span><span id="cu_rTax">-</span></div>
-          <div class="calc-result-row big"><span>الإجمالي النهائي</span><span id="cu_rFinal">-</span></div>
-          <?= toolSaveBtn($canSaveQuote, 'custom', 'تسعيرة حرة مخصصة') ?>
+          <div class="calc-result-row"><span>التكاليف الثابتة الشهرية</span><span id="cu_rFixed">-</span></div>
+          <div class="calc-result-row"><span>التكلفة على العميل</span><span id="cu_rPerClient">-</span></div>
+          <div class="calc-result-row"><span>الربح المستهدف لكل عميل</span><span id="cu_rProfit">-</span></div>
+          <div class="calc-result-row"><span>سعر الاشتراك الشهري قبل الضريبة</span><span id="cu_rMonthly">-</span></div>
+          <div class="calc-result-row big"><span>السعر المقترح شامل الضريبة</span><span id="cu_rFinal">-</span></div>
+          <div class="calc-result-row"><span>السعر السنوي المقترح</span><span id="cu_rAnnual">-</span></div>
+          <?= toolSaveBtn($canSaveQuote, 'custom', 'تسعير الشركة التقنية') ?>
         </div>
       </div>
 

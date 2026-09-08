@@ -505,30 +505,32 @@ function openTool(slug) {
   if (slug === 'calc_labor')  calcLabor();
   if (slug === 'calc_store')  calcStore();
   if (slug === 'calc_office') calcOffice();
-  if (slug === 'calc_custom') {
-    if (!document.getElementById('custItemsBody').children.length) addCustomItem();
-    calcCustom();
-  }
+  if (slug === 'calc_custom') calcCustom();
 }
 
 function calcMenu() {
   const ingredients = Math.max(0, parseFloat(document.getElementById('mn_ingredients')?.value) || 0);
   const waste = Math.max(0, parseFloat(document.getElementById('mn_waste')?.value) || 0);
   const units = Math.max(1, parseFloat(document.getElementById('mn_units')?.value) || 1);
+  const packaging = Math.max(0, parseFloat(document.getElementById('mn_packaging')?.value) || 0);
   const ops = Math.max(0, parseFloat(document.getElementById('mn_ops')?.value) || 0);
   const profit = Math.max(0, parseFloat(document.getElementById('mn_profit')?.value) || 0);
+  const fee = Math.min(95, Math.max(0, parseFloat(document.getElementById('mn_fee')?.value) || 0));
   const tax = Math.max(0, parseFloat(document.getElementById('mn_tax')?.value) || 0);
   const ingredientCost = ingredients * (1 + waste / 100);
   const opsPerUnit = ops / units;
-  const base = ingredientCost + opsPerUnit;
-  const priceBeforeTax = base * (1 + profit / 100);
+  const base = ingredientCost + packaging + opsPerUnit;
+  const priceBeforeFee = base * (1 + profit / 100);
+  const priceBeforeTax = fee >= 95 ? priceBeforeFee : priceBeforeFee / (1 - fee / 100);
   const finalPrice = priceBeforeTax * (1 + tax / 100);
   setText('mn_rCost', fmt(ingredientCost) + ' ر.س');
+  setText('mn_rPackaging', fmt(packaging) + ' ر.س');
   setText('mn_rOps', fmt(opsPerUnit) + ' ر.س');
   setText('mn_rBase', fmt(base) + ' ر.س');
   setText('mn_rFinal', fmt(finalPrice) + ' ر.س');
   const result = document.getElementById('menuResult');
   if (result) result.dataset.amount = finalPrice;
+  saveToolState('calc_menu');
 }
 
 function closeTool() {
@@ -563,12 +565,16 @@ function saveToolState(slug) {
   panel.querySelectorAll('input[id], select[id], textarea[id]').forEach(el => {
     if (el.type !== 'button' && el.id) state[el.id] = el.value;
   });
-  try { sessionStorage.setItem('tool_state_' + slug, JSON.stringify(state)); } catch (_) {}
+  if (slug === 'calc_basic') {
+    if (selectedField) state.__selectedField = selectedField;
+    state.__selectedSvcs = selectedSvcs.slice();
+  }
+  try { localStorage.setItem('tas3_tool_state_' + slug, JSON.stringify(state)); } catch (_) {}
 }
 
 function restoreToolState(slug) {
   try {
-    const raw = sessionStorage.getItem('tool_state_' + slug);
+    const raw = localStorage.getItem('tas3_tool_state_' + slug) || sessionStorage.getItem('tool_state_' + slug);
     if (!raw) return;
     const state = JSON.parse(raw);
     const panel = document.getElementById('tool-' + slug);
@@ -577,6 +583,16 @@ function restoreToolState(slug) {
       const el = panel.querySelector('#' + id);
       if (el && el.type !== 'button') el.value = val;
     });
+    if (slug === 'calc_basic' && state.__selectedField) {
+      const btn = [...document.querySelectorAll('#fieldGrid .field-btn')].find(el => el.textContent.trim() === state.__selectedField);
+      if (btn) {
+        selectField(btn, state.__selectedField);
+        (state.__selectedSvcs || []).forEach(service => {
+          const serviceBtn = [...document.querySelectorAll('#svcGrid .svc-btn')].find(el => el.textContent.trim() === service);
+          if (serviceBtn && !serviceBtn.classList.contains('active')) toggleSvc(serviceBtn, service);
+        });
+      }
+    }
   } catch (_) {}
 }
 
@@ -622,17 +638,20 @@ function toggleSvc(btn, svc) {
 }
 
 function calcBasic() {
-  const labor  = parseFloat(document.getElementById('cLbr')?.value)    || 0;
+  const hours  = Math.max(0, parseFloat(document.getElementById('cHours')?.value) || 0);
+  const rate   = Math.max(0, parseFloat(document.getElementById('cRate')?.value) || 0);
   const tools  = parseFloat(document.getElementById('cTools')?.value)   || 0;
   const ops    = parseFloat(document.getElementById('cOps')?.value)     || 0;
   const profit = parseFloat(document.getElementById('cProfit')?.value)  || 30;
   const tax    = parseFloat(document.getElementById('cTax')?.value)     || 15;
 
-  const cost     = labor + tools + ops;
+  const effort   = hours * rate;
+  const cost     = effort + tools + ops;
   const profAmt  = cost * profit / 100;
   const taxAmt   = (cost + profAmt) * tax / 100;
   const total    = cost + profAmt + taxAmt;
 
+  setText('rEffort', fmt(effort)  + ' ر.س');
   setText('rCost',   fmt(cost)    + ' ر.س');
   setText('rProfit', fmt(profAmt) + ' ر.س');
   setText('rTax',    fmt(taxAmt)  + ' ر.س');
@@ -662,11 +681,16 @@ function calcPkg() {
   const r2     = r1 * ratio;
   const r3     = r2 * ratio;
 
+  setText('pkg_r1', fmt(r1) + ' ر.س');
+  setText('pkg_r2', fmt(r2) + ' ر.س');
+  setText('pkg_r3', fmt(r3) + ' ر.س');
+  const names = ['pkg_name1', 'pkg_name2', 'pkg_name3'].map((id, i) =>
+    (document.getElementById(id)?.value || ['أساسية', 'احترافية', 'مؤسسات'][i]).trim()
+  );
+  const labels = document.querySelectorAll('#tool-calc_pkg .calc-result-row.big span:first-child');
+  [names[0], names[1], names[2]].forEach((name, i) => { if (labels[i]) labels[i].textContent = `${name} / شهر`; });
   setText('pkg_rCost',   fmt(cost)   + ' ر.س');
   setText('pkg_rTarget', fmt(target) + ' ر.س');
-  setText('pkg_r1',      fmt(r1)     + ' ر.س');
-  setText('pkg_r2',      fmt(r2)     + ' ر.س');
-  setText('pkg_r3',      fmt(r3)     + ' ر.س');
 
   const el = document.getElementById('pkgResult');
   if (el) el.setAttribute('data-amount', r1.toFixed(2));
@@ -675,51 +699,52 @@ function calcPkg() {
 
 // Tool: Labor
 function calcLabor() {
-  const salary   = parseFloat(document.getElementById('lb_salary')?.value)   || 0;
-  const hrs      = parseFloat(document.getElementById('lb_hrs')?.value)      || 8;
-  const days     = parseFloat(document.getElementById('lb_days')?.value)     || 22;
-  const overhead = parseFloat(document.getElementById('lb_overhead')?.value) || 30;
-  const extra    = parseFloat(document.getElementById('lb_extra')?.value)    || 0;
-  const profit   = parseFloat(document.getElementById('lb_profit')?.value)   || 30;
+  const effort = ['design', 'dev', 'qa'].reduce((sum, phase) => {
+    const hours = Math.max(0, parseFloat(document.getElementById(`lb_${phase}_h`)?.value) || 0);
+    const rate = Math.max(0, parseFloat(document.getElementById(`lb_${phase}_rate`)?.value) || 0);
+    return sum + hours * rate;
+  }, 0);
+  const extra = ['lb_licenses', 'lb_hosting', 'lb_overhead'].reduce((sum, id) =>
+    sum + Math.max(0, parseFloat(document.getElementById(id)?.value) || 0), 0);
+  const contingencyPct = Math.max(0, parseFloat(document.getElementById('lb_contingency')?.value) || 0);
+  const profitPct = Math.max(0, parseFloat(document.getElementById('lb_profit')?.value) || 0);
+  const taxPct = Math.max(0, parseFloat(document.getElementById('lb_tax')?.value) || 0);
+  const base = effort + extra;
+  const reserve = base * contingencyPct / 100;
+  const profit = (base + reserve) * profitPct / 100;
+  const total = (base + reserve + profit) * (1 + taxPct / 100);
 
-  const totalCost   = salary + extra;
-  const billableHrs = hrs * days * (1 - overhead / 100);
-  const costPerHr   = billableHrs > 0 ? totalCost / billableHrs : 0;
-  const finalHr     = costPerHr * (1 + profit / 100);
-
-  setText('lb_rCost',  fmt(totalCost)   + ' ر.س');
-  setText('lb_rHrs',   fmt(billableHrs) + ' ساعة');
-  setText('lb_rBase',  fmt(costPerHr)   + ' ر.س/ساعة');
-  setText('lb_rFinal', fmt(finalHr)     + ' ر.س/ساعة');
+  setText('lb_rEffort', fmt(effort) + ' ر.س');
+  setText('lb_rCost', fmt(base + reserve) + ' ر.س');
+  setText('lb_rProfit', fmt(profit) + ' ر.س');
+  setText('lb_rFinal', fmt(total) + ' ر.س');
 
   const el = document.getElementById('laborResult');
-  if (el) el.setAttribute('data-amount', finalHr.toFixed(2));
+  if (el) el.setAttribute('data-amount', total.toFixed(2));
   saveToolState('calc_labor');
 }
 
-// Tool: Store
+// Tool: Retail products
 function calcStore() {
-  const hrs     = parseFloat(document.getElementById('st_hrs')?.value)     || 0;
-  const rate    = parseFloat(document.getElementById('st_rate')?.value)    || 150;
-  const hosting = parseFloat(document.getElementById('st_hosting')?.value) || 0;
-  const plugins = parseFloat(document.getElementById('st_plugins')?.value) || 0;
-  const prods   = parseFloat(document.getElementById('st_products')?.value)|| 0;
-  const perProd = parseFloat(document.getElementById('st_perProd')?.value) || 10;
-  const profit  = parseFloat(document.getElementById('st_profit')?.value)  || 30;
-  const tax     = parseFloat(document.getElementById('st_tax')?.value)     || 15;
+  const cost = Math.max(0, parseFloat(document.getElementById('st_cost')?.value) || 0);
+  const shipping = Math.max(0, parseFloat(document.getElementById('st_shipping')?.value) || 0);
+  const packaging = Math.max(0, parseFloat(document.getElementById('st_packaging')?.value) || 0);
+  const profitPct = Math.max(0, parseFloat(document.getElementById('st_profit')?.value) || 0);
+  const feePct = Math.min(95, Math.max(0, parseFloat(document.getElementById('st_fee')?.value) || 0));
+  const discountPct = Math.min(90, Math.max(0, parseFloat(document.getElementById('st_discount')?.value) || 0));
+  const taxPct = Math.max(0, parseFloat(document.getElementById('st_tax')?.value) || 0);
+  const landed = cost + shipping + packaging;
+  const breakEven = feePct >= 95 ? landed : landed / (1 - feePct / 100);
+  const profitAmount = landed * profitPct / 100;
+  const sale = feePct >= 95 ? breakEven + profitAmount : (landed + profitAmount) / (1 - feePct / 100);
+  const listPrice = discountPct >= 100 ? sale : sale / (1 - discountPct / 100);
+  const total = listPrice * (1 + taxPct / 100);
 
-  const work    = hrs * rate;
-  const setup   = hosting + plugins + prods * perProd;
-  const cost    = work + setup;
-  const profAmt = cost * profit / 100;
-  const taxAmt  = (cost + profAmt) * tax / 100;
-  const total   = cost + profAmt + taxAmt;
-
-  setText('st_rWork',   fmt(work)    + ' ر.س');
-  setText('st_rSetup',  fmt(setup)   + ' ر.س');
-  setText('st_rCost',   fmt(cost)    + ' ر.س');
-  setText('st_rProfit', fmt(profAmt) + ' ر.س');
-  setText('st_rFinal',  fmt(total)   + ' ر.س');
+  setText('st_rCost', fmt(landed) + ' ر.س');
+  setText('st_rBreak', fmt(breakEven) + ' ر.س');
+  setText('st_rProfit', fmt(profitAmount) + ' ر.س');
+  setText('st_rSale', fmt(sale) + ' ر.س');
+  setText('st_rFinal', fmt(total) + ' ر.س');
 
   const el = document.getElementById('storeResult');
   if (el) el.setAttribute('data-amount', total.toFixed(2));
@@ -728,67 +753,57 @@ function calcStore() {
 
 // Tool: Office
 function calcOffice() {
-  const rent     = parseFloat(document.getElementById('of_rent')?.value)     || 0;
-  const salaries = parseFloat(document.getElementById('of_salaries')?.value) || 0;
-  const tools    = parseFloat(document.getElementById('of_tools')?.value)    || 0;
-  const other    = parseFloat(document.getElementById('of_other')?.value)    || 0;
-  const proj     = parseFloat(document.getElementById('of_proj')?.value)     || 1;
-  const profit   = parseFloat(document.getElementById('of_profit')?.value)   || 35;
+  const area = Math.max(0, parseFloat(document.getElementById('of_area')?.value) || 0);
+  const designRate = Math.max(0, parseFloat(document.getElementById('of_designRate')?.value) || 0);
+  const visits = Math.max(0, parseFloat(document.getElementById('of_visits')?.value) || 0);
+  const visitRate = Math.max(0, parseFloat(document.getElementById('of_visitRate')?.value) || 0);
+  const consult = Math.max(0, parseFloat(document.getElementById('of_consult')?.value) || 0);
+  const execution = Math.max(0, parseFloat(document.getElementById('of_execution')?.value) || 0);
+  const overhead = Math.max(0, parseFloat(document.getElementById('of_overhead')?.value) || 0);
+  const reservePct = Math.max(0, parseFloat(document.getElementById('of_contingency')?.value) || 0);
+  const profitPct = Math.max(0, parseFloat(document.getElementById('of_profit')?.value) || 0);
+  const taxPct = Math.max(0, parseFloat(document.getElementById('of_tax')?.value) || 0);
+  const design = area * designRate;
+  const cost = design + visits * visitRate + consult + execution + overhead;
+  const reserve = cost * reservePct / 100;
+  const profit = (cost + reserve) * profitPct / 100;
+  const total = (cost + reserve + profit) * (1 + taxPct / 100);
 
-  const cost     = rent + salaries + tools + other;
-  const perProj  = proj > 0 ? cost / proj : 0;
-  const minPrice = perProj * (1 + profit / 100);
-
-  setText('of_rCost',    fmt(cost)     + ' ر.س');
-  setText('of_rPerProj', fmt(perProj)  + ' ر.س');
-  setText('of_rMin',     fmt(minPrice) + ' ر.س');
+  setText('of_rDesign', fmt(design) + ' ر.س');
+  setText('of_rCost', fmt(cost) + ' ر.س');
+  setText('of_rReserve', fmt(reserve) + ' ر.س');
+  setText('of_rMin', fmt(total) + ' ر.س');
 
   const el = document.getElementById('officeResult');
-  if (el) el.setAttribute('data-amount', minPrice.toFixed(2));
+  if (el) el.setAttribute('data-amount', total.toFixed(2));
   saveToolState('calc_office');
 }
 
-// Tool: Custom (free-form)
-function addCustomItem(desc = '', qty = 1, price = 0) {
-  const tbody = document.getElementById('custItemsBody');
-  if (!tbody) return;
-  const row = document.createElement('tr');
-  row.innerHTML = `
-    <td><input type="text"   value="${esc(desc)}"  placeholder="وصف البند..." oninput="calcCustom()" style="width:100%"></td>
-    <td><input type="number" value="${qty}"   min="0.01" step="0.01" oninput="calcCustom()" style="text-align:center;width:100%"></td>
-    <td><input type="number" value="${price}" min="0"    step="0.01" oninput="calcCustom()" style="width:100%"></td>
-    <td class="cu-row-total" style="font-weight:700;padding:8px 10px;white-space:nowrap">${fmt(qty * price)}</td>
-    <td style="width:32px"><button class="del-item" onclick="this.closest('tr').remove();calcCustom()">✕</button></td>
-  `;
-  tbody.appendChild(row);
-  calcCustom();
-}
-
+// Tool: technology companies and recurring services
 function calcCustom() {
-  let subtotal = 0;
-  document.querySelectorAll('#custItemsBody tr').forEach(row => {
-    const inputs = row.querySelectorAll('input');
-    if (inputs.length < 3) return;
-    const qty   = parseFloat(inputs[1].value) || 0;
-    const price = parseFloat(inputs[2].value) || 0;
-    const tot   = qty * price;
-    subtotal += tot;
-    const td = row.querySelector('.cu-row-total');
-    if (td) td.textContent = fmt(tot) + ' ر.س';
-  });
-  const taxPct  = parseFloat(document.getElementById('cu_tax')?.value)      || 0;
-  const discount= parseFloat(document.getElementById('cu_discount')?.value) || 0;
-  const taxAmt  = (subtotal - discount) * taxPct / 100;
-  const total   = subtotal - discount + taxAmt;
+  const clients = Math.max(1, parseFloat(document.getElementById('cu_clients')?.value) || 1);
+  const fixed = ['cu_salaries', 'cu_servers', 'cu_tools', 'cu_ops'].reduce((sum, id) =>
+    sum + Math.max(0, parseFloat(document.getElementById(id)?.value) || 0), 0);
+  const variable = Math.max(0, parseFloat(document.getElementById('cu_variable')?.value) || 0);
+  const profitPct = Math.max(0, parseFloat(document.getElementById('cu_profit')?.value) || 0);
+  const taxPct = Math.max(0, parseFloat(document.getElementById('cu_tax')?.value) || 0);
+  const annualDiscount = Math.min(50, Math.max(0, parseFloat(document.getElementById('cu_annualDiscount')?.value) || 0));
+  const perClientCost = fixed / clients + variable;
+  const profitPerClient = perClientCost * profitPct / 100;
+  const monthlyBeforeTax = perClientCost + profitPerClient;
+  const monthly = monthlyBeforeTax * (1 + taxPct / 100);
+  const annual = monthly * 12 * (1 - annualDiscount / 100);
+  const cycle = document.getElementById('cu_cycle')?.value || '1';
+  const displayed = cycle === '12' ? annual : monthly;
 
-  setText('cu_rSub',    fmt(subtotal) + ' ر.س');
-  setText('cu_rDis',    fmt(discount) + ' ر.س');
-  setText('cu_rTax',    fmt(taxAmt)   + ' ر.س');
-  setText('cu_rFinal',  fmt(total)    + ' ر.س');
-  setText('cu_rTaxLbl', `ضريبة (${taxPct}%)`);
-
+  setText('cu_rFixed', fmt(fixed) + ' ر.س');
+  setText('cu_rPerClient', fmt(perClientCost) + ' ر.س');
+  setText('cu_rProfit', fmt(profitPerClient) + ' ر.س');
+  setText('cu_rMonthly', fmt(monthlyBeforeTax) + ' ر.س');
+  setText('cu_rFinal', fmt(displayed) + ' ر.س');
+  setText('cu_rAnnual', fmt(annual) + ' ر.س');
   const el = document.getElementById('customResult');
-  if (el) el.setAttribute('data-amount', total.toFixed(2));
+  if (el) el.setAttribute('data-amount', displayed.toFixed(2));
   saveToolState('calc_custom');
 }
 
@@ -843,29 +858,16 @@ async function saveToolQuote() {
   if (!clientId) { showMsg('يرجى اختيار العميل', true); return; }
 
   const toolLabel = {
-    basic: 'التسعير الأساسي', pkg: 'باقات الاشتراك', menu: 'قائمة المطاعم والكافيهات',
-    labor: 'تكلفة الساعة',    store: 'المتجر الإلكتروني',
-    office: 'تكلفة المكتب',   custom: 'تسعيرة مخصصة',
+    basic: 'تسعير الخدمات', pkg: 'الباقات والاشتراكات', menu: 'قائمة المطاعم والكافيهات',
+    labor: 'المشروع التقني', store: 'منتج التجزئة',
+    office: 'مشروع التصميم', custom: 'الشركة التقنية',
   };
 
-  // For custom tool, use actual items; otherwise single summary item
-  let items, taxRate = 0, discount = 0;
-  if (slug === 'custom') {
-    items = [];
-    document.querySelectorAll('#custItemsBody tr').forEach(row => {
-      const ins = row.querySelectorAll('input');
-      if (ins.length < 3) return;
-      const desc = ins[0].value.trim();
-      const qty  = parseFloat(ins[1].value) || 0;
-      const uprice = parseFloat(ins[2].value) || 0;
-      if (desc) items.push({ description: desc, qty, unit_price: uprice });
-    });
-    taxRate  = parseFloat(document.getElementById('cu_tax')?.value) || 0;
-    discount = parseFloat(document.getElementById('cu_discount')?.value) || 0;
-  } else {
-    items = [{ description: toolLabel[slug] || title, qty: 1, unit_price: amount }];
-    taxRate = 0; // amount already includes tax
-  }
+  // Each specialized calculator already returns its customer-facing total.
+  // Keep the saved quote as one isolated summary item so sectors never share rows.
+  const items = [{ description: toolLabel[slug] || title, qty: 1, unit_price: amount }];
+  const taxRate = 0; // amount already includes tax
+  const discount = 0;
 
   if (!items.length) { showMsg('لا توجد بنود في التسعيرة', true); return; }
 
