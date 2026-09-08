@@ -13,7 +13,7 @@ if ($user) { header('Location: /dashboard'); exit; }
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="تسعيرة منصة سعودية ذكية لحساب الأسعار في سبعة قطاعات">
+  <meta name="description" content="تسعيرة أول منصة سعودية متخصصة في أدوات التسعير وإدارة الخدمات والمنتجات">
   <link rel="icon" type="image/png" href="/assets/logo.png">
   <title>تسعيرة | منصة التسعير العربية</title>
   <link rel="stylesheet" href="/assets/css/app.css?v=<?= filemtime(__DIR__.'/../assets/css/app.css') ?>">
@@ -87,8 +87,8 @@ if ($user) { header('Location: /dashboard'); exit; }
       <h1 data-ar="<em>سعّر</em> بثقة<br><span class='em-gold'>أدِر</span> بذكاء." data-en="<em>Price</em> with confidence,<br><span class='em-gold'>manage</span> with clarity.">
         <em>سعّر</em> بثقة<br><span class="em-gold">أدِر</span> بذكاء.
       </h1>
-      <p class="hero-sub" data-ar="٧ أدوات تسعير متخصصة · قطاعات متعددة · حسابات واضحة — كل ما تحتاجه لتسعّر مشروعك بثقة في منصة عربية واحدة." data-en="7 specialized pricing tools · multiple sectors · clear calculations — everything you need to price confidently in one Arabic platform.">
-        ٧ أدوات تسعير متخصصة · قطاعات متعددة · حسابات واضحة — كل ما تحتاجه لتسعّر مشروعك بثقة في منصة عربية واحدة.
+      <p class="hero-sub" data-ar="أول منصة سعودية متخصصة في أدوات التسعير · قطاعات متعددة · تقارير وسجل مشاريع — كل ما تحتاجه لتنظيم تسعير خدماتك ومنتجاتك في مكان واحد." data-en="Saudi Arabia's first specialized pricing platform for multiple sectors, reports and project records.">
+        أول منصة سعودية متخصصة في أدوات التسعير · قطاعات متعددة · تقارير وسجل مشاريع — كل ما تحتاجه لتنظيم تسعير خدماتك ومنتجاتك في مكان واحد.
       </p>
       <div class="hero-btns">
         <button class="btn btn-primary btn-lg" onclick="showAuth('register')" data-ar="جرّب مجاناً" data-en="Try for free">جرّب مجاناً</button>
@@ -96,7 +96,7 @@ if ($user) { header('Location: /dashboard'); exit; }
       </div>
       <p class="hero-note">
         <span>✦</span>
-         <span data-ar="الوصول المجاني لجميع الأدوات خلال فترة الإطلاق" data-en="Free access to all tools during launch">الوصول المجاني لجميع الأدوات خلال فترة الإطلاق</span>
+         <span data-ar="ابدأ بالخطة المجانية ثم اختر ما يناسب فريقك" data-en="Start free, then choose the plan that fits your team">ابدأ بالخطة المجانية ثم اختر ما يناسب فريقك</span>
       </p>
     </div>
 
@@ -108,29 +108,29 @@ if ($user) { header('Location: /dashboard'); exit; }
           </div>
           <div>
             <div class="hero-card-title">لوحة تحكم تسعيرة</div>
-            <div class="hero-card-sub">نظرة عامة هذا الشهر</div>
+            <div class="hero-card-sub">مساحة عملك في تسعيرة</div>
           </div>
         </div>
         <div class="hero-stat-row">
           <span class="hero-stat-label">أدوات التسعير</span>
-          <span class="hero-stat-val" style="color:var(--p)">٧ أدوات</span>
+           <span class="hero-stat-val" style="color:var(--p)">متعددة القطاعات</span>
         </div>
         <div class="hero-stat-row">
-          <span class="hero-stat-label">إجمالي مقبول</span>
-          <span class="hero-stat-val" style="color:var(--green)">١٢٨,٤٠٠ ر.س</span>
+           <span class="hero-stat-label">تقارير PDF</span>
+           <span class="hero-stat-val" style="color:var(--green)">جاهزة للتصدير</span>
         </div>
         <div class="hero-stat-row">
-          <span class="hero-stat-label">العملاء النشطون</span>
-          <span class="hero-stat-val">١١ عميل</span>
+           <span class="hero-stat-label">سجل المشاريع</span>
+           <span class="hero-stat-val">منظم وواضح</span>
         </div>
         <div class="hero-stat-row">
-          <span class="hero-stat-label">معدل القبول</span>
-          <span class="hero-stat-val" style="color:var(--gold)">٨٧٪</span>
+           <span class="hero-stat-label">مساحة الفريق</span>
+           <span class="hero-stat-val" style="color:var(--gold)">حتى ٤ مستخدمين</span>
         </div>
         <div class="hero-card-tags">
-          <span class="badge badge-accepted">● مقبول</span>
-          <span class="badge badge-sent">● مُرسل</span>
-          <span class="badge badge-draft">● مسودة</span>
+           <span class="badge badge-accepted">● خدمات</span>
+           <span class="badge badge-sent">● منتجات</span>
+           <span class="badge badge-draft">● مشاريع</span>
         </div>
       </div>
     </div>
