@@ -98,39 +98,43 @@ if ($user) { header('Location: /dashboard'); exit; }
         <span>✦</span>
          <span data-ar="ابدأ بالخطة المجانية ثم اختر ما يناسب فريقك" data-en="Start free, then choose the plan that fits your team">ابدأ بالخطة المجانية ثم اختر ما يناسب فريقك</span>
       </p>
+      <div class="hero-trust-stats" aria-label="مزايا المنصة">
+        <div><strong>+5,000</strong><span>تسعيرة منظمة</span></div>
+        <div><strong>٧</strong><span>قطاعات متخصصة</span></div>
+        <div><strong>٣</strong><span>باقات واضحة</span></div>
+      </div>
     </div>
 
     <div class="hero-visual">
-      <div class="hero-card-wrap">
-        <div class="hero-card-header">
-          <div class="hero-card-logo-wrap">
-            <img src="/assets/logo.png" alt="تسعيرة" style="width:100%;height:100%;object-fit:cover;object-position:center 38%;">
+      <div class="hero-art">
+        <div class="hero-art-backdrop"></div>
+        <div class="hero-art-window">
+          <div class="hero-art-sidebar">
+            <img src="/assets/icon.png" alt="تسعيرة">
+            <span class="hero-art-nav active">الرئيسية</span>
+            <span class="hero-art-nav">التسعير</span>
+            <span class="hero-art-nav">العروض</span>
+            <span class="hero-art-nav">العملاء</span>
+            <span class="hero-art-nav">الإعدادات</span>
           </div>
-          <div>
-            <div class="hero-card-title">لوحة تحكم تسعيرة</div>
-            <div class="hero-card-sub">مساحة عملك في تسعيرة</div>
+          <div class="hero-art-content">
+            <div class="hero-art-top">
+              <div><b>مرحباً بك،</b><span>لنبدأ تسعير مشروعك الجديد</span></div>
+              <span class="hero-art-avatar">ت</span>
+            </div>
+            <div class="hero-art-search">⌕ <span>ابحث في أدوات التسعير</span></div>
+            <div class="hero-art-kpis">
+              <div><strong>١٢</strong><span>مشروعاً</span></div>
+              <div><strong>٧</strong><span>قطاعات</span></div>
+              <div><strong>٣</strong><span>باقات</span></div>
+            </div>
+            <div class="hero-art-section-title">أدوات التسعير</div>
+            <div class="hero-art-tools">
+              <div><span>◫</span><b>تسعير الخدمات</b></div>
+              <div><span>▣</span><b>قائمة المطاعم</b></div>
+              <div><span>⌂</span><b>التصميم الداخلي</b></div>
+            </div>
           </div>
-        </div>
-        <div class="hero-stat-row">
-          <span class="hero-stat-label">أدوات التسعير</span>
-           <span class="hero-stat-val" style="color:var(--p)">متعددة القطاعات</span>
-        </div>
-        <div class="hero-stat-row">
-           <span class="hero-stat-label">تقارير PDF</span>
-           <span class="hero-stat-val" style="color:var(--green)">جاهزة للتصدير</span>
-        </div>
-        <div class="hero-stat-row">
-           <span class="hero-stat-label">سجل المشاريع</span>
-           <span class="hero-stat-val">منظم وواضح</span>
-        </div>
-        <div class="hero-stat-row">
-           <span class="hero-stat-label">مساحة الفريق</span>
-           <span class="hero-stat-val" style="color:var(--gold)">حتى ٤ مستخدمين</span>
-        </div>
-        <div class="hero-card-tags">
-           <span class="badge badge-accepted">● خدمات</span>
-           <span class="badge badge-sent">● منتجات</span>
-           <span class="badge badge-draft">● مشاريع</span>
         </div>
       </div>
     </div>
@@ -380,6 +384,9 @@ if ($user) { header('Location: /dashboard'); exit; }
     <div class="footer-bottom">
       <span>© <?= date('Y') ?> تسعيرة — جميع الحقوق محفوظة</span>
       <span>🇸🇦 المملكة العربية السعودية</span>
+      <a class="qirox-credit" href="https://qiroxstudio.online" target="_blank" rel="noopener noreferrer">
+        Made by <strong>Qirox Studio Group</strong>
+      </a>
     </div>
   </div>
 </footer>

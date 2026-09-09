@@ -4,5 +4,7 @@ window.TAS3EERAH_BRAND = Object.freeze({
   logo: 'assets/brand-logo-transparent.png',
   sourceLogo: 'assets/brand-logo-source.png',
   supportEmail: 'info@tas3eerah.com',
-  website: 'tas3eerah.com'
+  website: 'tas3eerah.com',
+  studio: 'Qirox Studio Group',
+  studioUrl: 'https://qiroxstudio.online'
 });

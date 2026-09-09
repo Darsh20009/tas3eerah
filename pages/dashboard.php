@@ -198,6 +198,17 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
 
     <!-- ══ OVERVIEW ══ -->
     <div class="section-panel" id="panel-overview">
+      <div class="dashboard-welcome">
+        <div>
+          <span class="dashboard-welcome-kicker">لوحة العمل</span>
+          <h1>مرحباً بك، <?= htmlspecialchars($user['name']) ?></h1>
+          <p>كل ما تحتاجه لتسعير مشاريعك بوضوح، في مساحة واحدة هادئة ومنظمة.</p>
+        </div>
+        <div class="dashboard-welcome-mark">
+          <img src="/assets/icon.png" alt="">
+          <span>PRICE<br>WITH<br>CLARITY</span>
+        </div>
+      </div>
       <div class="stats-grid" id="statsGrid">
         <?php
         $month = date('Y-m');
@@ -1078,6 +1089,10 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
     </div>
     <?php endif; ?>
 
+    <footer class="workspace-footer">
+      <span>© <?= date('Y') ?> تسعيرة</span>
+      <a href="https://qiroxstudio.online" target="_blank" rel="noopener noreferrer">Made by <strong>Qirox Studio Group</strong></a>
+    </footer>
   </div><!-- /workspace -->
 </div><!-- /main-area -->
 </div><!-- /app-shell -->
