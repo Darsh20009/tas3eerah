@@ -189,6 +189,15 @@ if ($user) { header('Location: /dashboard'); exit; }
   </div>
 </section>
 
+<section class="market-strip" aria-label="نظرة سريعة على المنصة">
+  <div class="market-strip-inner">
+    <div><strong>٧</strong><span>قطاعات متخصصة</span></div>
+    <div><strong>٣</strong><span>باقات واضحة</span></div>
+    <div><strong>PDF</strong><span>تقارير قابلة للطباعة</span></div>
+    <div><strong>AR</strong><span>تجربة عربية بالكامل</span></div>
+  </div>
+</section>
+
 <!-- ═══ الأسعار ═══ -->
 <?php if (!OPEN_ACCESS_MODE): ?><div class="pricing-section">
 <section id="pricing" class="pricing">

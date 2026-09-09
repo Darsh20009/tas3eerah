@@ -248,6 +248,42 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
         <?php endforeach; ?>
       </div>
 
+      <div class="overview-grid">
+        <div class="card overview-quick-card">
+          <div class="card-header">
+            <div>
+              <span class="overview-kicker">ابدأ من هنا</span>
+              <h3>أدواتك السريعة</h3>
+            </div>
+            <span class="overview-card-mark">T</span>
+          </div>
+          <div class="overview-quick-list">
+            <button onclick="navDirect('tools');setTimeout(()=>openTool('calc_basic'),80)">
+              <span class="overview-quick-icon">01</span><span><b>تسعير الخدمات</b><small>للمشاريع والخدمات اليومية</small></span><strong>←</strong>
+            </button>
+            <button onclick="navDirect('tools');setTimeout(()=>openTool('calc_pkg'),80)">
+              <span class="overview-quick-icon">02</span><span><b>الباقات والاشتراكات</b><small>وزّع التكلفة على مستوياتك</small></span><strong>←</strong>
+            </button>
+            <button onclick="navDirect('tools');setTimeout(()=>openTool('calc_labor'),80)">
+              <span class="overview-quick-icon">03</span><span><b>المشاريع التقنية</b><small>احسب الوقت والموارد والنطاق</small></span><strong>←</strong>
+            </button>
+          </div>
+        </div>
+        <div class="card overview-plan-card">
+          <div class="card-header">
+            <div>
+              <span class="overview-kicker">مساحة العمل</span>
+              <h3>خطتك الحالية</h3>
+            </div>
+            <span class="badge badge-<?= htmlspecialchars($effectivePlan) ?>"><?= htmlspecialchars($planName) ?></span>
+          </div>
+          <div class="overview-plan-price"><?= $plan['price'] === 0 ? 'مجاني' : number_format($plan['price']) . ' ر.س' ?><small><?= $plan['price'] === 0 ? 'ابدأ الآن بدون التزام' : 'شهرياً' ?></small></div>
+          <div class="overview-plan-line"><span>التسعيرات الشهرية</span><b><?= $plan['max_quotes'] === -1 ? 'غير محدود' : $plan['max_quotes'] ?></b></div>
+          <div class="overview-plan-line"><span>تقارير PDF</span><b><?= $plan['max_pdf_reports'] === -1 ? 'غير محدود' : $plan['max_pdf_reports'] ?></b></div>
+          <button class="btn btn-outline w-full" onclick="navDirect('tools')">عرض كل الأدوات</button>
+        </div>
+      </div>
+
       <!-- Recent quotes -->
       <div class="card">
         <div class="card-header">

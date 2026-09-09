@@ -1326,6 +1326,21 @@ select.form-control { cursor: pointer; }
 .hero-art-tools b { font-size: 8px; }
 .qirox-credit { color: rgba(255,255,255,.55); font-size: 11px; direction: ltr; }
 .qirox-credit:hover { color: var(--gold); }
+.market-strip { background: var(--p-d); color: #fff; border-top: 1px solid rgba(255,255,255,.05); border-bottom: 1px solid rgba(255,255,255,.05); }
+.market-strip-inner { max-width: 1140px; margin: auto; padding: 22px 24px; display: grid; grid-template-columns: repeat(4,1fr); }
+.market-strip-inner > div { padding: 3px 22px; border-right: 1px solid rgba(255,255,255,.14); display: flex; align-items: baseline; gap: 9px; }
+.market-strip-inner > div:first-child { border-right: 0; }
+.market-strip strong { color: var(--gold); font: 800 22px/1 Hurme, Arial, sans-serif; direction: ltr; }
+.market-strip span { color: rgba(255,255,255,.68); font-size: 11px; }
+.plan-card.featured { background: var(--p-d); color: #fff; border-color: var(--p-d); }
+.plan-card.featured .plan-name, .plan-card.featured .plan-desc { color: rgba(255,255,255,.72); }
+.plan-card.featured .plan-price { color: #fff; }
+.plan-card.featured .plan-price span, .plan-card.featured .plan-features li { color: rgba(255,255,255,.8); }
+.plan-card.featured .plan-features li { border-bottom-color: rgba(255,255,255,.12); }
+.plan-card.featured .plan-check { color: var(--gold); }
+.plan-card.featured .btn-primary { background: var(--gold); border-color: var(--gold); color: #fff; }
+.plan-card.featured .btn-primary:hover { background: var(--gold-d); border-color: var(--gold-d); }
+.plan-card.featured:hover { border-color: var(--gold); }
 
 /* لوحة التحكم أقرب إلى لوحة العمل المرجعية */
 .app-shell { background: #f4f3ee; }
@@ -1367,6 +1382,21 @@ select.form-control { cursor: pointer; }
 .stat-card { border-radius: 9px; padding: 16px; background: #fff; box-shadow: 0 2px 9px rgba(26,43,32,.035); }
 .stat-card:hover { box-shadow: 0 4px 14px rgba(26,43,32,.07); }
 .card { box-shadow: 0 2px 9px rgba(26,43,32,.035); border-radius: 10px; }
+.overview-grid { display: grid; grid-template-columns: 1.35fr .85fr; gap: 12px; margin-bottom: 16px; }
+.overview-kicker { color: var(--gold-d); font-size: 10px; font-weight: 800; display: block; margin-bottom: 3px; }
+.overview-card-mark { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px; background: var(--p-l); color: var(--p); font: 700 15px Hurme, Arial, sans-serif; }
+.overview-quick-list { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.overview-quick-list button { min-height: 90px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--card-warm); text-align: right; display: flex; flex-direction: column; align-items: flex-start; gap: 7px; transition: .15s; }
+.overview-quick-list button:hover { border-color: var(--p); background: var(--p-l); }
+.overview-quick-icon { color: var(--gold-d); font: 700 11px Hurme, Arial, sans-serif; direction: ltr; }
+.overview-quick-list b { display: block; color: var(--text); font-size: 11px; }
+.overview-quick-list small { display: block; color: var(--muted); font-size: 9px; margin-top: 2px; }
+.overview-quick-list strong { margin-top: auto; color: var(--p); font-size: 15px; }
+.overview-plan-price { color: var(--p); font-size: 25px; font-weight: 900; line-height: 1.1; margin-bottom: 18px; }
+.overview-plan-price small { display: block; color: var(--muted); font-size: 10px; font-weight: 400; margin-top: 5px; }
+.overview-plan-line { display: flex; justify-content: space-between; padding: 9px 0; border-top: 1px solid var(--line2); color: var(--muted); font-size: 11px; }
+.overview-plan-line b { color: var(--text); }
+.overview-plan-card .btn { margin-top: 13px; }
 .workspace-footer {
   max-width: 1320px; margin: 26px auto 0; padding-top: 15px; border-top: 1px solid var(--line);
   color: var(--muted2); display: flex; justify-content: space-between; gap: 10px;
@@ -1388,4 +1418,10 @@ select.form-control { cursor: pointer; }
   .dashboard-welcome-mark { display: none; }
   .workspace { padding: 16px 13px 34px; }
   .workspace-footer { flex-direction: column; align-items: center; }
+  .market-strip-inner { grid-template-columns: 1fr 1fr; gap: 12px 0; }
+  .market-strip-inner > div:nth-child(3) { border-right: 0; }
+  .overview-grid { grid-template-columns: 1fr; }
+  .overview-quick-list { grid-template-columns: 1fr; }
+  .overview-quick-list button { min-height: 68px; flex-direction: row; align-items: center; }
+  .overview-quick-list strong { margin-right: auto; margin-top: 0; }
 }
