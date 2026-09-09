@@ -191,10 +191,10 @@ if ($user) { header('Location: /dashboard'); exit; }
 
 <section class="market-strip" aria-label="نظرة سريعة على المنصة">
   <div class="market-strip-inner">
+    <div class="market-strip-copy"><strong>منصة واضحة للسوق السعودي</strong><span>تسعير عملي بهوية عربية</span></div>
     <div><strong>٧</strong><span>قطاعات متخصصة</span></div>
     <div><strong>٣</strong><span>باقات واضحة</span></div>
     <div><strong>PDF</strong><span>تقارير قابلة للطباعة</span></div>
-    <div><strong>AR</strong><span>تجربة عربية بالكامل</span></div>
   </div>
 </section>
 
