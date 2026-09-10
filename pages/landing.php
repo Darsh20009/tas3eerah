@@ -70,13 +70,13 @@ if ($user) { header('Location: /dashboard'); exit; }
 
 <!-- ═══ قائمة موبايل ═══ -->
 <div class="land-mobile-menu" id="landMobileMenu">
-  <a href="#features" onclick="closeLandMenu()">المميزات</a>
-  <a href="#pricing"  onclick="closeLandMenu()">الأسعار</a>
-  <a href="#about"    onclick="closeLandMenu()">من نحن</a>
-  <a href="#contact"  onclick="closeLandMenu()">تواصل معنا</a>
+  <a href="#features" onclick="closeLandMenu()" data-ar="المميزات" data-en="Features">المميزات</a>
+  <a href="#pricing"  onclick="closeLandMenu()" data-ar="الأسعار" data-en="Pricing">الأسعار</a>
+  <a href="#about"    onclick="closeLandMenu()" data-ar="من نحن" data-en="About">من نحن</a>
+  <a href="#contact"  onclick="closeLandMenu()" data-ar="تواصل معنا" data-en="Contact us">تواصل معنا</a>
   <div class="lmm-actions">
-    <button class="btn btn-ghost"   onclick="closeLandMenu();showAuth('login')">تسجيل الدخول</button>
-    <button class="btn btn-primary" onclick="closeLandMenu();showAuth('register')">ابدأ مجاناً</button>
+    <button class="btn btn-ghost"   onclick="closeLandMenu();showAuth('login')" data-ar="تسجيل الدخول" data-en="Sign in">تسجيل الدخول</button>
+    <button class="btn btn-primary" onclick="closeLandMenu();showAuth('register')" data-ar="ابدأ مجاناً" data-en="Start free">ابدأ مجاناً</button>
   </div>
 </div>
 
@@ -168,10 +168,10 @@ if ($user) { header('Location: /dashboard'); exit; }
     <div class="market-strip-brand">
       <img src="/assets/icon.png" alt="تسعيرة">
     </div>
-    <div class="market-strip-stat"><strong>98%</strong><span>رضا العملاء</span></div>
-    <div class="market-strip-stat"><strong>+5,000</strong><span>مشاريع منظمة</span></div>
-    <div class="market-strip-stat"><strong>٧</strong><span>قطاعات متخصصة</span></div>
-    <div class="market-strip-copy"><strong>منصة للسوق السعودي</strong><span>تسعير عملي بهوية عربية</span></div>
+    <div class="market-strip-stat"><strong>98%</strong><span data-ar="رضا العملاء" data-en="Customer satisfaction">رضا العملاء</span></div>
+    <div class="market-strip-stat"><strong>+5,000</strong><span data-ar="مشاريع منظمة" data-en="Organized projects">مشاريع منظمة</span></div>
+    <div class="market-strip-stat"><strong>٧</strong><span data-ar="قطاعات متخصصة" data-en="Specialized sectors">قطاعات متخصصة</span></div>
+    <div class="market-strip-copy"><strong data-ar="منصة للسوق السعودي" data-en="Built for the Saudi market">منصة للسوق السعودي</strong><span data-ar="تسعير عملي بهوية عربية" data-en="Practical pricing with an Arabic identity">تسعير عملي بهوية عربية</span></div>
   </div>
 </section>
 
@@ -339,37 +339,37 @@ if ($user) { header('Location: /dashboard'); exit; }
           </div>
         </div>
         <div class="footer-gold-line"></div>
-        <p style="font-size:12px;color:rgba(255,255,255,.55);line-height:2;max-width:260px">أول منصة سعودية متخصصة في أدوات التسعير وإدارة الخدمات والمنتجات.</p>
+        <p style="font-size:12px;color:rgba(255,255,255,.55);line-height:2;max-width:260px" data-ar="أول منصة سعودية متخصصة في أدوات التسعير وإدارة الخدمات والمنتجات." data-en="Saudi Arabia's first specialized platform for pricing tools and service and product management.">أول منصة سعودية متخصصة في أدوات التسعير وإدارة الخدمات والمنتجات.</p>
       </div>
       <div>
-        <div class="footer-col-title">المنصة</div>
+        <div class="footer-col-title" data-ar="المنصة" data-en="Platform">المنصة</div>
         <div class="footer-links">
-          <a href="#features">المميزات</a>
-          <a href="#pricing">الأسعار</a>
-          <a href="#about">من نحن</a>
-          <a href="#contact">تواصل</a>
+          <a href="#features" data-ar="المميزات" data-en="Features">المميزات</a>
+          <a href="#pricing" data-ar="الأسعار" data-en="Pricing">الأسعار</a>
+          <a href="#about" data-ar="من نحن" data-en="About">من نحن</a>
+          <a href="#contact" data-ar="تواصل" data-en="Contact">تواصل</a>
         </div>
       </div>
       <div>
-        <div class="footer-col-title">الحساب</div>
+        <div class="footer-col-title" data-ar="الحساب" data-en="Account">الحساب</div>
         <div class="footer-links">
-          <span onclick="showAuth('login')">تسجيل الدخول</span>
-          <span onclick="showAuth('register')">إنشاء حساب</span>
+          <span onclick="showAuth('login')" data-ar="تسجيل الدخول" data-en="Sign in">تسجيل الدخول</span>
+          <span onclick="showAuth('register')" data-ar="إنشاء حساب" data-en="Create account">إنشاء حساب</span>
         </div>
       </div>
       <div>
-        <div class="footer-col-title">القانوني</div>
+        <div class="footer-col-title" data-ar="القانوني" data-en="Legal">القانوني</div>
         <div class="footer-links">
-          <span onclick="showPolicy('privacy')">سياسة الخصوصية</span>
-          <span onclick="showPolicy('terms')">شروط الاستخدام</span>
-          <span onclick="showPolicy('refund')">سياسة الإلغاء</span>
-          <span onclick="showPolicy('cookies')">الكوكيز</span>
+          <span onclick="showPolicy('privacy')" data-ar="سياسة الخصوصية" data-en="Privacy policy">سياسة الخصوصية</span>
+          <span onclick="showPolicy('terms')" data-ar="شروط الاستخدام" data-en="Terms of use">شروط الاستخدام</span>
+          <span onclick="showPolicy('refund')" data-ar="سياسة الإلغاء" data-en="Cancellation policy">سياسة الإلغاء</span>
+          <span onclick="showPolicy('cookies')" data-ar="الكوكيز" data-en="Cookies">الكوكيز</span>
         </div>
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© <?= date('Y') ?> تسعيرة — جميع الحقوق محفوظة</span>
-      <span>🇸🇦 المملكة العربية السعودية</span>
+       <span data-ar="© <?= date('Y') ?> تسعيرة — جميع الحقوق محفوظة" data-en="© <?= date('Y') ?> Tas3eerah — All rights reserved">© <?= date('Y') ?> تسعيرة — جميع الحقوق محفوظة</span>
+       <span data-ar="🇸🇦 المملكة العربية السعودية" data-en="🇸🇦 Saudi Arabia">🇸🇦 المملكة العربية السعودية</span>
       <a class="qirox-credit" href="https://qiroxstudio.online" target="_blank" rel="noopener noreferrer">
         Made by <strong>Qirox Studio Group</strong>
       </a>
@@ -553,7 +553,71 @@ if ($user) { header('Location: /dashboard'); exit; }
 
 <script>
 /* ══ حالة اللغة ══ */
-const LANG = { current: 'ar' };
+const LANG = { current: localStorage.getItem('tas3-lang') || 'ar' };
+const LANDING_TRANSLATIONS = {
+  'سياسة الخصوصية':'Privacy policy', 'شروط الاستخدام':'Terms of use',
+  'سياسة الإلغاء والاسترداد':'Cancellation and refund policy', 'سياسة الكوكيز':'Cookie policy',
+  'آخر تحديث:':'Last updated:', 'المعلومات التي نجمعها':'Information we collect',
+  'استخدام المعلومات':'How we use information', 'الأمان':'Security', 'حقوقك':'Your rights',
+  'قبول الشروط':'Acceptance of terms', 'الاستخدام المسموح':'Permitted use',
+  'الملكية الفكرية':'Intellectual property', 'إلغاء الاشتراك':'Subscription cancellation',
+  'الاسترداد':'Refunds', 'الكوكيز التي نستخدمها':'Cookies we use',
+  'نجمع المعلومات التي تقدمها مباشرةً عند إنشاء حساب (الاسم البريد الإلكتروني كلمة المرور المشفرة). لا نجمع بيانات الدفع مباشرةً.':'We collect information you provide when creating an account (name, email and encrypted password). We do not collect payment details directly.',
+  'نستخدم بياناتك لتشغيل الخدمة وتحسين التجربة. لا نبيع بياناتك ولا نشاركها مع أطراف ثالثة لأغراض تسويقية.':'We use your data to operate the service and improve the experience. We do not sell your data or share it with third parties for marketing.',
+  'كلمات المرور مشفرة بخوارزمية bcrypt. نطبق بروتوكولات أمان معيارية لحماية بياناتك.':'Passwords are encrypted with bcrypt. We apply standard security practices to protect your data.',
+  'يحق لك الاطلاع على بياناتك أو طلب حذفها. تواصل معنا على info@tas3eerah.com':'You may review or request deletion of your data. Contact us at info@tas3eerah.com',
+  'باستخدامك للمنصة فأنت توافق على هذه الشروط وتلتزم بها.':'By using the platform, you agree to and will comply with these terms.',
+  'تلتزم بالاستخدام للأغراض المشروعة فقط وفق الأنظمة المعمول بها في المملكة العربية السعودية.':'You agree to use the platform only for lawful purposes under the applicable laws of Saudi Arabia.',
+  'جميع محتويات المنصة محمية بموجب حقوق الملكية الفكرية وتعود لـ تسعيرة.':'All platform content is protected by intellectual property rights and belongs to Tas3eerah.',
+  'يمكنك إلغاء اشتراكك في أي وقت. تبقى مزاياك حتى نهاية الفترة المدفوعة.':'You can cancel your subscription at any time. Your benefits remain available until the end of the paid period.',
+  'نُقدم استرداداً كاملاً خلال ٧ أيام من الاشتراك الأول إذا لم تستخدم الميزات المدفوعة.':'We provide a full refund within 7 days of the first subscription if you have not used paid features.',
+  'كوكي الجلسة الضرورية لتسجيل الدخول. تنتهي تلقائياً خلال ٣٠ يوماً أو عند تسجيل الخروج. لا نستخدم كوكيز تتبعية أو تسويقية.':'The session cookie required for sign-in. It expires automatically after 30 days or when you sign out. We do not use tracking or marketing cookies.',
+  'يرجى تعبئة جميع الحقول':'Please fill in all fields',
+  'تم استلام رسالتك وسنرد خلال يوم عمل.':'Your message was received. We will reply within one business day.',
+  'يرجى إدخال البريد وكلمة المرور':'Please enter your email and password',
+  'كلمة المرور يجب أن تكون ٨ أحرف على الأقل':'Password must be at least 8 characters',
+  'خطأ في إنشاء الحساب':'Unable to create the account', 'خطأ في تسجيل الدخول':'Unable to sign in',
+  'تسعيرة منظمة':'Organized quotes', 'قطاعات متخصصة':'Specialized sectors', 'باقات واضحة':'Clear plans',
+  'المملكة العربية السعودية':'Saudi Arabia', 'لوحة منصة تسعيرة':'Tas3eerah workspace',
+  'الأكثر طلباً':'Most popular', 'مجاني':'Free', 'ر.س / شهر':'SAR / month',
+  '٥ تسعيرات للخدمات أو المنتجات شهرياً':'5 service or product quotes per month',
+  'تصدير ٣ تقارير PDF':'Export 3 PDF reports', 'سجل يعرض ٣ خدمات أو منتجات':'Record 3 services or products',
+  'مستخدم واحد':'One user', 'دعم عبر البريد خلال ٣ أيام':'Email support within 3 days',
+  'اختيار أداتي تسعير حسب احتياجك':'Choose 2 pricing tools for your needs',
+  '١٥ تسعيراً للخدمات أو المنتجات شهرياً':'15 service or product quotes per month',
+  'تصدير ١٥ تقرير PDF':'Export 15 PDF reports', 'سجل مشاريع كامل':'Full project record',
+  'مستخدمان':'Two users', 'دعم عبر البريد خلال ٤٨ ساعة':'Email support within 48 hours',
+  'اختيار ٣ أدوات تسعير حسب احتياجك':'Choose 3 pricing tools for your needs',
+  'تسعير غير محدود للخدمات أو المنتجات':'Unlimited service or product pricing',
+  'حتى ٤ مستخدمين للفريق':'Up to 4 team users', 'رسائل داخلية بين أعضاء الفريق':'Internal team messaging',
+  'تقارير PDF غير محدودة مع شعار العميل':'Unlimited PDF reports with your logo',
+  'أولوية الدعم خلال ٢٤ ساعة عبر البريد وواتساب':'Priority support within 24 hours by email and WhatsApp',
+  'ابدأ الآن':'Start now', 'جاهز للبدء النظام يعمل الآن.':'Ready to start? The platform is live.',
+  'سجّل حسابك في أقل من دقيقة وابدأ بالتسعير':'Create your account in under a minute and start pricing',
+  'أنشئ حسابك':'Create your account', 'سعودية':'Saudi', 'هوية ومنهجية محلية':'Local identity and methodology',
+  'قيمنا':'Our Values', 'الشفافية':'Transparency', 'الاحترافية':'Professionalism', 'البساطة':'Simplicity',
+  'لديك سؤال؟':'Have a question?', 'فريقنا يرد خلال يوم عمل واحد.':'Our team replies within one business day.',
+  'البريد الإلكتروني':'Email', 'الموقع الرسمي':'Official website', 'أرسل رسالة':'Send a message',
+  'الاسم':'Name', 'اسمك الكريم':'Your name', 'الرسالة':'Message', 'اكتب رسالتك هنا...':'Write your message here...',
+  'إرسال الرسالة':'Send message', 'نلتزم بالخصوصية ولا نشارك بياناتك':'We respect your privacy and do not share your data',
+  'القائمة':'Menu', 'تسعيرة':'Tas3eerah', 'أول منصة سعودية':'Saudi Arabia’s first platform'
+};
+const LANDING_TRANSLATIONS_REVERSE = Object.fromEntries(
+  Object.entries(LANDING_TRANSLATIONS).map(([ar, en]) => [en, ar])
+);
+function translateLandingText(text) {
+  if (!text) return text;
+  const source = LANG.current === 'en' ? LANDING_TRANSLATIONS : LANDING_TRANSLATIONS_REVERSE;
+  return Object.entries(source)
+    .sort((a, b) => b[0].length - a[0].length)
+    .reduce((value, [from, to]) => {
+      const escaped = from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const isArabic = /[\u0600-\u06ff]/.test(from);
+      const boundary = isArabic ? '\\u0600-\\u06ff' : 'A-Za-z';
+      return value.replace(new RegExp(`(?<![${boundary}])${escaped}(?![${boundary}])`, 'g'), to);
+    }, text)
+    .replace(LANG.current === 'en' ? /[٠-٩]/g : /$^/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+}
 
 /* ══ قائمة الموبايل ══ */
 function toggleLandMenu() {
@@ -580,17 +644,39 @@ function closeLandMenu() {
 window.addEventListener('resize', () => { if (window.innerWidth > 768) closeLandMenu(); });
 
 /* ══ تبديل اللغة ══ */
-function toggleLang() {
-  LANG.current = LANG.current === 'ar' ? 'en' : 'ar';
+function applyLandingLanguage() {
   const isAr = LANG.current === 'ar';
   document.documentElement.lang = LANG.current;
   document.documentElement.dir  = isAr ? 'rtl' : 'ltr';
-  document.getElementById('langBtn').textContent = isAr ? 'EN' : 'AR';
+  document.title = isAr ? 'تسعيرة | أول منصة سعودية للتسعير' : 'Tas3eerah | Saudi pricing platform';
+  const langBtn = document.getElementById('langBtn');
+  if (langBtn) langBtn.textContent = isAr ? 'EN' : 'AR';
   document.querySelectorAll('[data-ar]').forEach(el => {
     const val = el.getAttribute('data-' + LANG.current);
     if (val !== null) el.innerHTML = val;
   });
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    const parent = node.parentElement;
+    if (parent && !['SCRIPT', 'STYLE'].includes(parent.tagName) && node.nodeValue.trim()) nodes.push(node);
+  }
+  nodes.forEach(node => { node.nodeValue = translateLandingText(node.nodeValue); });
+  document.querySelectorAll('input[placeholder], textarea[placeholder], [aria-label]').forEach(el => {
+    if (el.placeholder) el.placeholder = translateLandingText(el.placeholder);
+    if (el.getAttribute('aria-label')) el.setAttribute('aria-label', translateLandingText(el.getAttribute('aria-label')));
+  });
+  if (ACTIVE_POLICY) showPolicy(ACTIVE_POLICY);
+  localStorage.setItem('tas3-lang', LANG.current);
 }
+function toggleLang() {
+  LANG.current = LANG.current === 'ar' ? 'en' : 'ar';
+  applyLandingLanguage();
+}
+document.addEventListener('DOMContentLoaded', () => {
+  if (LANG.current === 'en') applyLandingLanguage();
+});
 
 /* ══ نافذة المصادقة ══ */
 function showAuth(tab) {
@@ -613,7 +699,7 @@ function hideAuth() {
 }
 function showErr(msg) {
   const el = document.getElementById('authError');
-  el.textContent = msg; el.classList.remove('hidden');
+  el.textContent = translateLandingText(msg); el.classList.remove('hidden');
   el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
@@ -692,6 +778,7 @@ document.addEventListener('keydown', e => {
 });
 
 /* ══ السياسات ══ */
+let ACTIVE_POLICY = null;
 const POLICIES = {
   privacy: {
     title: 'سياسة الخصوصية',
@@ -733,12 +820,14 @@ const POLICIES = {
 
 function showPolicy(key) {
   const p = POLICIES[key]; if (!p) return;
+  ACTIVE_POLICY = key;
   document.getElementById('policyContent').innerHTML =
-    `<h2 style="font-size:22px;font-weight:900;margin-bottom:8px">${p.title}</h2>${p.body}`;
+    `<h2 style="font-size:22px;font-weight:900;margin-bottom:8px">${translateLandingText(p.title)}</h2>${translateLandingText(p.body)}`;
   document.getElementById('policyOverlay').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
 }
 function hidePolicyModal() {
+  ACTIVE_POLICY = null;
   document.getElementById('policyOverlay').classList.add('hidden');
   document.body.style.overflow = '';
 }
@@ -751,10 +840,10 @@ function submitContact() {
   const fb    = document.getElementById('ctFeedback');
   if (!name || !email || !msg) {
     fb.style.display = 'block'; fb.style.color = 'var(--red)';
-    fb.textContent = 'يرجى تعبئة جميع الحقول'; return;
+    fb.textContent = translateLandingText('يرجى تعبئة جميع الحقول'); return;
   }
   fb.style.display = 'block'; fb.style.color = 'var(--green)';
-  fb.textContent = 'تم استلام رسالتك وسنرد خلال يوم عمل.';
+  fb.textContent = translateLandingText('تم استلام رسالتك وسنرد خلال يوم عمل.');
   document.getElementById('ctName').value  = '';
   document.getElementById('ctEmail').value = '';
   document.getElementById('ctMsg').value   = '';

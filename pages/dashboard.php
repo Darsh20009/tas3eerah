@@ -76,7 +76,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
   </a>
   <div class="sb-gold-stripe"></div>
   <div class="sb-user">
-    <div class="sb-user-name"><?= htmlspecialchars($user['name']) ?></div>
+     <div class="sb-user-name user-content"><?= htmlspecialchars($user['name']) ?></div>
     <div class="sb-user-role"><?= $roleLabel ?></div>
     <div class="sb-plan"><?= $planName ?></div>
   </div>
@@ -96,7 +96,10 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
     </button>
     <?php endif; ?>
     <button class="sb-item" data-panel="quotes" onclick="nav(this)">
-      <span class="sb-icon">◧</span> <?= $role === 'admin' ? 'كل عروض الأسعار' : 'عروضي' ?>
+      <span class="sb-icon">◧</span>
+      <span data-ar="<?= $role === 'admin' ? 'كل عروض الأسعار' : 'عروضي' ?>" data-en="<?= $role === 'admin' ? 'All quotes' : 'My quotes' ?>">
+        <?= $role === 'admin' ? 'كل عروض الأسعار' : 'عروضي' ?>
+      </span>
     </button>
     <?php endif; ?>
 
@@ -322,8 +325,8 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
           <thead><tr>
             <th>رقم العرض</th>
             <th>العنوان</th>
-            <?= $role !== 'client' ? '<th>العميل</th>' : '' ?>
-            <?= $role !== 'employee' ? '<th>الموظف</th>' : '' ?>
+            <?= $role !== 'client' ? '<th data-ar="العميل" data-en="Client">العميل</th>' : '' ?>
+            <?= $role !== 'employee' ? '<th data-ar="الموظف" data-en="Employee">الموظف</th>' : '' ?>
             <th>الإجمالي</th>
             <th>الحالة</th>
           </tr></thead>
@@ -331,9 +334,9 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
           <?php foreach ($recentQ as $q): ?>
           <tr>
             <td><code><?= htmlspecialchars($q['number']) ?></code></td>
-            <td><?= htmlspecialchars($q['title']) ?></td>
-            <?= $role !== 'client' ? '<td>' . htmlspecialchars($q['client_name'] ?? '-') . '</td>' : '' ?>
-            <?= $role !== 'employee' ? '<td>' . htmlspecialchars($q['employee_name'] ?? '-') . '</td>' : '' ?>
+            <td class="user-content"><?= htmlspecialchars($q['title']) ?></td>
+            <?= $role !== 'client' ? '<td class="user-content">' . htmlspecialchars($q['client_name'] ?? '-') . '</td>' : '' ?>
+            <?= $role !== 'employee' ? '<td class="user-content">' . htmlspecialchars($q['employee_name'] ?? '-') . '</td>' : '' ?>
             <td><?= number_format($q['total'], 0) ?> ر.س</td>
             <td><span class="badge badge-<?= $q['status'] ?>"><?= statusLabel($q['status']) ?></span></td>
           </tr>
@@ -363,8 +366,8 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
         <table class="data-table" id="quotesTable">
           <thead><tr>
             <th>رقم</th><th>العنوان</th>
-            <?php if ($role !== 'client'): ?><th>العميل</th><?php endif; ?>
-            <?php if ($role !== 'employee'): ?><th>الموظف</th><?php endif; ?>
+            <?php if ($role !== 'client'): ?><th data-ar="العميل" data-en="Client">العميل</th><?php endif; ?>
+            <?php if ($role !== 'employee'): ?><th data-ar="الموظف" data-en="Employee">الموظف</th><?php endif; ?>
             <th>الإجمالي</th><th>الحالة</th><th>التاريخ</th><th>إجراء</th>
           </tr></thead>
           <tbody id="quotesTbody"><tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">جارٍ التحميل...</td></tr></tbody>
@@ -1289,7 +1292,7 @@ const APP = <?= json_encode([
   'name'          => $user['name'],
 ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 </script>
-<script src="/assets/js/app.js"></script>
+<script src="/assets/js/app.js?v=lang-1"></script>
 </body>
 </html>
 

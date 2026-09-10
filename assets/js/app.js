@@ -5,7 +5,303 @@
 'use strict';
 
 // ─── LANGUAGE ────────────────────────────
-const L = { current: 'ar' };
+const L = { current: localStorage.getItem('tas3-lang') || 'ar' };
+
+const UI_TRANSLATIONS = {
+  'نظرة عامة':'Overview', 'عروض الأسعار':'Quotes', 'عرض سعر جديد':'New Quote',
+  'العملاء':'Clients', 'الرسائل':'Messages', 'أدوات التسعير':'Pricing Tools',
+  'إدارة المستخدمين':'User Management', 'الاشتراكات':'Subscriptions',
+  'رسائل التواصل':'Contact Messages', 'سجل النشاط':'Activity Log',
+  'إعدادات النظام':'System Settings', 'حسابي':'My Account',
+  'الرئيسية':'Home', 'الصفحة الرئيسية':'Home', 'عروض سعر':'Quotes',
+  'عرض سعر':'Quote', 'طلب تسعيرة جديدة':'Request a Quote', 'تسعيراتي':'My Quotes',
+  'خطة الاشتراك':'Subscription Plan', 'التواصل':'Communication', 'الأدوات':'Tools',
+  'الإدارة':'Administration', 'الحساب':'Account', 'تسجيل الخروج':'Sign out',
+  'لوحة العمل':'Workspace', 'مرحباً بك،':'Welcome,',
+  'كل ما تحتاجه لتسعير مشاريعك بوضوح، في مساحة واحدة هادئة ومنظمة.':'Everything you need to price your projects clearly, in one calm, organized workspace.',
+  'المستخدمون':'Users', 'إجمالي المستخدمين':'Total users', 'كل العروض':'All quotes',
+  'هذا الشهر':'This month', 'عروض هذا الشهر':'Quotes this month',
+  'المستخدمون النشطون':'Active users', 'حسابات نشطة':'Active accounts',
+  'عروضي':'My quotes', 'إجمالي عروضي':'My total quotes', 'مرسلة':'Sent',
+  'بانتظار الرد':'Awaiting response', 'عملاء لديّ':'My clients',
+  'قيد الانتظار':'Pending', 'بانتظار ردك':'Awaiting your response',
+  'خطتك':'Your plan', 'مستوى الاشتراك':'Subscription level',
+  'ابدأ من هنا':'Start here', 'أدواتك السريعة':'Quick tools',
+  'تسعير الخدمات':'Service pricing', 'للمشاريع والخدمات اليومية':'For daily projects and services',
+  'الباقات والاشتراكات':'Packages & subscriptions', 'وزّع التكلفة على مستوياتك':'Distribute costs across your tiers',
+  'المشاريع التقنية':'Technology projects', 'احسب الوقت والموارد والنطاق':'Calculate time, resources and scope',
+  'مساحة العمل':'Workspace', 'خطتك الحالية':'Your current plan', 'مجاني':'Free',
+  'ابدأ الآن بدون التزام':'Start now with no commitment', 'شهرياً':'Monthly',
+  'التسعيرات الشهرية':'Monthly quotes', 'تقارير PDF':'PDF reports', 'غير محدود':'Unlimited',
+  'عرض كل الأدوات':'View all tools', 'آخر عروض الأسعار':'Recent quotes', 'عرض الكل':'View all',
+  'لا توجد عروض أسعار بعد':'No quotes yet', 'رقم العرض':'Quote number', 'العنوان':'Title',
+  'الإجمالي':'Total', 'الحالة':'Status', 'التاريخ':'Date', 'الإجراء':'Action',
+  'كل الحالات':'All statuses', 'مسودة':'Draft', 'مُرسل':'Sent', 'مقبول':'Accepted',
+  'مرفوض':'Rejected', 'ملغي':'Cancelled', 'بحث...':'Search...',
+  'مسح':'Clear', 'عنوان العرض *':'Quote title *', 'عنوان التسعيرة *':'Pricing title *',
+  'العميل *':'Client *', 'اختر العميل...':'Choose a client...', 'ضريبة القيمة المضافة %':'VAT %',
+  'خصم (ر.س)':'Discount (SAR)', 'بنود العرض':'Quote items', 'الوصف':'Description',
+  'الكمية':'Quantity', 'سعر الوحدة':'Unit price', 'إضافة بند':'Add item',
+  'المجموع الفرعي':'Subtotal', 'الخصم':'Discount', 'ضريبة (15%)':'VAT (15%)',
+  'ملاحظات':'Notes', 'أي ملاحظات إضافية...':'Any additional notes...',
+  'حفظ العرض':'Save quote', 'إلغاء':'Cancel', 'طلب الترقية':'Request upgrade',
+  'عروض الأسعار هذا الشهر':'Quotes this month', 'الحد الأقصى:':'Maximum:',
+  'مقارنة الخطط':'Compare plans', 'خطتك الحالية':'Your current plan',
+  'ر.س / شهر':'SAR / month', 'العملاء':'Clients', 'الاسم':'Name', 'البريد':'Email',
+  'البريد الإلكتروني':'Email', 'الخطة':'Plan', 'تاريخ التسجيل':'Registration date',
+  'جارٍ التحميل...':'Loading...', 'لا يوجد عملاء بعد':'No clients yet',
+  'رسالة جديدة':'New message', 'اختر محادثة':'Choose a conversation',
+  'اختر محادثة لعرض رسائلها':'Choose a conversation to view its messages',
+  'اكتب ردك...':'Write a reply...', 'إرسال':'Send', 'لا توجد رسائل بعد':'No messages yet',
+  'منصة تسعيرة':'Tas3eerah platform', 'اختر الأداة المناسبة لمشروعك':'Choose the right tool for your project',
+  'نظّم تسعير خدماتك ومنتجاتك في دقائق، بمنهجية واضحة تناسب نشاطك.':'Organize your service and product pricing in minutes with a clear method that fits your business.',
+  'تسعير غير محدود':'Unlimited pricing', 'تسعيرات شهرياً':'quotes per month',
+  'كل القطاعات متاحة':'All sectors available', 'أدوات متاحة في باقتك':'tools available in your plan',
+  'تقارير PDF غير محدودة':'Unlimited PDF reports', 'اختر المجال':'Choose a sector',
+  '٧ أدوات تسعير متخصصة':'7 specialized pricing tools', 'مقفل في باقتك':'Locked in your plan',
+  'ترقية الخطة':'Upgrade plan', 'فتح الحاسبة الكاملة':'Open calculator',
+  'يمكنك العودة لاحقاً إلى أي أداة ومراجعة حساباتك المحفوظة.':'You can return to any tool later and review your saved calculations.',
+  'تسعير المطاعم والكافيهات':'Restaurant & cafe pricing', 'حاسبة تكلفة الصنف والقائمة':'Item and menu cost calculator',
+  'بيانات الصنف':'Item details', 'اسم الصنف':'Item name', 'لاتيه مثلج':'Iced latte',
+  'تصنيف الصنف':'Item category', 'مشروبات':'Drinks', 'وجبات':'Meals', 'حلويات':'Desserts',
+  'مخبوزات':'Bakery', 'إضافات':'Extras', 'عدد الوحدات المباعة شهرياً':'Units sold per month',
+  'تكلفة المكونات للوحدة (ر.س)':'Ingredient cost per unit (SAR)', 'نسبة الهدر %':'Waste %',
+  'التكاليف والهامش':'Costs & margin', 'التغليف والإضافات للوحدة (ر.س)':'Packaging & extras per unit (SAR)',
+  'التكاليف التشغيلية الشهرية (ر.س)':'Monthly operating costs (SAR)',
+  'هامش الربح المستهدف %':'Target profit margin %', 'عمولة الدفع أو التوصيل %':'Payment or delivery fee %',
+  'تكلفة المكونات بعد الهدر':'Ingredient cost after waste', 'تكلفة التغليف والإضافات':'Packaging & extras cost',
+  'نصيب الصنف من التشغيل':'Item share of operations', 'التكلفة الفعلية للوحدة':'Actual unit cost',
+  'سعر البيع المقترح شامل الضريبة':'Suggested selling price incl. VAT',
+  'تسعير الباقات والاشتراكات':'Package & subscription pricing', 'حاسبة توزيع تكلفة الباقات':'Package cost allocation calculator',
+  'أسماء الباقات':'Package names', 'الباقة الأساسية':'Basic package', 'الباقة المتوسطة':'Standard package',
+  'الباقة المتقدمة':'Advanced package', 'أساسية':'Basic', 'احترافية':'Professional', 'مؤسسات':'Enterprise',
+  'التكاليف الشهرية الثابتة':'Fixed monthly costs', 'إيجار وخدمات (ر.س)':'Rent & services (SAR)',
+  'رواتب الفريق (ر.س)':'Team salaries (SAR)', 'تكاليف تقنية (ر.س)':'Technology costs (SAR)',
+  'تكاليف تشغيلية أخرى (ر.س)':'Other operating costs (SAR)', 'توزيع الباقات والمشتركين':'Packages & subscribers',
+  'مشتركو الباقة الأساسية':'Basic package subscribers', 'مشتركو الباقة المتوسطة':'Standard package subscribers',
+  'مشتركو الباقة المتقدمة':'Advanced package subscribers', 'نسبة الباقة الأساسية للمتوسطة':'Basic-to-standard package ratio',
+  'مثال: 2 تعني ضعف السعر':'Example: 2 means double the price',
+  'إجمالي التكاليف الشهرية':'Total monthly costs', 'المستهدف مع الربح':'Target including profit',
+  'سعر الباقة الأساسية / شهر':'Basic package price / month', 'سعر الباقة المتوسطة / شهر':'Standard package price / month',
+  'سعر الباقة المتقدمة / شهر':'Advanced package price / month',
+  'تسعير المشاريع التقنية':'Technology project pricing', 'حاسبة مراحل المشروع التقني':'Technology project stages calculator',
+  'نوع المشروع ونطاقه':'Project type & scope', 'نوع المشروع':'Project type', 'تطبيق جوال':'Mobile app',
+  'موقع ويب':'Website', 'ذكاء اصطناعي':'Artificial intelligence', 'جهاز وبرنامج':'Hardware & software',
+  'اسم المشروع':'Project name', 'منصة طلبات':'Delivery platform', 'ساعات مراحل التنفيذ':'Implementation stage hours',
+  'التصميم UX/UI: ساعات':'UX/UI design: hours', 'سعر ساعة التصميم (ر.س)':'Design hourly rate (SAR)',
+  'التطوير البرمجي: ساعات':'Development: hours', 'سعر ساعة التطوير (ر.س)':'Development hourly rate (SAR)',
+  'الاختبار والتسليم: ساعات':'Testing & delivery: hours', 'سعر ساعة الاختبار (ر.س)':'Testing hourly rate (SAR)',
+  'تكاليف المشروع والربحية':'Project costs & profitability', 'تراخيص وخدمات خارجية (ر.س)':'Licenses & external services (SAR)',
+  'استضافة وأجهزة (ر.س)':'Hosting & devices (SAR)', 'نصيب الإدارة والتشغيل (ر.س)':'Management & operations share (SAR)',
+  'احتياطي المخاطر %':'Risk reserve %', 'تكلفة الجهد':'Effort cost', 'التكلفة بعد الاحتياطي':'Cost after reserve',
+  'الربح المستهدف':'Target profit', 'سعر المشروع شامل الضريبة':'Project price incl. VAT',
+  'تسعير التجزئة والجملة':'Retail & wholesale pricing', 'حاسبة سعر المنتج بعد التكلفة والعمولة':'Product price after cost & fee calculator',
+  'بيانات المنتج':'Product details', 'اسم المنتج':'Product name', 'حقيبة جلدية':'Leather bag',
+  'الفئة':'Category', 'ملابس':'Clothing', 'إلكترونيات':'Electronics', 'بقالة':'Groceries',
+  'تكلفة الشراء للوحدة (ر.س)':'Purchase cost per unit (SAR)', 'شحن وتخليص للوحدة (ر.س)':'Shipping & clearance per unit (SAR)',
+  'تغليف وتجهيز للوحدة (ر.س)':'Packaging & preparation per unit (SAR)', 'الكمية المستهدفة للبيع':'Target sales quantity',
+  'عمولة المنصة أو الدفع %':'Platform or payment fee %', 'خصم العروض المتوقع %':'Expected promotional discount %',
+  'التكلفة الواصلة للوحدة':'Landed cost per unit', 'سعر التعادل بعد العمولة':'Break-even price after fee',
+  'سعر العرض قبل الضريبة':'Offer price before VAT', 'السعر المقترح للمستهلك شامل الضريبة':'Suggested consumer price incl. VAT',
+  'تسعير التصميم الداخلي والمعماري':'Interior & architectural design pricing', 'حاسبة المشروع حسب المساحة والمراحل':'Project calculator by area & stages',
+  'بيانات المشروع والمساحة':'Project & area details', 'تصميم داخلي سكني':'Residential interior design',
+  'تصميم داخلي تجاري':'Commercial interior design', 'تصميم معماري':'Architectural design', 'تنفيذ وتجهيز':'Execution & fit-out',
+  'المساحة بالمتر المربع':'Area in square meters', 'سعر التصميم للمتر (ر.س)':'Design price per meter (SAR)',
+  'عدد الزيارات الميدانية':'Number of site visits', 'المراحل والتكاليف الإضافية':'Stages & additional costs',
+  'تكلفة الزيارة الواحدة (ر.س)':'Cost per visit (SAR)', 'مخططات واستشارات (ر.س)':'Plans & consultations (SAR)',
+  'مواد وتنفيذ مقدّرة (ر.س)':'Estimated materials & execution (SAR)', 'نصيب الإشراف والإدارة (ر.س)':'Supervision & management share (SAR)',
+  'احتياطي التعديلات والمخاطر %':'Change & risk reserve %', 'أتعاب التصميم حسب المساحة':'Design fees by area',
+  'إجمالي التكلفة قبل الربح':'Total cost before profit', 'احتياطي المشروع':'Project reserve',
+  'تسعير الشركات التقنية':'Technology company pricing', 'حاسبة الاشتراك والخدمة المتكررة':'Recurring service & subscription calculator',
+  'نوع الخدمة والعملاء':'Service type & customers', 'نوع الخدمة':'Service type', 'SaaS منصة':'SaaS platform',
+  'استضافة وخوادم':'Hosting & servers', 'صيانة وتطوير':'Maintenance & development', 'ترخيص برمجي':'Software license',
+  'دعم تقني':'Technical support', 'عدد العملاء أو المستخدمين':'Number of customers or users',
+  'التكاليف الشهرية':'Monthly costs', 'خوادم واستضافة (ر.س)':'Servers & hosting (SAR)',
+  'تراخيص وأدوات (ر.س)':'Licenses & tools (SAR)', 'تشغيل وتسويق (ر.س)':'Operations & marketing (SAR)',
+  'تكلفة متغيرة لكل عميل (ر.س)':'Variable cost per customer (SAR)', 'دورة الفوترة':'Billing cycle',
+  'شهري':'Monthly', 'سنوي':'Annual', 'خصم الاشتراك السنوي %':'Annual subscription discount %',
+  'التكاليف الثابتة الشهرية':'Monthly fixed costs', 'التكلفة على العميل':'Cost per customer',
+  'الربح المستهدف لكل عميل':'Target profit per customer', 'سعر الاشتراك الشهري قبل الضريبة':'Monthly subscription before VAT',
+  'السعر المقترح شامل الضريبة':'Suggested price incl. VAT', 'السعر السنوي المقترح':'Suggested annual price',
+  'إدارة المستخدمين':'User management', 'مستخدم جديد':'New user', 'كل الأدوار':'All roles',
+  'عملاء':'Clients', 'موظفون':'Employees', 'مدراء':'Admins', 'بحث بالاسم أو البريد...':'Search by name or email...',
+  'الدور':'Role', 'المستخدمون والخطط':'Users & plans', 'الخطة الحالية':'Current plan',
+  'تنتهي في':'Expires on', 'تغيير الخطة':'Change plan', 'إدارة الاشتراكات':'Subscription management',
+  'تحكم في خطة كل مستخدم وتواريخ الانتهاء':'Control each user plan and expiry dates',
+  'مستخدمو هذه الخطة:':'Users on this plan:', 'سجل النشاط':'Activity log', 'تحديث':'Refresh',
+  'التفاصيل':'Details', 'حسابي':'My account', 'معلومات التواصل':'Contact information',
+  'بريد الدعم الفني':'Support email', 'رقم واتساب الدعم':'Support WhatsApp number',
+  'إعدادات العرض':'Display settings', 'اسم المنصة':'Platform name',
+  'رسالة الترحيب للمستخدمين الجدد':'Welcome message for new users', 'حفظ الإعدادات':'Save settings',
+  'حفظ التغييرات':'Save changes', 'كلمة مرور جديدة':'New password',
+  'اتركه فارغاً للإبقاء على الحالية':'Leave blank to keep the current password',
+  'رسائل التواصل':'Contact messages', 'الرسالة':'Message', 'إجراء':'Action',
+  'تم الحفظ':'Saved', 'حسناً':'OK', 'إغلاق':'Close', 'حذف':'Delete',
+  'قُرئت':'Read', 'قُرئت':'Read', 'إلغاء':'Cancel', 'تعديل':'Edit', 'تفعيل':'Activate',
+  'تعطيل':'Disable', 'مستخدم':'User', 'مدير':'Admin',
+  'اختياري':'Optional', 'بيانات العميل':'Client details', 'اسم العميل':'Client name',
+  'اسم الشركة':'Company name', 'رقم الجوال':'Mobile number', 'محمد العمري':'Mohammed Al-Omari',
+  'شركة النجوم':'Stars Company', 'الاسم مطلوب':'Name is required', 'حدث خطأ':'An error occurred',
+  'خطأ في الاتصال بالخادم':'Server connection error', 'لا توجد بنود في التسعيرة':'No pricing items',
+  'لا يوجد مستخدمون':'No users', 'تم حفظ التغييرات بنجاح':'Changes saved successfully',
+  'تم حفظ الإعدادات بنجاح ✓':'Settings saved successfully ✓', 'تأكيد حذف الرسالة؟':'Confirm deleting this message?',
+  'لا توجد رسائل بعد':'No messages yet', 'يرجى اختيار العميل':'Please choose a client',
+  'يرجى كتابة نص الرسالة':'Please write a message', 'عنوان العرض مطلوب':'Quote title is required',
+  'تم حفظ العرض كمسودة بنجاح':'Quote saved as draft successfully', 'حفظ كعرض سعر':'Save as quote',
+  'حفظ كعرض سعر يتطلب ترقية':'Saving as a quote requires an upgrade',
+  'حفظ':'Save', 'رقم':'Number', 'شهر':'month', 'عرض/شهر':'quotes/month',
+  'إجراءات':'Actions', 'الاسم *':'Name *', 'المستلم':'Recipient', 'الموضوع':'Subject',
+  'كل الخطط':'All plans', 'نظام ERP':'ERP system', 'حفظ كمسودة':'Save draft',
+  'هامش الربح':'Profit margin', 'مدير النظام':'System administrator',
+  'تسعيرة جديدة':'New pricing', 'جارٍ التحميل':'Loading',
+  'مدير للتجديد':'contact the administrator to renew', 'منتجات رقمية':'Digital products',
+  'إغلاق القائمة':'Close menu', 'الخطة الجديدة':'New plan', 'ساعات التنفيذ':'Implementation hours',
+  'موقع إلكتروني':'Website', 'عنوان العرض...':'Quote title...',
+  'عرض خطط الاشتراك':'View subscription plans', 'طباعة / تحميل PDF':'Print / download PDF',
+  'أدوات تسعير متخصصة':'Specialized pricing tools', 'السعر النهائي للعميل':'Final client price',
+  'تسعير منتج التجزئة':'Retail product pricing', 'تسعير مشروع التصميم':'Design project pricing',
+  'تسعير الشركة التقنية':'Technology company pricing', 'تسعير المشروع التقني':'Technology project pricing',
+  'تسعير الباقات والاشتراكات':'Package & subscription pricing',
+  'تسعير قائمة المطاعم والكافيهات':'Restaurant & cafe menu pricing',
+  'تسعير التجزئة والجملة':'Retail & wholesale pricing',
+  'تسعير التصميم الداخلي والمعماري':'Interior & architectural design pricing',
+  'تسعيرة باقات الاشتراك':'Subscription package pricing', 'ضريبة القيمة المضافة':'VAT',
+  'منصة التسعير العربية':'Arabic pricing platform', 'أدوات ومواد مباشرة (ر.س)':'Direct tools & materials (SAR)',
+  'إجمالي التكاليف المباشرة':'Total direct costs', 'الخطوة 2 الخدمات المطلوبة':'Step 2: Required services',
+  'الخطوة 3 التكاليف والربحية':'Step 3: Costs & profitability',
+  'اختر أداة التسعير المناسبة':'Choose the right pricing tool',
+  'حاسبة الخدمة والمشروع الخدمي':'Service & service-project calculator',
+  'تسعير قائمة المطاعم والكافيهات':'Restaurant & cafe menu pricing',
+  'كلمة المرور (فارغ = بدون تغيير)':'Password (blank = no change)',
+  'هذه الأداة متاحة بعد اختيارها ضمن باقة Plus أو Pro.':'This tool is available with a Plus or Pro plan.',
+  'فيديو وإنتاج':'Video & production', 'هوية بصرية':'Visual identity', 'تصوير':'Photography',
+  'استشارة':'Consulting', 'برمجة خاصة':'Custom development', 'ترجمة':'Translation',
+  'أخرى':'Other', 'محتوى & سوشيال':'Content & social', 'وصف البند...':'Item description...',
+  'مُقدَّم من':'Provided by', 'مُقدَّم إلى':'Provided to', 'إنشاء عرض':'Create quote',
+  'تغيير خطة':'Change plan', 'محادثة مع':'Conversation with', 'تسجيل دخول':'Sign in',
+  'لوحة التحكم':'Dashboard', 'تم تغيير الخطة':'Plan changed', 'تعديل المستخدم':'Edit user',
+  'تعديل عرض السعر':'Edit quote', 'إنشاء مستخدم':'Create user', 'تفعيل مستخدم':'Activate user',
+  'رسالة مُرسلة':'Message sent', 'فعّال':'Active', 'الشركة':'Company', 'النظام':'System',
+  'رفض':'Reject', 'قبول':'Accept', 'خصم':'Discount',
+  'ضريبة (${tax}%)':'VAT (${tax}%)', 'رقم: ${q.number}':'Number: ${q.number}',
+  'ضريبة القيمة المضافة (${q.tax_rate}%)':'VAT (${q.tax_rate}%)',
+  'تسعيرة منصة التسعير الذكي':'Tas3eerah smart pricing platform',
+  'تعذّر الحفظ في الوقت الحالي':'Unable to save right now',
+  'أدخل بيانات التسعير أولاً لظهور قيمة محسوبة.':'Enter pricing details first to calculate a result.',
+  'كل عروض الأسعار':'All quotes',
+  'خدمات':'Services', 'تدريب':'Training', 'هدايا':'Gifts', 'منصات':'Platforms',
+  'عضويات':'Memberships', 'كافيه':'Cafe', 'مطعم':'Restaurant', 'حلويات':'Desserts',
+  'سكني':'Residential', 'تجاري':'Commercial', 'معماري':'Architectural',
+  'ملابس':'Clothing', 'إلكترونيات':'Electronics', 'بقالة':'Groceries',
+  'احسب السعر العادل لخدماتك بناءً على التكاليف والهامش المناسب.':'Calculate a fair price for your services based on costs and the appropriate margin.',
+  'سعّر باقاتك مع توزيع التكاليف والهامش على المشتركين.':'Price your packages while distributing costs and margin across subscribers.',
+  'ابنِ سعر طبقك بدقة من تكلفة المكونات والهدر والهامش.':'Build your dish price precisely from ingredient cost, waste and margin.',
+  'حدد سعر البيع بناءً على تكلفة المنتج والعمولات والعروض.':'Set the selling price based on product cost, fees and promotions.',
+  'سعّر مشاريع التصميم والتنفيذ وفق المساحة والمراحل والتكاليف.':'Price design and execution projects by area, stages and costs.',
+  'احسب تكلفة المشروع التقني حسب الساعات والموارد والنطاق.':'Calculate the technology project cost by hours, resources and scope.',
+  'احسب تكلفة الاشتراك والخدمة المتكررة حسب العملاء والتكاليف.':'Calculate recurring service and subscription costs by customers and expenses.',
+  'خدمات · تدريب · تصوير · هدايا':'Services · training · photography · gifts',
+  'خدمات · منصات · عضويات':'Services · platforms · memberships',
+  'كافيه · مطعم · حلويات · مشروبات':'Cafe · restaurant · desserts · drinks',
+  'ملابس · إلكترونيات · بقالة':'Clothing · electronics · groceries',
+  'تطبيقات · ERP · مواقع · أجهزة ذكية':'Apps · ERP · websites · smart devices',
+  'SaaS · استضافة · صيانة · تراخيص':'SaaS · hosting · maintenance · licenses',
+  'سكني · تجاري · معماري':'Residential · commercial · architectural',
+  'تصميم · تطوير · استضافة':'Design · development · hosting',
+  'احسب':'Calculate', 'السعر العادل':'fair price', 'المناسب':'appropriate',
+  'باقاتك':'your packages', 'توزيع التكاليف':'cost allocation', 'المشتركين':'subscribers',
+  'طبقك':'your dish', 'بدقة':'precisely', 'تكلفة المنتج':'product cost',
+  'العمولات والعروض':'fees and promotions', 'المساحة والمراحل والتكاليف':'area, stages and costs'
+  , 'احسب سعر الاشتراك والخدمات المتكررة على أساس تكاليفك الحقيقية.':'Calculate recurring subscription and service pricing from your actual costs.'
+};
+
+const UI_TRANSLATIONS_REVERSE = Object.entries(UI_TRANSLATIONS).reduce((reverse, [ar, en]) => {
+  if (!(en in reverse)) reverse[en] = ar;
+  return reverse;
+}, {});
+
+function translateString(value) {
+  if (!value || typeof value !== 'string') return value;
+  const source = L.current === 'en' ? UI_TRANSLATIONS : UI_TRANSLATIONS_REVERSE;
+  const translated = Object.entries(source)
+    .sort((a, b) => b[0].length - a[0].length)
+    .reduce((text, [from, to]) => {
+      const escaped = from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const isArabic = /[\u0600-\u06ff]/.test(from);
+      const boundary = isArabic ? '\\u0600-\\u06ff' : 'A-Za-z';
+      return text.replace(new RegExp(`(?<![${boundary}])${escaped}(?![${boundary}])`, 'g'), to);
+    }, value);
+  return (L.current === 'en'
+    ? translated.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+    : translated
+  ).replace(/ر\.س/g, L.current === 'en' ? 'SAR' : 'ر.س');
+}
+
+let languageObserver = null;
+
+function applyLanguage() {
+  const isEnglish = L.current === 'en';
+  document.documentElement.lang = L.current;
+  document.documentElement.dir = isEnglish ? 'ltr' : 'rtl';
+  const btn = document.getElementById('langBtn');
+  if (btn) btn.textContent = isEnglish ? 'AR' : 'EN';
+  if (document.title.includes('لوحة التحكم') || document.title.includes('Dashboard')) {
+    document.title = isEnglish ? 'Tas3eerah | Dashboard' : 'تسعيرة | لوحة التحكم';
+  }
+
+  document.querySelectorAll('[data-ar]').forEach(el => {
+    const value = el.getAttribute('data-' + L.current);
+    if (value !== null) el.innerHTML = value;
+  });
+
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    const parent = node.parentElement;
+    if (parent && !['SCRIPT', 'STYLE'].includes(parent.tagName) &&
+        !parent.closest('.user-content') && node.nodeValue.trim()) nodes.push(node);
+  }
+  nodes.forEach(node => { node.nodeValue = translateString(node.nodeValue); });
+
+  document.querySelectorAll('input[placeholder], textarea[placeholder], [aria-label]').forEach(el => {
+    if (el.placeholder) el.placeholder = translateString(el.placeholder);
+    if (el.getAttribute('aria-label')) el.setAttribute('aria-label', translateString(el.getAttribute('aria-label')));
+  });
+  localStorage.setItem('tas3-lang', L.current);
+}
+
+function toggleLang() {
+  if (languageObserver) languageObserver.disconnect();
+  L.current = L.current === 'ar' ? 'en' : 'ar';
+  applyLanguage();
+  if (languageObserver) languageObserver.observe(document.body, { childList: true, subtree: true });
+}
+
+const panelTitles = {
+  overview: ['نظرة عامة', 'Overview'], quotes: ['عروض الأسعار', 'Quotes'],
+  'quote-new': ['عرض سعر جديد', 'New Quote'], clients: ['العملاء', 'Clients'],
+  messages: ['الرسائل', 'Messages'], tools: ['أدوات التسعير', 'Pricing Tools'],
+  users: ['إدارة المستخدمين', 'User Management'], subscriptions: ['الاشتراكات', 'Subscriptions'],
+  'contact-inbox': ['رسائل التواصل', 'Contact Messages'], activity: ['سجل النشاط', 'Activity Log'],
+  settings: ['إعدادات النظام', 'System Settings'], account: ['حسابي', 'My Account']
+};
+
+function panelTitle(panel) {
+  const pair = panelTitles[panel];
+  return pair ? pair[L.current === 'en' ? 1 : 0] : '';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  applyLanguage();
+  languageObserver = new MutationObserver(() => {
+    if (L.current !== 'en' || !languageObserver) return;
+    languageObserver.disconnect();
+    applyLanguage();
+    languageObserver.observe(document.body, { childList: true, subtree: true });
+  });
+  languageObserver.observe(document.body, { childList: true, subtree: true });
+});
 // ─── MOBILE SIDEBAR ──────────────────────
 function openSidebar() {
   document.getElementById('sidebar').classList.add('open');
@@ -23,18 +319,6 @@ function closeSidebar() {
 window.addEventListener('resize', () => {
   if (window.innerWidth > 768) closeSidebar();
 });
-
-function toggleLang() {
-  L.current = L.current === 'ar' ? 'en' : 'ar';
-  document.documentElement.lang = L.current;
-  document.documentElement.dir  = L.current === 'ar' ? 'rtl' : 'ltr';
-  const btn = document.getElementById('langBtn');
-  if (btn) btn.textContent = L.current === 'ar' ? 'EN' : 'AR';
-  document.querySelectorAll('[data-ar]').forEach(el => {
-    const v = el.getAttribute('data-' + L.current);
-    if (v) el.innerHTML = v;
-  });
-}
 
 // ─── API ─────────────────────────────────
 async function api(endpoint, data = null, method = null) {
@@ -57,22 +341,6 @@ async function api(endpoint, data = null, method = null) {
   }
 }
 
-// ─── NAVIGATION ──────────────────────────
-const panelTitles = {
-  overview        : 'نظرة عامة',
-  quotes          : 'عروض الأسعار',
-  'quote-new'     : 'عرض سعر جديد',
-  clients         : 'العملاء',
-  messages        : 'الرسائل',
-  tools           : 'أدوات التسعير',
-  users           : 'إدارة المستخدمين',
-  subscriptions   : 'الاشتراكات',
-  'contact-inbox' : 'رسائل التواصل',
-  activity        : 'سجل النشاط',
-  settings        : 'إعدادات النظام',
-  account         : 'حسابي',
-};
-
 function nav(btn) {
   closeSidebar();
   if (!btn) return;
@@ -87,7 +355,7 @@ function nav(btn) {
   if (target) target.classList.add('active');
 
   const titleEl = document.getElementById('topbarTitle');
-  if (titleEl) titleEl.textContent = panelTitles[panel] || '';
+  if (titleEl) titleEl.textContent = panelTitle(panel);
 
   if (panel === 'quotes')          loadQuotes();
   if (panel === 'clients')         loadClients();
@@ -112,7 +380,7 @@ function navDirect(panelId) {
   if (panel) panel.classList.add('active');
 
   const titleEl = document.getElementById('topbarTitle');
-  if (titleEl) titleEl.textContent = panelTitles[panelId] || '';
+  if (titleEl) titleEl.textContent = panelTitle(panelId);
 
   if (panelId === 'quote-new')     initQuoteForm();
   if (panelId === 'quotes')        loadQuotes();
@@ -150,9 +418,9 @@ function renderQuotes() {
   tb.innerHTML = quotes.map(q => `
     <tr>
       <td><code style="font-size:11px">${q.number}</code></td>
-      <td>${esc(q.title)}</td>
-      ${APP.role !== 'client'   ? `<td>${esc(q.client_name || '-')}</td>` : ''}
-      ${APP.role !== 'employee' ? `<td>${esc(q.employee_name || '-')}</td>` : ''}
+      <td class="user-content">${esc(q.title)}</td>
+      ${APP.role !== 'client'   ? `<td class="user-content">${esc(q.client_name || '-')}</td>` : ''}
+      ${APP.role !== 'employee' ? `<td class="user-content">${esc(q.employee_name || '-')}</td>` : ''}
       <td>${fmt(q.total)} ر.س</td>
       <td><span class="badge badge-${q.status}">${statusLabel(q.status)}</span></td>
       <td style="font-size:11px;color:var(--muted)">${q.created_at ? q.created_at.slice(0,10) : ''}</td>
@@ -177,7 +445,7 @@ async function viewQuote(id) {
   const q = r.data;
   const itemsHtml = (q.items || []).map(it => `
     <tr>
-      <td>${esc(it.description)}</td>
+       <td class="user-content">${esc(it.description)}</td>
       <td style="text-align:center">${it.qty}</td>
       <td style="text-align:left">${fmt(it.unit_price)}</td>
       <td style="text-align:left">${fmt(it.total)}</td>
@@ -190,29 +458,29 @@ async function viewQuote(id) {
     <div class="pdf-header">
       <div><img src="/assets/brand-logo-transparent.png" class="pdf-logo" alt="تسعيرة"></div>
       <div style="text-align:left">
-        <h1>عرض سعر</h1>
-        <div class="pdf-meta">رقم: ${q.number}</div>
-        <div class="pdf-meta">التاريخ: ${(q.created_at||'').slice(0,10)}</div>
+        <h1>${translateString('عرض سعر')}</h1>
+        <div class="pdf-meta">${translateString('رقم')}: ${q.number}</div>
+        <div class="pdf-meta">${translateString('التاريخ')}: ${(q.created_at||'').slice(0,10)}</div>
         <div class="pdf-meta"><span class="badge badge-${q.status}">${statusLabel(q.status)}</span></div>
       </div>
     </div>
     <div class="pdf-parties">
-      <div class="pdf-party"><label>مُقدَّم من</label><p>${esc(q.employee_name || 'الشركة')}</p></div>
-      <div class="pdf-party"><label>مُقدَّم إلى</label><p>${esc(q.client_name || '-')}</p></div>
+      <div class="pdf-party"><label>${translateString('مُقدَّم من')}</label><p>${esc(q.employee_name || translateString('الشركة'))}</p></div>
+      <div class="pdf-party"><label>${translateString('مُقدَّم إلى')}</label><p>${esc(q.client_name || '-')}</p></div>
     </div>
     <h3 style="margin-bottom:12px">${esc(q.title)}</h3>
     <table>
-      <thead><tr><th>الوصف</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr></thead>
+      <thead><tr><th>${translateString('الوصف')}</th><th>${translateString('الكمية')}</th><th>${translateString('سعر الوحدة')}</th><th>${translateString('الإجمالي')}</th></tr></thead>
       <tbody>${itemsHtml}</tbody>
     </table>
     <div class="pdf-totals">
-      <div class="pdf-total-row"><span>المجموع الفرعي</span><span>${fmt(subtotal)} ر.س</span></div>
-      ${discount > 0 ? `<div class="pdf-total-row"><span>خصم</span><span>- ${fmt(discount)} ر.س</span></div>` : ''}
-      <div class="pdf-total-row"><span>ضريبة القيمة المضافة (${q.tax_rate}%)</span><span>${fmt(taxAmt)} ر.س</span></div>
-      <div class="pdf-total-row grand"><span>الإجمالي</span><span>${fmt(q.total)} ر.س</span></div>
+      <div class="pdf-total-row"><span>${translateString('المجموع الفرعي')}</span><span>${fmt(subtotal)} ${translateString('ر.س')}</span></div>
+      ${discount > 0 ? `<div class="pdf-total-row"><span>${translateString('خصم')}</span><span>- ${fmt(discount)} ${translateString('ر.س')}</span></div>` : ''}
+      <div class="pdf-total-row"><span>${translateString('ضريبة القيمة المضافة')} (${q.tax_rate}%)</span><span>${fmt(taxAmt)} ${translateString('ر.س')}</span></div>
+      <div class="pdf-total-row grand"><span>${translateString('الإجمالي')}</span><span>${fmt(q.total)} ${translateString('ر.س')}</span></div>
     </div>
-    ${q.notes ? `<div style="margin-top:16px;padding:12px;background:var(--paper);border-radius:8px;font-size:13px"><strong>ملاحظات:</strong> ${esc(q.notes)}</div>` : ''}
-    <div class="pdf-footer">تسعيرة منصة التسعير الذكي</div>
+    ${q.notes ? `<div style="margin-top:16px;padding:12px;background:var(--paper);border-radius:8px;font-size:13px"><strong>${translateString('ملاحظات')}:</strong> ${esc(q.notes)}</div>` : ''}
+    <div class="pdf-footer">${translateString('تسعيرة منصة التسعير الذكي')}</div>
   `;
   document.getElementById('pdfOverlay').classList.remove('hidden');
 }
@@ -368,8 +636,8 @@ async function loadClients() {
   }
   tb.innerHTML = clients.map(c => `
     <tr>
-      <td>${esc(c.name)}</td>
-      <td style="direction:ltr;text-align:right">${esc(c.email)}</td>
+       <td class="user-content">${esc(c.name)}</td>
+       <td class="user-content" style="direction:ltr;text-align:right">${esc(c.email)}</td>
       <td><span class="badge badge-${c.plan}">${planLabel(c.plan)}</span></td>
       <td style="font-size:11px;color:var(--muted)">${(c.created_at||'').slice(0,10)}</td>
       <td><button class="btn btn-ghost btn-sm" onclick="composeToUser(${JSON.stringify(c)})">رسالة</button></td>
@@ -392,8 +660,8 @@ async function loadInbox() {
   }
   list.innerHTML = msgs.map(m => `
     <div class="msg-item ${m.unread > 0 ? 'unread' : ''}" onclick="openThread(${m.id})">
-      <div class="msg-item-name">${esc(m.sender_id == APP.uid ? m.receiver_name : m.sender_name)}</div>
-      <div class="msg-item-preview">${esc(m.subject || m.body)}</div>
+      <div class="msg-item-name user-content">${esc(m.sender_id == APP.uid ? m.receiver_name : m.sender_name)}</div>
+      <div class="msg-item-preview user-content">${esc(m.subject || m.body)}</div>
       <div class="msg-item-time">${(m.created_at||'').slice(0,10)}</div>
     </div>
   `).join('');
@@ -452,7 +720,7 @@ async function loadContacts() {
   const r = await api('messages?action=contacts');
   const sel = document.getElementById('cmTo');
   if (!sel || !r.success) return;
-  sel.innerHTML = r.data.map(u => `<option value="${u.id}">${esc(u.name)} (${u.role === 'admin' ? 'مدير' : u.role === 'employee' ? 'موظف' : 'عميل'})</option>`).join('');
+  sel.innerHTML = r.data.map(u => `<option value="${u.id}">${esc(u.name)} (${roleLabel(u.role)})</option>`).join('');
 }
 
 async function sendNewMsg() {
@@ -904,8 +1172,8 @@ async function loadUsers() {
   }
   tb.innerHTML = users.map(u => `
     <tr>
-      <td>${esc(u.name)}</td>
-      <td style="direction:ltr;text-align:right;font-size:12px">${esc(u.email)}</td>
+       <td class="user-content">${esc(u.name)}</td>
+       <td class="user-content" style="direction:ltr;text-align:right;font-size:12px">${esc(u.email)}</td>
       <td><span class="badge badge-${u.role}">${roleLabel(u.role)}</span></td>
       <td><span class="badge badge-${u.plan}">${planLabel(u.plan)}</span></td>
       <td>
@@ -1022,8 +1290,8 @@ async function loadSubscriptions() {
   if (!tb || !r2.success) return;
   tb.innerHTML = r2.data.map(u => `
     <tr>
-      <td>${esc(u.name)}</td>
-      <td style="direction:ltr;text-align:right;font-size:12px">${esc(u.email)}</td>
+       <td class="user-content">${esc(u.name)}</td>
+       <td class="user-content" style="direction:ltr;text-align:right;font-size:12px">${esc(u.email)}</td>
       <td><span class="badge badge-${u.role}">${roleLabel(u.role)}</span></td>
       <td><span class="badge badge-${u.plan}">${planLabel(u.plan)}</span></td>
       <td style="font-size:12px;color:var(--muted)">${u.plan_expires_at || ''}</td>
@@ -1058,10 +1326,10 @@ async function loadActivity() {
   };
   tb.innerHTML = r.data.map(l => `
     <tr>
-      <td>${esc(l.user_name || 'النظام')}</td>
+       <td class="user-content">${esc(l.user_name || 'النظام')}</td>
       <td>${l.user_role ? `<span class="badge badge-${l.user_role}">${roleLabel(l.user_role)}</span>` : ''}</td>
       <td>${actionLabels[l.action] || l.action}</td>
-      <td style="font-size:12px;color:var(--muted)">${esc(l.details || '')}</td>
+       <td class="user-content" style="font-size:12px;color:var(--muted)">${esc(l.details || '')}</td>
       <td style="font-size:11px;direction:ltr">${esc(l.ip || '')}</td>
       <td style="font-size:11px;color:var(--muted)">${(l.created_at||'').slice(0,16).replace('T',' ')}</td>
     </tr>
@@ -1157,20 +1425,24 @@ function esc(s) {
 }
 function fmt(n) {
   const num = parseFloat(n) || 0;
-  return num.toLocaleString('ar-SA', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  return num.toLocaleString(L.current === 'en' ? 'en-US' : 'ar-SA', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 function setText(id, txt) {
   const el = document.getElementById(id);
   if (el) el.textContent = txt;
 }
 function statusLabel(s) {
-  return { draft:'مسودة', sent:'مُرسل', accepted:'مقبول', rejected:'مرفوض', cancelled:'ملغي' }[s] || s;
+  const labels = L.current === 'en'
+    ? { draft:'Draft', sent:'Sent', accepted:'Accepted', rejected:'Rejected', cancelled:'Cancelled' }
+    : { draft:'مسودة', sent:'مُرسل', accepted:'مقبول', rejected:'مرفوض', cancelled:'ملغي' };
+  return labels[s] || s;
 }
 function roleLabel(r) {
-  return { admin:'مدير', employee:'موظف', client:'عميل' }[r] || r;
+  const labels = L.current === 'en' ? { admin:'Admin', employee:'Employee', client:'Client' } : { admin:'مدير', employee:'موظف', client:'عميل' };
+  return labels[r] || r;
 }
 function planLabel(p) {
-  return { free:'مجاني', plus:'Plus', pro:'Pro', enterprise:'Pro' }[p] || p;
+  return { free: L.current === 'en' ? 'Free' : 'مجاني', plus:'Plus', pro:'Pro', enterprise:'Pro' }[p] || p;
 }
 function showInModal(id, msg, isErr) {
   const el = document.getElementById(id);

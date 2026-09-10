@@ -8,3 +8,4 @@
 - [CSRF Protection](csrf.md) — X-CSRF-Token header لكل POST، token في session، meta tag في كل صفحة، validation في router.php
 - [Plan Enforcement](plan-enforcement.md) — effectivePlan() تُحدّد الخطة الفعلية بعد انتهاء الصلاحية، APP_ENV يتحكم في Seed
 - [Mobile landing hero](mobile-hero.md) — شبكة العمود الواحد لا تكفي وحدها؛ ثبّت العرض و`min-width:0` للرسم الداخلي
+- [Localization](localization.md) — قاموس اللغة موحّد مع حفظ الاختيار، مع حماية محتوى المستخدم وفصل مراقب DOM أثناء التبديل
