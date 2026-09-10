@@ -106,37 +106,11 @@ if ($user) { header('Location: /dashboard'); exit; }
     </div>
 
     <div class="hero-visual">
-      <div class="hero-art">
-        <div class="hero-art-backdrop"></div>
-        <div class="hero-art-window">
-          <div class="hero-art-sidebar">
-            <img src="/assets/icon.png" alt="تسعيرة">
-            <span class="hero-art-nav active">الرئيسية</span>
-            <span class="hero-art-nav">التسعير</span>
-            <span class="hero-art-nav">العروض</span>
-            <span class="hero-art-nav">العملاء</span>
-            <span class="hero-art-nav">الإعدادات</span>
-          </div>
-          <div class="hero-art-content">
-            <div class="hero-art-top">
-              <div><b>مرحباً بك،</b><span>لنبدأ تسعير مشروعك الجديد</span></div>
-              <span class="hero-art-avatar">ت</span>
-            </div>
-            <div class="hero-art-search">⌕ <span>ابحث في أدوات التسعير</span></div>
-            <div class="hero-art-kpis">
-              <div><strong>١٢</strong><span>مشروعاً</span></div>
-              <div><strong>٧</strong><span>قطاعات</span></div>
-              <div><strong>٣</strong><span>باقات</span></div>
-            </div>
-            <div class="hero-art-section-title">أدوات التسعير</div>
-            <div class="hero-art-tools">
-              <div><span>◫</span><b>تسعير الخدمات</b></div>
-              <div><span>▣</span><b>قائمة المطاعم</b></div>
-              <div><span>⌂</span><b>التصميم الداخلي</b></div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <img
+        class="hero-reference-image"
+        src="/assets/hero-reference-art.png?v=2"
+        alt="لوحة منصة تسعيرة"
+      >
     </div>
   </div>
 </section>

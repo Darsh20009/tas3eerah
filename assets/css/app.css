@@ -1525,9 +1525,15 @@ select.form-control { cursor: pointer; }
 .hero-visual {
   min-width: 0;
   min-height: 586px;
-  background: #103728 url('/assets/hero-reference-art.png') center / 100% 100% no-repeat;
+   overflow: hidden;
+   background: #103728;
 }
-.hero-art { display: none; }
+ .hero-reference-image {
+   display: block;
+   width: 100%;
+   height: 100%;
+   object-fit: fill;
+ }
 
 @media (max-width: 768px) {
   .hero {
@@ -1538,8 +1544,6 @@ select.form-control { cursor: pointer; }
   .hero-visual {
     order: 0;
     min-height: 300px;
-    background-size: cover;
-    background-position: center;
   }
   .hero-content {
     order: 1;
