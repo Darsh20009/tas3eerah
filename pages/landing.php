@@ -83,7 +83,7 @@ if ($user) { header('Location: /dashboard'); exit; }
 <!-- ═══ الهيرو ═══ -->
 <section>
   <div class="hero">
-    <div class="hero-content">
+    <div class="hero-content bg-[#f7f4f0]">
       <h1 data-ar="<em>سعّر</em> بثقة<br><span class='em-gold'>أدِر</span> بذكاء." data-en="<em>Price</em> with confidence,<br><span class='em-gold'>manage</span> with clarity.">
         <em>سعّر</em> بثقة<br><span class="em-gold">أدِر</span> بذكاء.
       </h1>
