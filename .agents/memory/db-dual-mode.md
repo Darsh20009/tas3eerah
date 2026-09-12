@@ -32,3 +32,11 @@ description: DB.php automatically selects MongoDB in production and SQLite local
 If upgrading the PHP library to `^2.0`, remove the pin and test API compatibility (FindOneAndUpdate constants, typeMap, etc.).
 
 **How to apply:** Never check for MongoDB extension directly in business code. Always go through `DB::*` methods. If a new method is needed, add both a MongoDB and SQLite implementation.
+
+## Production guard
+
+في الإنتاج لا يسمح التطبيق بالسقوط الصامت إلى SQLite. يجب توفير `MONGODB_URI` مع امتداد MongoDB، ويُنشأ المدير الأول فقط من `INITIAL_ADMIN_EMAIL` و`INITIAL_ADMIN_PASSWORD` بطول لا يقل عن 12 حرفاً. الحسابات التجريبية لا تُنشأ في الإنتاج.
+
+**Why:** SQLite داخل حاوية Render مؤقتة، والاعتماد عليه يجعل تسجيل الدخول والحسابات تختفي بعد إعادة التشغيل أو نشر نسخة جديدة.
+
+**How to apply:** قبل أي نشر Render، اضبط متغيرات MongoDB والمدير الأول، وبعد أول دخول احذف متغير كلمة مرور التهيئة من بيئة Render.

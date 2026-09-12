@@ -47,6 +47,21 @@ if ($uri === '/legacy-calculator.html') {
     http_response_code(404); exit;
 }
 
+if (defined('APP_ENV') && APP_ENV === 'production') {
+    set_exception_handler(static function (Throwable $e) use ($uri): never {
+        error_log('[production] ' . $e->getMessage());
+        if (str_starts_with($uri, '/api/')) {
+            Response::json([
+                'error' => 'تعذر الاتصال بقاعدة بيانات الإنتاج حالياً',
+                'code' => 'PRODUCTION_DATABASE_UNAVAILABLE',
+            ], 503);
+        }
+        http_response_code(503);
+        echo '<!doctype html><meta charset="utf-8"><title>تسعيرة</title><p dir="rtl" style="font-family:Arial;padding:32px">قاعدة بيانات الإنتاج غير متاحة حالياً. تحقق من اتصال MongoDB ثم أعد المحاولة.</p>';
+        exit;
+    });
+}
+
 // Production must use the persistent MongoDB backend. Never fall back to
 // ephemeral container SQLite when Render is missing its database settings.
 if (defined('APP_ENV') && APP_ENV === 'production') {
