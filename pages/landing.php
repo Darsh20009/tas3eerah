@@ -672,12 +672,6 @@ function showErr(msg) {
   el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-function fillLogin(email, pass) {
-  document.getElementById('loginEmail').value = email;
-  document.getElementById('loginPass').value  = pass;
-  document.getElementById('authError').classList.add('hidden');
-}
-
 async function refreshCsrfToken() {
   try {
     const r = await fetch('/api/auth?action=csrf&_=' + Date.now(), {
