@@ -8,6 +8,7 @@ $body   = json_decode(file_get_contents('php://input'), true) ?? [];
 $action = $body['action'] ?? $_GET['action'] ?? '';
 
 match ($action) {
+    'csrf'           => handleCsrf(),
     'login'          => handleLogin($body),
     'register'       => handleRegister($body),
     'logout'         => handleLogout(),
@@ -16,6 +17,10 @@ match ($action) {
     'update_account' => handleUpdateAccount($body),
     default          => Response::err('إجراء غير معروف', 400),
 };
+
+function handleCsrf(): never {
+    Response::ok(['csrf_token' => Auth::csrfToken()]);
+}
 
 function handleLogin(array $b): never {
     $email    = trim($b['email'] ?? '');
