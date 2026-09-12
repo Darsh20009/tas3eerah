@@ -41,7 +41,8 @@ final class PrivateEmail {
         string $subject,
         string $html,
         array $settings = [],
-        ?string $replyTo = null
+        ?string $replyTo = null,
+        array $inlineImages = []
     ): void {
         $to = trim($to);
         if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
@@ -70,11 +71,34 @@ final class PrivateEmail {
                 'Subject: ' . self::mimeHeader($subject),
                 'Reply-To: ' . ($replyTo && filter_var($replyTo, FILTER_VALIDATE_EMAIL) ? $replyTo : $from),
                 'MIME-Version: 1.0',
-                'Content-Type: text/html; charset=UTF-8',
-                'Content-Transfer-Encoding: 8bit',
                 'X-Mailer: Tas3eerah/1.0',
             ];
-            $payload = implode("\r\n", $headers) . "\r\n\r\n" . self::dotStuff($html) . "\r\n.";
+            $validImages = array_values(array_filter($inlineImages, static function (array $asset): bool {
+                return !empty($asset['path']) && !empty($asset['cid']) && is_readable($asset['path']);
+            }));
+            if ($validImages) {
+                $boundary = '=_tas3eerah_' . bin2hex(random_bytes(8));
+                $headers[] = 'Content-Type: multipart/related; boundary="' . $boundary . '"';
+                $body = '--' . $boundary . "\r\n";
+                $body .= "Content-Type: text/html; charset=UTF-8\r\n";
+                $body .= "Content-Transfer-Encoding: 8bit\r\n\r\n";
+                $body .= self::dotStuff($html) . "\r\n";
+                foreach ($validImages as $asset) {
+                    $content = base64_encode((string)file_get_contents($asset['path']));
+                    $body .= '--' . $boundary . "\r\n";
+                    $body .= 'Content-Type: ' . ($asset['type'] ?? 'application/octet-stream') . '; name="' . ($asset['name'] ?? 'asset') . '"' . "\r\n";
+                    $body .= "Content-Transfer-Encoding: base64\r\n";
+                    $body .= 'Content-ID: <' . $asset['cid'] . ">\r\n";
+                    $body .= 'Content-Disposition: inline; filename="' . ($asset['name'] ?? 'asset') . '"' . "\r\n\r\n";
+                    $body .= chunk_split($content) . "\r\n";
+                }
+                $body .= '--' . $boundary . '--';
+            } else {
+                $headers[] = 'Content-Type: text/html; charset=UTF-8';
+                $headers[] = 'Content-Transfer-Encoding: 8bit';
+                $body = self::dotStuff($html);
+            }
+            $payload = implode("\r\n", $headers) . "\r\n\r\n" . $body . "\r\n.";
             fwrite($socket, $payload . "\r\n");
             self::expect($socket, [250]);
             self::command($socket, 'QUIT', [221, 250]);
