@@ -20,3 +20,6 @@ services:
         value: info@tas3eerah.com
       - key: PRIVATE_EMAIL_PASSWORD
         sync: false
+      # Optional: only when the receiving mailbox is a different account.
+      - key: PRIVATE_EMAIL_RECEIVE_PASSWORD
+        sync: false

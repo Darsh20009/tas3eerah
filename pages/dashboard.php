@@ -127,7 +127,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
     <div class="sb-section">التواصل</div>
     <button class="sb-item" data-panel="messages" onclick="nav(this)">
       <span class="sb-icon">◉</span>
-      <span data-ar="صندوق البريد" data-en="Inbox">صندوق البريد</span>
+      <span data-ar="الرسائل الداخلية" data-en="Internal messages">الرسائل الداخلية</span>
       <span class="sb-badge hidden" id="unreadBadge">0</span>
     </button>
 
@@ -146,7 +146,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
     </button>
     <button class="sb-item" data-panel="mailbox" onclick="nav(this)">
       <span class="sb-icon">✉</span>
-      <span data-ar="البريد الوارد" data-en="Mailbox">البريد الوارد</span>
+      <span data-ar="البريد الإلكتروني" data-en="Email mailbox">البريد الإلكتروني</span>
       <span class="sb-badge hidden" id="mailboxBadge">0</span>
     </button>
     <button class="sb-item" data-panel="contact-inbox" onclick="nav(this)">
@@ -528,6 +528,11 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
 
     <!-- ══ MESSAGES ══ -->
     <div class="section-panel" id="panel-messages">
+      <div class="section-intro">
+        <span class="section-eyebrow">التواصل داخل المنصة</span>
+        <h2>الرسائل الداخلية</h2>
+        <p>محادثات المستخدمين داخل تسعيرة، منفصلة عن حساب البريد الإلكتروني الرسمي.</p>
+      </div>
       <div class="msg-layout">
         <div class="msg-list">
           <div class="msg-list-header flex justify-between items-center">
@@ -1096,19 +1101,30 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
       <div class="card">
         <div class="card-header">
           <div>
-            <h3 data-ar="البريد الوارد" data-en="Mailbox">البريد الوارد</h3>
+            <h3 data-ar="البريد الإلكتروني الحقيقي" data-en="Real email mailbox">البريد الإلكتروني الحقيقي</h3>
             <small id="mailboxAddress" style="display:block;color:var(--muted);margin-top:4px"></small>
+            <small id="mailboxReceiveAddress" style="display:block;color:var(--muted);margin-top:3px"></small>
           </div>
           <div class="flex gap-8">
             <button class="btn btn-outline btn-sm" onclick="openMailboxCompose()">رسالة جديدة</button>
             <button class="btn btn-ghost btn-sm" onclick="loadMailbox()">تحديث</button>
           </div>
         </div>
+        <div class="mailbox-note">
+          هذا هو صندوق البريد الرسمي للمنصة. الرسائل الداخلية بين المستخدمين موجودة في قسم مستقل باسم «الرسائل الداخلية».
+        </div>
         <div id="mailboxStatus" class="hidden mb-8"></div>
+        <div class="mailbox-folders" id="mailboxFolders" role="tablist" aria-label="مجلدات البريد">
+          <button class="mailbox-folder active" data-folder="inbox" onclick="selectMailboxFolder('inbox')">الوارد <span>0</span></button>
+          <button class="mailbox-folder" data-folder="sent" onclick="selectMailboxFolder('sent')">المرسل <span>0</span></button>
+          <button class="mailbox-folder" data-folder="drafts" onclick="selectMailboxFolder('drafts')">المسودات <span>0</span></button>
+          <button class="mailbox-folder" data-folder="spam" onclick="selectMailboxFolder('spam')">المزعجة <span>0</span></button>
+          <button class="mailbox-folder" data-folder="trash" onclick="selectMailboxFolder('trash')">المحذوفة <span>0</span></button>
+        </div>
         <table class="data-table">
-          <thead><tr><th>المرسل</th><th>الموضوع</th><th>التاريخ</th><th>الحالة</th></tr></thead>
+          <thead><tr><th>المرسل</th><th>الموضوع</th><th>التاريخ</th><th>الحالة</th><th>إجراء</th></tr></thead>
           <tbody id="mailboxTbody">
-            <tr><td colspan="4" style="text-align:center;padding:32px;color:var(--muted)">افتح البريد الوارد لتحميل الرسائل</td></tr>
+            <tr><td colspan="5" style="text-align:center;padding:32px;color:var(--muted)">افتح البريد الإلكتروني لتحميل الرسائل</td></tr>
           </tbody>
         </table>
       </div>
@@ -1144,12 +1160,17 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
         <div class="card" style="padding:24px">
           <h3 style="font-size:15px;font-weight:800;margin-bottom:8px;color:var(--p)">صندوق البريد المرسل</h3>
           <p style="font-size:12px;color:var(--muted);line-height:1.8;margin-bottom:16px">
-            يستخدم النظام هذا الحساب لإرسال عروض الأسعار وقراءة البريد الوارد. كلمة المرور محفوظة بأمان ولا تظهر هنا.
+             يستخدم النظام حساب الإرسال لعروض الأسعار والبريد المرسل، وحساب الاستقبال لقراءة الوارد. اترك عنوان الاستقبال مطابقاً للإرسال عند استخدام حساب واحد. كلمات المرور لا تُحفظ هنا.
           </p>
           <div class="form-group">
-            <label>عنوان البريد</label>
+             <label>عنوان بريد الإرسال</label>
             <input type="email" class="form-control" id="setMailboxEmail" placeholder="info@tas3eerah.com" dir="ltr">
           </div>
+           <div class="form-group">
+             <label>عنوان بريد الاستقبال</label>
+             <input type="email" class="form-control" id="setMailboxReceiveEmail" placeholder="info@tas3eerah.com" dir="ltr">
+             <small style="display:block;color:var(--muted);font-size:11px;margin-top:6px">لحساب مختلف، أضف كلمة مروره في Secret باسم PRIVATE_EMAIL_RECEIVE_PASSWORD.</small>
+           </div>
           <div class="form-group">
             <label>اسم المرسل</label>
             <input type="text" class="form-control" id="setMailboxName" placeholder="تسعيرة">
@@ -1275,7 +1296,10 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
     <div class="form-group"><label>الموضوع</label><input type="text" class="form-control" id="mailboxSubject"></div>
     <div class="form-group"><label>الرسالة</label><textarea class="form-control" id="mailboxMessage" style="height:150px"></textarea></div>
     <div id="mailboxComposeMsg" class="hidden mb-8"></div>
-    <button class="btn btn-primary w-full" onclick="sendMailboxEmail()">إرسال من صندوق البريد</button>
+    <div class="flex gap-8">
+      <button class="btn btn-primary flex-1" onclick="sendMailboxEmail()">إرسال من صندوق البريد</button>
+      <button class="btn btn-outline" onclick="saveMailboxDraft()">حفظ مسودة</button>
+    </div>
   </div>
 </div>
 
@@ -1288,9 +1312,11 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
     </div>
     <div style="font-size:12px;color:var(--muted);line-height:1.9;margin-bottom:16px">
       <div><strong>من:</strong> <span id="mailboxReadFrom" class="user-content"></span></div>
+      <div><strong>إلى:</strong> <span id="mailboxReadTo" class="user-content"></span></div>
       <div><strong>التاريخ:</strong> <span id="mailboxReadDate"></span></div>
     </div>
     <div id="mailboxReadBody" class="user-content" style="white-space:pre-wrap;line-height:1.9;border-top:1px solid var(--border);padding-top:16px;max-height:420px;overflow:auto"></div>
+    <div id="mailboxReadActions" class="mailbox-read-actions"></div>
   </div>
 </div>
 

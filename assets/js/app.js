@@ -1409,14 +1409,56 @@ async function deleteContact(id) {
 
 // ─── ADMIN: PRIVATE EMAIL MAILBOX ────────
 let mailboxMessages = [];
-async function loadMailbox() {
+let mailboxFolder = 'inbox';
+let mailboxFolderStats = {};
+
+const MAILBOX_FOLDER_LABELS = {
+  inbox: 'الوارد',
+  sent: 'المرسل',
+  drafts: 'المسودات',
+  spam: 'المزعجة',
+  trash: 'المحذوفة',
+};
+
+function selectMailboxFolder(folder) {
+  if (!MAILBOX_FOLDER_LABELS[folder]) return;
+  mailboxFolder = folder;
+  document.querySelectorAll('.mailbox-folder').forEach(button => {
+    button.classList.toggle('active', button.dataset.folder === folder);
+  });
+  loadMailbox(folder);
+}
+
+function renderMailboxFolders(stats) {
+  mailboxFolderStats = stats || {};
+  document.querySelectorAll('.mailbox-folder').forEach(button => {
+    const key = button.dataset.folder;
+    const item = mailboxFolderStats[key] || {};
+    const count = button.querySelector('span');
+    if (count) count.textContent = Number(item.count || 0);
+    button.classList.toggle('is-unavailable', item.available === false);
+    button.classList.toggle('active', key === mailboxFolder);
+  });
+  const unread = Number(mailboxFolderStats.inbox?.unread || 0);
+  const badge = document.getElementById('mailboxBadge');
+  if (badge) {
+    badge.textContent = unread;
+    badge.classList.toggle('hidden', unread === 0);
+  }
+}
+
+async function loadMailbox(folder = mailboxFolder) {
   const tb = document.getElementById('mailboxTbody');
   const status = document.getElementById('mailboxStatus');
   if (!tb) return;
-  tb.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--muted)">جارٍ الاتصال بصندوق البريد...</td></tr>';
-  const r = await api('admin?action=mailbox_inbox');
+  mailboxFolder = MAILBOX_FOLDER_LABELS[folder] ? folder : 'inbox';
+  document.querySelectorAll('.mailbox-folder').forEach(button => {
+    button.classList.toggle('active', button.dataset.folder === mailboxFolder);
+  });
+  tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--muted)">جارٍ الاتصال بصندوق البريد...</td></tr>';
+  const r = await api('admin', { action: 'mailbox_folder', folder: mailboxFolder });
   if (!r.success) {
-    tb.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--red,#e53e3e)">${esc(r.error || 'تعذر تحميل البريد')}</td></tr>`;
+    tb.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--red,#e53e3e)">${esc(r.error || 'تعذر تحميل البريد')}</td></tr>`;
     if (status) {
       status.className = 'alert alert-danger mb-8';
       status.textContent = r.error || 'تعذر الاتصال بصندوق البريد';
@@ -1424,34 +1466,50 @@ async function loadMailbox() {
     return;
   }
   mailboxMessages = r.data.messages || [];
+  renderMailboxFolders(r.data.folders || {});
   const mailbox = r.data.mailbox || {};
   const address = document.getElementById('mailboxAddress');
-  if (address) address.textContent = `الحساب المتصل: ${mailbox.address || ''}`;
+  const receiveAddress = document.getElementById('mailboxReceiveAddress');
+  if (address) address.textContent = `الإرسال: ${mailbox.send_address || mailbox.address || ''}`;
+  if (receiveAddress) receiveAddress.textContent = `الاستقبال: ${mailbox.receive_address || mailbox.address || ''}`;
   const from = document.getElementById('mailboxFrom');
-  if (from) from.value = mailbox.address || '';
+  if (from) from.value = mailbox.send_address || mailbox.address || '';
   if (status) {
     status.className = 'alert alert-success mb-8';
-    status.textContent = `متصل بـ ${mailbox.address || 'صندوق البريد'} — آخر تحديث الآن`;
+    status.textContent = `متصل بـ ${MAILBOX_FOLDER_LABELS[mailboxFolder]} — آخر تحديث الآن`;
     setTimeout(() => { if (status) status.className = 'hidden'; }, 3500);
   }
-  const unread = mailboxMessages.filter(m => !m.seen).length;
-  const badge = document.getElementById('mailboxBadge');
-  if (badge) {
-    badge.textContent = unread;
-    badge.classList.toggle('hidden', unread === 0);
-  }
   if (!mailboxMessages.length) {
-    tb.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--muted)">لا توجد رسائل في الوارد</td></tr>';
+    tb.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--muted)">لا توجد رسائل في ${MAILBOX_FOLDER_LABELS[mailboxFolder]}</td></tr>`;
     return;
   }
-  tb.innerHTML = mailboxMessages.map(m => `
-    <tr style="${m.seen ? '' : 'background:var(--surface);font-weight:700'};cursor:pointer" onclick="openMailboxMessage(${m.uid})">
-      <td class="user-content" style="direction:ltr;text-align:right">${esc(m.from || '')}</td>
-      <td class="user-content">${esc(m.subject || '(بدون موضوع)')}</td>
-      <td style="font-size:11px;color:var(--muted);direction:ltr">${esc((m.date || '').slice(0, 22))}</td>
-      <td>${m.seen ? '<span style="font-size:11px;color:var(--muted)">مقروءة</span>' : '<span class="badge badge-pro">جديدة</span>'}</td>
-    </tr>
-  `).join('');
+  tb.innerHTML = mailboxMessages.map(m => {
+    const sender = mailboxFolder === 'sent' ? `إلى: ${m.to || ''}` : (m.from || '');
+    return `
+      <tr style="${m.seen ? '' : 'background:var(--surface);font-weight:700'};cursor:pointer" onclick="openMailboxMessage(${m.uid})">
+        <td class="user-content" style="direction:ltr;text-align:right">${esc(sender)}</td>
+        <td class="user-content">${esc(m.subject || '(بدون موضوع)')}</td>
+        <td style="font-size:11px;color:var(--muted);direction:ltr">${esc((m.date || '').slice(0, 22))}</td>
+        <td>${m.seen ? '<span style="font-size:11px;color:var(--muted)">مقروءة</span>' : '<span class="badge badge-pro">جديدة</span>'}</td>
+        <td onclick="event.stopPropagation()">${mailboxActionMarkup(m)}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function mailboxActionMarkup(message) {
+  const moveOptions = Object.entries(MAILBOX_FOLDER_LABELS)
+    .filter(([key]) => key !== mailboxFolder)
+    .map(([key, label]) => `<option value="${key}">${label}</option>`)
+    .join('');
+  const move = `<select class="mailbox-move-select" aria-label="نقل الرسالة"
+      onclick="event.stopPropagation()"
+      onchange="if (this.value) { moveMailboxMessage(${message.uid}, '${mailboxFolder}', this.value); this.value = ''; }">
+      <option value="">نقل إلى...</option>${moveOptions}</select>`;
+  const remove = mailboxFolder === 'trash'
+    ? `<button class="btn btn-ghost btn-sm mailbox-danger" onclick="deleteMailboxMessage(${message.uid}, 'trash')">حذف نهائياً</button>`
+    : `<button class="btn btn-ghost btn-sm mailbox-danger" onclick="deleteMailboxMessage(${message.uid}, '${mailboxFolder}')">حذف</button>`;
+  return `<div class="mailbox-row-actions">${move}${remove}</div>`;
 }
 
 async function openMailboxMessage(uid) {
@@ -1460,21 +1518,47 @@ async function openMailboxMessage(uid) {
   const set = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value || ''; };
   set('mailboxReadSubject', message.subject || '(بدون موضوع)');
   set('mailboxReadFrom', message.from);
+  set('mailboxReadTo', message.to);
   set('mailboxReadDate', message.date);
   set('mailboxReadBody', message.body || 'لا يوجد نص قابل للعرض');
+  const actions = document.getElementById('mailboxReadActions');
+  if (actions) {
+    const moveTo = mailboxFolder === 'trash' ? '' : 'trash';
+    actions.innerHTML = moveTo
+      ? `<button class="btn btn-outline btn-sm" onclick="moveMailboxMessage(${message.uid}, '${mailboxFolder}', 'trash', true)">نقل إلى المحذوفة</button>`
+      : `<button class="btn btn-outline btn-sm mailbox-danger" onclick="deleteMailboxMessage(${message.uid}, 'trash', true)">حذف نهائياً</button>`;
+  }
   document.getElementById('mailboxReadModal')?.classList.remove('hidden');
   if (!message.seen) {
-    const r = await api('admin', { action: 'mailbox_mark_read', uid: message.uid });
+    const r = await api('admin', { action: 'mailbox_mark_read', uid: message.uid, folder: mailboxFolder });
     if (r.success) {
       message.seen = true;
-      const unread = mailboxMessages.filter(m => !m.seen).length;
-      const badge = document.getElementById('mailboxBadge');
-      if (badge) {
-        badge.textContent = unread;
-        badge.classList.toggle('hidden', unread === 0);
-      }
+      renderMailboxFolders(mailboxFolderStats);
+      loadMailbox(mailboxFolder);
     }
   }
+}
+
+async function moveMailboxMessage(uid, from, to, closeModal = false) {
+  const r = await api('admin', { action: 'mailbox_move', uid, from, to });
+  if (!r.success) {
+    alert(r.error || 'تعذر نقل الرسالة');
+    return;
+  }
+  if (closeModal) document.getElementById('mailboxReadModal')?.classList.add('hidden');
+  loadMailbox(mailboxFolder);
+}
+
+async function deleteMailboxMessage(uid, folder, closeModal = false) {
+  const permanent = folder === 'trash';
+  if (!confirm(permanent ? 'حذف الرسالة نهائياً؟ لا يمكن التراجع عن هذا الإجراء.' : 'نقل الرسالة إلى المحذوفة؟')) return;
+  const r = await api('admin', { action: 'mailbox_delete', uid, folder });
+  if (!r.success) {
+    alert(r.error || 'تعذر حذف الرسالة');
+    return;
+  }
+  if (closeModal) document.getElementById('mailboxReadModal')?.classList.add('hidden');
+  loadMailbox(mailboxFolder);
 }
 
 function openMailboxCompose() {
@@ -1485,25 +1569,50 @@ function openMailboxCompose() {
   document.getElementById('mailboxTo')?.focus();
 }
 
+function mailboxComposeValues() {
+  return {
+    to: document.getElementById('mailboxTo')?.value.trim() || '',
+    subject: document.getElementById('mailboxSubject')?.value.trim() || '',
+    message: document.getElementById('mailboxMessage')?.value.trim() || '',
+  };
+}
+
 async function sendMailboxEmail() {
-  const to = document.getElementById('mailboxTo')?.value.trim() || '';
-  const subject = document.getElementById('mailboxSubject')?.value.trim() || '';
-  const message = document.getElementById('mailboxMessage')?.value.trim() || '';
+  const values = mailboxComposeValues();
   const msg = document.getElementById('mailboxComposeMsg');
-  if (!to || !subject || !message) {
+  if (!values.to || !values.subject || !values.message) {
     if (msg) { msg.className = 'alert alert-danger mb-8'; msg.textContent = 'يرجى تعبئة المستلم والموضوع والرسالة'; }
     return;
   }
-  const r = await api('admin', { action: 'mailbox_send', to, subject, message });
+  const r = await api('admin', { action: 'mailbox_send', ...values });
   if (msg) {
     msg.className = r.success ? 'alert alert-success mb-8' : 'alert alert-danger mb-8';
-    msg.textContent = r.success ? 'تم إرسال الرسالة من صندوق البريد' : (r.error || 'تعذر الإرسال');
+    msg.textContent = r.success ? 'تم إرسال الرسالة وحفظ نسخة في المرسل' : (r.error || 'تعذر الإرسال');
   }
   if (r.success) {
     document.getElementById('mailboxTo').value = '';
     document.getElementById('mailboxSubject').value = '';
     document.getElementById('mailboxMessage').value = '';
     setTimeout(() => document.getElementById('mailboxComposeModal')?.classList.add('hidden'), 900);
+    if (mailboxFolder === 'sent') loadMailbox('sent');
+  }
+}
+
+async function saveMailboxDraft() {
+  const values = mailboxComposeValues();
+  const msg = document.getElementById('mailboxComposeMsg');
+  if (!values.subject && !values.message) {
+    if (msg) { msg.className = 'alert alert-danger mb-8'; msg.textContent = 'أدخل موضوعاً أو نصاً قبل حفظ المسودة'; }
+    return;
+  }
+  const r = await api('admin', { action: 'mailbox_save_draft', ...values });
+  if (msg) {
+    msg.className = r.success ? 'alert alert-success mb-8' : 'alert alert-danger mb-8';
+    msg.textContent = r.success ? 'تم حفظ المسودة' : (r.error || 'تعذر حفظ المسودة');
+  }
+  if (r.success) {
+    setTimeout(() => document.getElementById('mailboxComposeModal')?.classList.add('hidden'), 900);
+    if (mailboxFolder === 'drafts') loadMailbox('drafts');
   }
 }
 
@@ -1518,6 +1627,7 @@ async function loadSettings() {
   if (f('setSiteName'))       f('setSiteName').value       = s.site_name       || 'تسعيرة';
   if (f('setWelcomeMsg'))     f('setWelcomeMsg').value     = s.welcome_message || '';
   if (f('setMailboxEmail'))   f('setMailboxEmail').value   = s.mailbox_email   || 'info@tas3eerah.com';
+  if (f('setMailboxReceiveEmail')) f('setMailboxReceiveEmail').value = s.mailbox_receive_email || s.mailbox_email || 'info@tas3eerah.com';
   if (f('setMailboxName'))    f('setMailboxName').value    = s.mailbox_name    || 'تسعيرة';
 }
 async function saveSettings() {
@@ -1529,6 +1639,7 @@ async function saveSettings() {
     site_name:       val('setSiteName'),
     welcome_message: val('setWelcomeMsg'),
     mailbox_email:   val('setMailboxEmail'),
+    mailbox_receive_email: val('setMailboxReceiveEmail'),
     mailbox_name:    val('setMailboxName'),
   };
   const r = await api('admin', payload);

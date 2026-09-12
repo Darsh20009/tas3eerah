@@ -26,7 +26,12 @@ match ($action) {
     'contact_delete'    => contactDelete($body),
     'mailbox_status'    => mailboxStatus(),
     'mailbox_inbox'     => mailboxInbox(),
+    'mailbox_folder'    => mailboxFolder($body),
+    'mailbox_folders'   => mailboxFolders(),
     'mailbox_mark_read' => mailboxMarkRead($body),
+    'mailbox_move'      => mailboxMove($body),
+    'mailbox_delete'    => mailboxDelete($body),
+    'mailbox_save_draft'=> mailboxSaveDraft($body),
     'mailbox_send'      => mailboxSend($body),
     'get_settings'      => getSettings(),
     'save_settings'     => saveSettings($user, $body),
@@ -254,9 +259,27 @@ function mailboxStatus(): never {
 }
 
 function mailboxInbox(): never {
+    mailboxFolder(['folder' => 'inbox']);
+}
+
+function mailboxFolder(array $b): never {
+    $folder = strtolower(trim((string)($b['folder'] ?? $_GET['folder'] ?? 'inbox')));
     try {
         Response::ok([
-            'messages' => PrivateEmail::inbox(adminSettingsMap(), 60),
+            'messages' => PrivateEmail::folderMessages($folder, adminSettingsMap(), 60),
+            'folders' => PrivateEmail::folders(adminSettingsMap()),
+            'folder' => $folder,
+            'mailbox' => PrivateEmail::publicConfig(adminSettingsMap()),
+        ]);
+    } catch (Throwable $e) {
+        Response::err($e->getMessage(), 502);
+    }
+}
+
+function mailboxFolders(): never {
+    try {
+        Response::ok([
+            'folders' => PrivateEmail::folders(adminSettingsMap()),
             'mailbox' => PrivateEmail::publicConfig(adminSettingsMap()),
         ]);
     } catch (Throwable $e) {
@@ -266,8 +289,52 @@ function mailboxInbox(): never {
 
 function mailboxMarkRead(array $b): never {
     try {
-        PrivateEmail::markRead((int)($b['uid'] ?? 0), adminSettingsMap());
+        $folder = strtolower(trim((string)($b['folder'] ?? 'inbox')));
+        PrivateEmail::markFolderRead((int)($b['uid'] ?? 0), $folder, adminSettingsMap());
         Response::ok([], 'تم تعليم الرسالة كمقروءة');
+    } catch (Throwable $e) {
+        Response::err($e->getMessage(), 502);
+    }
+}
+
+function mailboxMove(array $b): never {
+    try {
+        PrivateEmail::move(
+            (int)($b['uid'] ?? 0),
+            strtolower(trim((string)($b['from'] ?? 'inbox'))),
+            strtolower(trim((string)($b['to'] ?? 'trash'))),
+            adminSettingsMap()
+        );
+        Response::ok([], 'تم نقل الرسالة');
+    } catch (Throwable $e) {
+        Response::err($e->getMessage(), 502);
+    }
+}
+
+function mailboxDelete(array $b): never {
+    try {
+        PrivateEmail::delete(
+            (int)($b['uid'] ?? 0),
+            strtolower(trim((string)($b['folder'] ?? 'inbox'))),
+            adminSettingsMap()
+        );
+        Response::ok([], 'تم حذف الرسالة');
+    } catch (Throwable $e) {
+        Response::err($e->getMessage(), 502);
+    }
+}
+
+function mailboxSaveDraft(array $b): never {
+    $to = trim((string)($b['to'] ?? ''));
+    $subject = trim((string)($b['subject'] ?? ''));
+    $message = trim((string)($b['message'] ?? ''));
+    if ($to !== '' && !filter_var($to, FILTER_VALIDATE_EMAIL)) Response::err('البريد المستلم غير صحيح');
+    if (!$subject && !$message) Response::err('أدخل موضوعاً أو نصاً قبل حفظ المسودة');
+
+    try {
+        $html = EmailTemplate::simpleMessage($message ?: '(مسودة فارغة)', $subject ?: '(بدون موضوع)');
+        PrivateEmail::saveDraft($to, $subject ?: '(بدون موضوع)', $html, adminSettingsMap());
+        Response::ok([], 'تم حفظ المسودة');
     } catch (Throwable $e) {
         Response::err($e->getMessage(), 502);
     }
@@ -299,7 +366,7 @@ function getSettings(): never {
 }
 
 function saveSettings(array $me, array $b): never {
-    $allowed = ['contact_email', 'whatsapp', 'site_name', 'welcome_message', 'mailbox_email', 'mailbox_name'];
+    $allowed = ['contact_email', 'whatsapp', 'site_name', 'welcome_message', 'mailbox_email', 'mailbox_receive_email', 'mailbox_name'];
     foreach ($allowed as $key) {
         if (array_key_exists($key, $b)) {
             DB::upsertByKey('settings', 'key', $key, ['value' => trim((string)$b[$key])]);
