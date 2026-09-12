@@ -1604,6 +1604,11 @@ select.form-control { cursor: pointer; }
   .dashboard-welcome { min-height: 150px; height:auto; align-items: flex-start; padding: 20px; margin-bottom:16px; }
   .dashboard-welcome-mark { display: none; }
   .workspace { padding: 16px 13px 34px; }
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .stat-card { min-width: 0; }
   .workspace-footer { flex-direction: column; align-items: center; }
   .market-strip-inner {
     grid-template-columns: 56px repeat(3, minmax(0, 1fr));

@@ -225,9 +225,9 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
         if ($role === 'admin'):
           $stats = [
             ['المستخدمون', DB::count('users'), 'إجمالي المستخدمين', 'accent'],
+            ['المستخدمون النشطون', DB::count('users', ['is_active' => 1]), 'حسابات نشطة', 'gold'],
             ['عروض الأسعار', DB::count('quotes'), 'كل العروض', 'green'],
             ['هذا الشهر', DB::count('quotes', ['created_at' => ['$regex' => '^' . $month]]), 'عروض هذا الشهر', ''],
-            ['المستخدمون النشطون', DB::count('users', ['is_active' => 1]), 'حسابات نشطة', 'gold'],
           ];
         elseif ($role === 'employee'):
           $uid = $user['id'];
