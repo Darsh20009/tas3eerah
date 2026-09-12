@@ -7,6 +7,10 @@ services:
     envVars:
       - key: APP_ENV
         value: production
-      # Set APP_URL to your Render URL after first deploy, e.g.:
-      # - key: APP_URL
-      #   value: https://tas3eerah.onrender.com
+      # Fill these in Render before sending branded production email.
+      - key: APP_URL
+        sync: false
+      - key: PRIVATE_EMAIL_ADDRESS
+        value: info@tas3eerah.com
+      - key: PRIVATE_EMAIL_PASSWORD
+        sync: false

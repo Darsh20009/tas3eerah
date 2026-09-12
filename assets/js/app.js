@@ -365,6 +365,12 @@ async function api(endpoint, data = null, method = null, allowCsrfRetry = true) 
   }
 }
 
+function resetWorkspaceScroll() {
+  const workspace = document.getElementById('workspace');
+  if (workspace) workspace.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+}
+
 function nav(btn) {
   closeSidebar();
   if (!btn) return;
@@ -377,6 +383,7 @@ function nav(btn) {
   document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
   const target = document.getElementById('panel-' + panel);
   if (target) target.classList.add('active');
+  resetWorkspaceScroll();
 
   const titleEl = document.getElementById('topbarTitle');
   if (titleEl) titleEl.textContent = panelTitle(panel);
@@ -403,6 +410,7 @@ function navDirect(panelId) {
   document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
   const panel = document.getElementById('panel-' + panelId);
   if (panel) panel.classList.add('active');
+  resetWorkspaceScroll();
 
   const titleEl = document.getElementById('topbarTitle');
   if (titleEl) titleEl.textContent = panelTitle(panelId);
@@ -792,6 +800,7 @@ function openTool(slug) {
   document.querySelectorAll('.tool-panel').forEach(p => p.classList.remove('active'));
   const panel = document.getElementById('tool-' + slug);
   if (panel) panel.classList.add('active');
+  resetWorkspaceScroll();
   // Restore sessionStorage state
   restoreToolState(slug);
   // Trigger initial calculation
@@ -831,6 +840,7 @@ function calcMenu() {
 function closeTool() {
   document.querySelectorAll('.tool-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('toolsMenu').style.display = '';
+  resetWorkspaceScroll();
 }
 
 // Open the complete sector calculator that matches the reference workflows.

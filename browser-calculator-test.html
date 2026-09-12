@@ -1,0 +1,64 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Calculator verification</title>
+<pre id="out">running</pre>
+<iframe id="calc" src="/legacy-calculator.html"></iframe>
+<script>
+const out = document.getElementById('out');
+const frame = document.getElementById('calc');
+const specs = [
+  ['services', 'calc'],
+  ['packages', 'calcPkg'],
+  ['menu', 'calcMenuAll'],
+  ['retail', 'calcRetail'],
+  ['tech', 'calcTech'],
+  ['saas', 'calcSaas'],
+  ['design', 'calcDesign'],
+];
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+const report = [];
+
+function fireInputs(doc, value) {
+  doc.querySelectorAll('input, select, textarea').forEach(el => {
+    if (el.tagName === 'SELECT') el.selectedIndex = 0;
+    else if (el.type !== 'button' && el.type !== 'submit') el.value = value;
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+}
+
+async function run() {
+  const win = frame.contentWindow;
+  const doc = frame.contentDocument;
+  for (const [tool, fn] of specs) {
+    win.openTool(tool);
+    await wait(80);
+    const active = [...doc.querySelectorAll('.page.active')];
+    const page = active[0];
+    const call = typeof win[fn] === 'function' ? win[fn] : null;
+    if (call) call();
+    await wait(30);
+    const baseline = page?.innerText || '';
+    fireInputs(doc, '');
+    if (call) call();
+    await wait(30);
+    const empty = page?.innerText || '';
+    fireInputs(doc, '999999999');
+    if (call) call();
+    await wait(30);
+    const large = page?.innerText || '';
+    report.push({
+      tool,
+      page: page?.id || null,
+      calculatorFunction: !!call,
+      baselineFinite: !/(NaN|Infinity)/.test(baseline),
+      emptyFinite: !/(NaN|Infinity)/.test(empty),
+      largeFinite: !/(NaN|Infinity)/.test(large),
+      saveButtons: page ? page.querySelectorAll('button[onclick*="save"], .save-btn').length : 0,
+      printButtons: page ? page.querySelectorAll('button[onclick*="print"], .print-btn').length : 0,
+    });
+  }
+  out.textContent = JSON.stringify(report);
+}
+frame.addEventListener('load', run, { once: true });
+</script>

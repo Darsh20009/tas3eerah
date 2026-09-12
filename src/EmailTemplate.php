@@ -7,6 +7,15 @@
  * the recipient cannot reach the development or preview domain.
  */
 final class EmailTemplate {
+    private static function publicAssetUrl(string $path): string {
+        return rtrim(APP_URL, '/') . '/assets/' . rawurlencode($path);
+    }
+
+    private static function imageSrc(string $cid, string $path): string {
+        $absolute = __DIR__ . '/../assets/' . $path;
+        return is_readable($absolute) ? 'cid:' . $cid : self::publicAssetUrl($path);
+    }
+
     public static function brandAssets(): array {
         return [
             [
@@ -26,6 +35,8 @@ final class EmailTemplate {
 
     public static function frame(string $content, string $preheader = ''): string {
         $preheader = htmlspecialchars($preheader, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $logoSrc = htmlspecialchars(self::imageSrc('tas3eerah-logo', 'logo.png'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $heroSrc = htmlspecialchars(self::imageSrc('tas3eerah-hero', 'hero-reference-art.png'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         return <<<HTML
 <!doctype html>
 <html lang="ar" dir="rtl">
@@ -37,12 +48,12 @@ final class EmailTemplate {
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:640px;background:#ffffff;border:1px solid #e6e0d3">
       <tr>
         <td align="center" style="padding:22px 24px;background:#f8f5ed;border-bottom:1px solid #e5dece">
-          <img src="cid:tas3eerah-logo" width="170" alt="تسعيرة" style="display:block;width:170px;max-width:70%;height:auto;border:0">
+          <img src="$logoSrc" width="170" alt="تسعيرة" style="display:block;width:170px;max-width:70%;height:auto;border:0">
         </td>
       </tr>
       <tr>
         <td style="padding:0;background:#103728">
-          <img src="cid:tas3eerah-hero" width="640" alt="منصة تسعيرة" style="display:block;width:100%;height:auto;border:0">
+           <img src="$heroSrc" width="640" alt="منصة تسعيرة" style="display:block;width:100%;height:auto;border:0">
         </td>
       </tr>
       <tr><td style="padding:30px 32px 34px">$content</td></tr>

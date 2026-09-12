@@ -78,7 +78,7 @@ final class PrivateEmail {
             }));
             if ($validImages) {
                 $boundary = '=_tas3eerah_' . bin2hex(random_bytes(8));
-                $headers[] = 'Content-Type: multipart/related; boundary="' . $boundary . '"';
+                 $headers[] = 'Content-Type: multipart/related; type="text/html"; boundary="' . $boundary . '"';
                 $body = '--' . $boundary . "\r\n";
                 $body .= "Content-Type: text/html; charset=UTF-8\r\n";
                 $body .= "Content-Transfer-Encoding: 8bit\r\n\r\n";
