@@ -77,7 +77,7 @@ final class PrivateEmail {
             self::command($socket, 'EHLO tas3eerah.com', [250]);
             self::command($socket, 'AUTH LOGIN', [334]);
             self::command($socket, base64_encode($from), [334]);
-            self::command($socket, base64_encode(self::password()), [235]);
+            self::command($socket, base64_encode(self::sendPassword()), [235]);
             self::command($socket, "MAIL FROM:<{$from}>", [250]);
             self::command($socket, "RCPT TO:<{$to}>", [250, 251]);
             self::command($socket, 'DATA', [354]);
