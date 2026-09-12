@@ -13,6 +13,7 @@ const UI_TRANSLATIONS = {
   'إدارة المستخدمين':'User Management', 'الاشتراكات':'Subscriptions',
   'رسائل التواصل':'Contact Messages', 'سجل النشاط':'Activity Log',
   'إعدادات النظام':'System Settings', 'حسابي':'My Account',
+  'صندوق البريد':'Inbox', 'إدارة البريد':'Email management',
   'الرئيسية':'Home', 'الصفحة الرئيسية':'Home', 'عروض سعر':'Quotes',
   'عرض سعر':'Quote', 'طلب تسعيرة جديدة':'Request a Quote', 'تسعيراتي':'My Quotes',
   'خطة الاشتراك':'Subscription Plan', 'التواصل':'Communication', 'الأدوات':'Tools',
@@ -282,9 +283,9 @@ function toggleLang() {
 const panelTitles = {
   overview: ['نظرة عامة', 'Overview'], quotes: ['عروض الأسعار', 'Quotes'],
   'quote-new': ['عرض سعر جديد', 'New Quote'], clients: ['العملاء', 'Clients'],
-  messages: ['الرسائل', 'Messages'], tools: ['أدوات التسعير', 'Pricing Tools'],
+  messages: ['صندوق البريد', 'Inbox'], tools: ['أدوات التسعير', 'Pricing Tools'],
   users: ['إدارة المستخدمين', 'User Management'], subscriptions: ['الاشتراكات', 'Subscriptions'],
-  'contact-inbox': ['رسائل التواصل', 'Contact Messages'], activity: ['سجل النشاط', 'Activity Log'],
+  'contact-inbox': ['إدارة البريد', 'Email management'], activity: ['سجل النشاط', 'Activity Log'],
   settings: ['إعدادات النظام', 'System Settings'], account: ['حسابي', 'My Account']
 };
 

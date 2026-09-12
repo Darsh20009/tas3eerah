@@ -126,7 +126,8 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
 
     <div class="sb-section">التواصل</div>
     <button class="sb-item" data-panel="messages" onclick="nav(this)">
-      <span class="sb-icon">◉</span> الرسائل
+      <span class="sb-icon">◉</span>
+      <span data-ar="صندوق البريد" data-en="Inbox">صندوق البريد</span>
       <span class="sb-badge hidden" id="unreadBadge">0</span>
     </button>
 
@@ -144,7 +145,8 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
       <span class="sb-icon">◈</span> الاشتراكات
     </button>
     <button class="sb-item" data-panel="contact-inbox" onclick="nav(this)">
-      <span class="sb-icon">✉</span> رسائل التواصل
+      <span class="sb-icon">✉</span>
+      <span data-ar="إدارة البريد" data-en="Email management">إدارة البريد</span>
       <span class="sb-badge hidden" id="contactBadge">0</span>
     </button>
     <button class="sb-item" data-panel="activity" onclick="nav(this)">
@@ -524,7 +526,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
       <div class="msg-layout">
         <div class="msg-list">
           <div class="msg-list-header flex justify-between items-center">
-            <span>الرسائل</span>
+            <span data-ar="صندوق البريد" data-en="Inbox">صندوق البريد</span>
             <button class="btn btn-primary btn-sm" onclick="openCompose()">رسالة جديدة</button>
           </div>
           <div id="inboxList"><div style="padding:20px;color:var(--muted);text-align:center">جارٍ التحميل...</div></div>
@@ -1087,7 +1089,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
     <!-- ══ ADMIN: CONTACT INBOX ══ -->
     <div class="section-panel" id="panel-contact-inbox">
       <div class="card">
-        <div class="card-header"><h3>رسائل التواصل</h3></div>
+        <div class="card-header"><h3 data-ar="إدارة البريد" data-en="Email management">إدارة البريد</h3></div>
         <table class="data-table">
           <thead><tr><th>الاسم</th><th>البريد</th><th>الرسالة</th><th>التاريخ</th><th>إجراء</th></tr></thead>
           <tbody id="contactInboxTbody">
@@ -1293,7 +1295,7 @@ const APP = <?= json_encode([
 ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 </script>
 <script src="/assets/js/currency.js?v=1"></script>
-<script src="/assets/js/app.js?v=lang-2"></script>
+<script src="/assets/js/app.js?v=lang-3"></script>
 </body>
 </html>
 
