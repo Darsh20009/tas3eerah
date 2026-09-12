@@ -324,7 +324,25 @@ window.addEventListener('resize', () => {
 });
 
 // ─── API ─────────────────────────────────
-async function api(endpoint, data = null, method = null) {
+async function refreshCsrfToken() {
+  try {
+    const r = await fetch('/api/auth?action=csrf&_=' + Date.now(), {
+      method: 'GET',
+      cache: 'no-store',
+      credentials: 'same-origin'
+    });
+    const json = await r.json();
+    const token = json?.data?.csrf_token;
+    if (!r.ok || !token) return false;
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta) meta.content = token;
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function api(endpoint, data = null, method = null, allowCsrfRetry = true) {
   const isGet = data === null;
   const csrf  = document.querySelector('meta[name="csrf-token"]')?.content || '';
   const opts = {
@@ -338,6 +356,9 @@ async function api(endpoint, data = null, method = null) {
   try {
     const r = await fetch('/api/' + endpoint, opts);
     const j = await r.json();
+    if (!isGet && r.status === 403 && j?.code === 'CSRF_INVALID' && allowCsrfRetry) {
+      if (await refreshCsrfToken()) return api(endpoint, data, method, false);
+    }
     return j;
   } catch (e) {
     return { success: false, error: 'خطأ في الاتصال بالخادم' };

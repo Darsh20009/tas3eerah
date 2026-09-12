@@ -4,6 +4,7 @@ require_once __DIR__ . '/../src/DB.php';
 require_once __DIR__ . '/../src/Auth.php';
 require_once __DIR__ . '/../src/Response.php';
 require_once __DIR__ . '/../src/PrivateEmail.php';
+require_once __DIR__ . '/../src/EmailTemplate.php';
 
 $user   = Auth::require();
 $method = $_SERVER['REQUEST_METHOD'];
@@ -289,11 +290,7 @@ function emailQuote(array $u, array $b): never {
     $total       = number_format($q['total'] ?? 0, 2);
     $taxRate     = $q['tax_rate'] ?? 15;
 
-    $body = <<<HTML
-<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"></head><body style="font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:24px">
-<div style="max-width:620px;margin:auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)">
-<div style="background:#1a3d2b;padding:28px 32px;text-align:center"><h1 style="color:#d7ae61;margin:0;font-size:22px">تسعيرة</h1></div>
-<div style="padding:28px 32px">
+    $content = <<<HTML
 <p style="font-size:15px;color:#333">مرحباً <strong>$clientName</strong>،</p>
 <p style="color:#555;font-size:14px">تلقيتَ عرض سعر جديداً من <strong>$empName</strong>.</p>
 <table style="width:100%;border-collapse:collapse;margin:20px 0;background:#f9f9f9;border-radius:8px">
@@ -312,13 +309,11 @@ function emailQuote(array $u, array $b): never {
 <div style="display:flex;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:2px solid #1a3d2b;font-size:16px;font-weight:700"><span>الإجمالي</span><span style="color:#1a3d2b">$total ر.س</span></div>
 </div>
 <p style="margin-top:24px;font-size:13px;color:#888">يمكنك تسجيل الدخول إلى المنصة لقبول أو رفض هذا العرض.</p>
-</div>
-<div style="background:#f0f0f0;padding:16px 32px;text-align:center;font-size:12px;color:#999">تسعيرة — منصة التسعير الذكي</div>
-</div></body></html>
 HTML;
+    $body = EmailTemplate::frame($content, "عرض سعر جديد من تسعيرة: {$q['title']}");
 
     try {
-        PrivateEmail::sendHtml($to, $subject, $body, settingsMap(), $u['email']);
+        PrivateEmail::sendHtml($to, $subject, $body, settingsMap(), $u['email'], EmailTemplate::brandAssets());
     } catch (Throwable $e) {
         Response::err($e->getMessage(), 502);
     }

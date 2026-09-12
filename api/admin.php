@@ -4,6 +4,7 @@ require_once __DIR__ . '/../src/DB.php';
 require_once __DIR__ . '/../src/Auth.php';
 require_once __DIR__ . '/../src/Response.php';
 require_once __DIR__ . '/../src/PrivateEmail.php';
+require_once __DIR__ . '/../src/EmailTemplate.php';
 
 $user   = Auth::requireRole('admin');
 $body   = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -281,8 +282,8 @@ function mailboxSend(array $b): never {
     if (!$message) Response::err('نص الرسالة مطلوب');
 
     try {
-        $html = nl2br(htmlspecialchars($message, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
-        PrivateEmail::sendHtml($to, $subject, '<div dir="rtl" style="font-family:Arial,sans-serif;line-height:1.9">' . $html . '</div>', adminSettingsMap());
+        $html = EmailTemplate::simpleMessage($message, $subject);
+        PrivateEmail::sendHtml($to, $subject, $html, adminSettingsMap(), null, EmailTemplate::brandAssets());
         Response::ok([], 'تم إرسال الرسالة من صندوق البريد');
     } catch (Throwable $e) {
         Response::err($e->getMessage(), 502);

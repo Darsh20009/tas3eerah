@@ -711,7 +711,25 @@ function fillLogin(email, pass) {
   document.getElementById('authError').classList.add('hidden');
 }
 
-async function apiPost(url, data) {
+async function refreshCsrfToken() {
+  try {
+    const r = await fetch('/api/auth?action=csrf&_=' + Date.now(), {
+      method: 'GET',
+      cache: 'no-store',
+      credentials: 'same-origin'
+    });
+    const json = await r.json();
+    const token = json?.data?.csrf_token;
+    if (!r.ok || !token) return false;
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta) meta.content = token;
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function apiPost(url, data, allowCsrfRetry = true) {
   try {
     const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
     const r = await fetch(url, {
@@ -720,6 +738,9 @@ async function apiPost(url, data) {
       body: JSON.stringify(data)
     });
     const json = await r.json();
+    if (r.status === 403 && json?.code === 'CSRF_INVALID' && allowCsrfRetry) {
+      if (await refreshCsrfToken()) return apiPost(url, data, false);
+    }
     if (!r.ok && !json.error) json.error = 'خطأ في الخادم (' + r.status + ')';
     return json;
   } catch (e) {
