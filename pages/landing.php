@@ -461,39 +461,6 @@ if ($user) { header('Location: /dashboard'); exit; }
         <button type="submit" class="btn btn-primary w-full" data-ar="دخول" data-en="Sign in">دخول</button>
       </form>
 
-      <!-- حسابات تجريبية -->
-      <div style="margin-top:18px;border-top:1px solid var(--line);padding-top:14px">
-        <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:10px;font-weight:700;letter-spacing:.5px"
-             data-ar="حسابات تجريبية — اضغط للملء التلقائي" data-en="Demo accounts — click to auto-fill">
-          حسابات تجريبية — اضغط للملء التلقائي
-        </div>
-        <div style="display:flex;flex-direction:column;gap:7px">
-          <div onclick="fillLogin('admin@tas3eerah.com','Admin@2025')"
-               style="display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:var(--surface);transition:background .15s"
-               onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='var(--surface)'">
-            <span style="background:var(--p);color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:4px;white-space:nowrap"
-                  data-ar="مدير" data-en="Admin">مدير</span>
-            <span style="font-size:12px;direction:ltr;flex:1;color:var(--muted)">admin@tas3eerah.com</span>
-            <span style="font-size:11px;color:var(--muted2);direction:ltr">Admin@2025</span>
-          </div>
-          <div onclick="fillLogin('employee@tas3eerah.com','Demo@2025')"
-               style="display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:var(--surface);transition:background .15s"
-               onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='var(--surface)'">
-            <span style="background:var(--gold);color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:4px;white-space:nowrap"
-                  data-ar="موظف" data-en="Employee">موظف</span>
-            <span style="font-size:12px;direction:ltr;flex:1;color:var(--muted)">employee@tas3eerah.com</span>
-            <span style="font-size:11px;color:var(--muted2);direction:ltr">Demo@2025</span>
-          </div>
-          <div onclick="fillLogin('client@tas3eerah.com','Demo@2025')"
-               style="display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:var(--surface);transition:background .15s"
-               onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='var(--surface)'">
-            <span style="background:var(--green);color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:4px;white-space:nowrap"
-                  data-ar="عميل" data-en="Client">عميل</span>
-            <span style="font-size:12px;direction:ltr;flex:1;color:var(--muted)">client@tas3eerah.com</span>
-            <span style="font-size:11px;color:var(--muted2);direction:ltr">Demo@2025</span>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- إنشاء حساب -->
