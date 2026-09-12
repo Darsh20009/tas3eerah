@@ -196,6 +196,23 @@ table { border-collapse: collapse; width: 100%; }
 .form-control.error { border-color: var(--red); }
 textarea.form-control { resize: vertical; min-height: 90px; }
 select.form-control { cursor: pointer; }
+
+/* Saudi Riyal mark — used anywhere a currency label is rendered */
+.riyal-symbol {
+  display: inline-block;
+  width: .88em;
+  height: .88em;
+  max-width: 1em;
+  object-fit: contain;
+  vertical-align: -.14em;
+  margin-inline: .14em .08em;
+}
+.plan-card.featured .riyal-symbol,
+.trust-strip .riyal-symbol,
+.dashboard-welcome .riyal-symbol,
+.sidebar .riyal-symbol {
+  filter: invert(1);
+}
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .form-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
 

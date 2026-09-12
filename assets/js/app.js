@@ -268,6 +268,7 @@ function applyLanguage() {
     if (el.placeholder) el.placeholder = translateString(el.placeholder);
     if (el.getAttribute('aria-label')) el.setAttribute('aria-label', translateString(el.getAttribute('aria-label')));
   });
+  if (window.Tas3Currency) Tas3Currency.replace(document.body);
   localStorage.setItem('tas3-lang', L.current);
 }
 
@@ -295,7 +296,7 @@ function panelTitle(panel) {
 document.addEventListener('DOMContentLoaded', () => {
   applyLanguage();
   languageObserver = new MutationObserver(() => {
-    if (L.current !== 'en' || !languageObserver) return;
+    if (!languageObserver) return;
     languageObserver.disconnect();
     applyLanguage();
     languageObserver.observe(document.body, { childList: true, subtree: true });

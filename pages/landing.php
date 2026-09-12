@@ -18,6 +18,7 @@ if ($user) { header('Location: /dashboard'); exit; }
   <title>تسعيرة | منصة التسعير العربية</title>
   <link rel="stylesheet" href="/assets/css/app.css?v=<?= filemtime(__DIR__.'/../assets/css/app.css') ?>">
   <meta name="csrf-token" content="<?= htmlspecialchars(Auth::csrfToken(), ENT_QUOTES) ?>">
+  <script src="/assets/js/currency.js?v=1"></script>
 </head>
 <body>
 
@@ -668,6 +669,7 @@ function applyLandingLanguage() {
     if (el.getAttribute('aria-label')) el.setAttribute('aria-label', translateLandingText(el.getAttribute('aria-label')));
   });
   if (ACTIVE_POLICY) showPolicy(ACTIVE_POLICY);
+  if (window.Tas3Currency) Tas3Currency.replace(document.body);
   localStorage.setItem('tas3-lang', LANG.current);
 }
 function toggleLang() {
@@ -675,7 +677,7 @@ function toggleLang() {
   applyLandingLanguage();
 }
 document.addEventListener('DOMContentLoaded', () => {
-  if (LANG.current === 'en') applyLandingLanguage();
+  applyLandingLanguage();
 });
 
 /* ══ نافذة المصادقة ══ */
