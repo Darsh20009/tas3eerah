@@ -9,3 +9,4 @@
 - [Plan Enforcement](plan-enforcement.md) — effectivePlan() تُحدّد الخطة الفعلية بعد انتهاء الصلاحية، APP_ENV يتحكم في Seed
 - [Mobile landing hero](mobile-hero.md) — شبكة العمود الواحد لا تكفي وحدها؛ ثبّت العرض و`min-width:0` للرسم الداخلي
 - [Localization](localization.md) — قاموس اللغة موحّد مع حفظ الاختيار، مع حماية محتوى المستخدم وفصل مراقب DOM أثناء التبديل
+- [Private Email](private-email.md) — صندوق المنصة يعتمد Private Email عبر SMTP للإرسال وIMAP للوارد، وكلمة المرور تبقى في Secrets

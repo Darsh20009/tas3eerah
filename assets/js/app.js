@@ -285,7 +285,8 @@ const panelTitles = {
   'quote-new': ['عرض سعر جديد', 'New Quote'], clients: ['العملاء', 'Clients'],
   messages: ['صندوق البريد', 'Inbox'], tools: ['أدوات التسعير', 'Pricing Tools'],
   users: ['إدارة المستخدمين', 'User Management'], subscriptions: ['الاشتراكات', 'Subscriptions'],
-  'contact-inbox': ['إدارة البريد', 'Email management'], activity: ['سجل النشاط', 'Activity Log'],
+  mailbox: ['البريد الوارد', 'Mailbox'],
+  'contact-inbox': ['رسائل الموقع', 'Website messages'], activity: ['سجل النشاط', 'Activity Log'],
   settings: ['إعدادات النظام', 'System Settings'], account: ['حسابي', 'My Account']
 };
 
@@ -364,6 +365,7 @@ function nav(btn) {
   if (panel === 'messages')        loadInbox();
   if (panel === 'users')           loadUsers();
   if (panel === 'subscriptions')   loadSubscriptions();
+  if (panel === 'mailbox')         loadMailbox();
   if (panel === 'contact-inbox')   loadContactInbox();
   if (panel === 'activity')        loadActivity();
   if (panel === 'settings')        loadSettings();
@@ -389,6 +391,8 @@ function navDirect(panelId) {
   if (panelId === 'messages')      loadInbox();
   if (panelId === 'users')         loadUsers();
   if (panelId === 'subscriptions') loadSubscriptions();
+  if (panelId === 'mailbox')       loadMailbox();
+  if (panelId === 'contact-inbox') loadContactInbox();
   if (panelId === 'activity')      loadActivity();
   if (panelId === 'settings')      loadSettings();
 }
@@ -1372,6 +1376,106 @@ async function deleteContact(id) {
   if (r.success) loadContactInbox();
 }
 
+// ─── ADMIN: PRIVATE EMAIL MAILBOX ────────
+let mailboxMessages = [];
+async function loadMailbox() {
+  const tb = document.getElementById('mailboxTbody');
+  const status = document.getElementById('mailboxStatus');
+  if (!tb) return;
+  tb.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--muted)">جارٍ الاتصال بصندوق البريد...</td></tr>';
+  const r = await api('admin?action=mailbox_inbox');
+  if (!r.success) {
+    tb.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--red,#e53e3e)">${esc(r.error || 'تعذر تحميل البريد')}</td></tr>`;
+    if (status) {
+      status.className = 'alert alert-danger mb-8';
+      status.textContent = r.error || 'تعذر الاتصال بصندوق البريد';
+    }
+    return;
+  }
+  mailboxMessages = r.data.messages || [];
+  const mailbox = r.data.mailbox || {};
+  const address = document.getElementById('mailboxAddress');
+  if (address) address.textContent = `الحساب المتصل: ${mailbox.address || ''}`;
+  const from = document.getElementById('mailboxFrom');
+  if (from) from.value = mailbox.address || '';
+  if (status) {
+    status.className = 'alert alert-success mb-8';
+    status.textContent = `متصل بـ ${mailbox.address || 'صندوق البريد'} — آخر تحديث الآن`;
+    setTimeout(() => { if (status) status.className = 'hidden'; }, 3500);
+  }
+  const unread = mailboxMessages.filter(m => !m.seen).length;
+  const badge = document.getElementById('mailboxBadge');
+  if (badge) {
+    badge.textContent = unread;
+    badge.classList.toggle('hidden', unread === 0);
+  }
+  if (!mailboxMessages.length) {
+    tb.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--muted)">لا توجد رسائل في الوارد</td></tr>';
+    return;
+  }
+  tb.innerHTML = mailboxMessages.map(m => `
+    <tr style="${m.seen ? '' : 'background:var(--surface);font-weight:700'};cursor:pointer" onclick="openMailboxMessage(${m.uid})">
+      <td class="user-content" style="direction:ltr;text-align:right">${esc(m.from || '')}</td>
+      <td class="user-content">${esc(m.subject || '(بدون موضوع)')}</td>
+      <td style="font-size:11px;color:var(--muted);direction:ltr">${esc((m.date || '').slice(0, 22))}</td>
+      <td>${m.seen ? '<span style="font-size:11px;color:var(--muted)">مقروءة</span>' : '<span class="badge badge-pro">جديدة</span>'}</td>
+    </tr>
+  `).join('');
+}
+
+async function openMailboxMessage(uid) {
+  const message = mailboxMessages.find(m => Number(m.uid) === Number(uid));
+  if (!message) return;
+  const set = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value || ''; };
+  set('mailboxReadSubject', message.subject || '(بدون موضوع)');
+  set('mailboxReadFrom', message.from);
+  set('mailboxReadDate', message.date);
+  set('mailboxReadBody', message.body || 'لا يوجد نص قابل للعرض');
+  document.getElementById('mailboxReadModal')?.classList.remove('hidden');
+  if (!message.seen) {
+    const r = await api('admin', { action: 'mailbox_mark_read', uid: message.uid });
+    if (r.success) {
+      message.seen = true;
+      const unread = mailboxMessages.filter(m => !m.seen).length;
+      const badge = document.getElementById('mailboxBadge');
+      if (badge) {
+        badge.textContent = unread;
+        badge.classList.toggle('hidden', unread === 0);
+      }
+    }
+  }
+}
+
+function openMailboxCompose() {
+  const modal = document.getElementById('mailboxComposeModal');
+  if (!modal) return;
+  document.getElementById('mailboxComposeMsg')?.classList.add('hidden');
+  modal.classList.remove('hidden');
+  document.getElementById('mailboxTo')?.focus();
+}
+
+async function sendMailboxEmail() {
+  const to = document.getElementById('mailboxTo')?.value.trim() || '';
+  const subject = document.getElementById('mailboxSubject')?.value.trim() || '';
+  const message = document.getElementById('mailboxMessage')?.value.trim() || '';
+  const msg = document.getElementById('mailboxComposeMsg');
+  if (!to || !subject || !message) {
+    if (msg) { msg.className = 'alert alert-danger mb-8'; msg.textContent = 'يرجى تعبئة المستلم والموضوع والرسالة'; }
+    return;
+  }
+  const r = await api('admin', { action: 'mailbox_send', to, subject, message });
+  if (msg) {
+    msg.className = r.success ? 'alert alert-success mb-8' : 'alert alert-danger mb-8';
+    msg.textContent = r.success ? 'تم إرسال الرسالة من صندوق البريد' : (r.error || 'تعذر الإرسال');
+  }
+  if (r.success) {
+    document.getElementById('mailboxTo').value = '';
+    document.getElementById('mailboxSubject').value = '';
+    document.getElementById('mailboxMessage').value = '';
+    setTimeout(() => document.getElementById('mailboxComposeModal')?.classList.add('hidden'), 900);
+  }
+}
+
 // ─── ADMIN: SETTINGS ─────────────────────
 async function loadSettings() {
   const r = await api('admin?action=get_settings');
@@ -1382,6 +1486,8 @@ async function loadSettings() {
   if (f('setWhatsapp'))       f('setWhatsapp').value       = s.whatsapp        || '';
   if (f('setSiteName'))       f('setSiteName').value       = s.site_name       || 'تسعيرة';
   if (f('setWelcomeMsg'))     f('setWelcomeMsg').value     = s.welcome_message || '';
+  if (f('setMailboxEmail'))   f('setMailboxEmail').value   = s.mailbox_email   || 'info@tas3eerah.com';
+  if (f('setMailboxName'))    f('setMailboxName').value    = s.mailbox_name    || 'تسعيرة';
 }
 async function saveSettings() {
   const val = id => (document.getElementById(id)||{}).value || '';
@@ -1391,6 +1497,8 @@ async function saveSettings() {
     whatsapp:        val('setWhatsapp'),
     site_name:       val('setSiteName'),
     welcome_message: val('setWelcomeMsg'),
+    mailbox_email:   val('setMailboxEmail'),
+    mailbox_name:    val('setMailboxName'),
   };
   const r = await api('admin', payload);
   const msg = document.getElementById('settingsMsg');

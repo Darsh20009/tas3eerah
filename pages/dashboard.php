@@ -144,9 +144,14 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
     <button class="sb-item" data-panel="subscriptions" onclick="nav(this)">
       <span class="sb-icon">◈</span> الاشتراكات
     </button>
+    <button class="sb-item" data-panel="mailbox" onclick="nav(this)">
+      <span class="sb-icon">✉</span>
+      <span data-ar="البريد الوارد" data-en="Mailbox">البريد الوارد</span>
+      <span class="sb-badge hidden" id="mailboxBadge">0</span>
+    </button>
     <button class="sb-item" data-panel="contact-inbox" onclick="nav(this)">
       <span class="sb-icon">✉</span>
-      <span data-ar="إدارة البريد" data-en="Email management">إدارة البريد</span>
+      <span data-ar="رسائل الموقع" data-en="Website messages">رسائل الموقع</span>
       <span class="sb-badge hidden" id="contactBadge">0</span>
     </button>
     <button class="sb-item" data-panel="activity" onclick="nav(this)">
@@ -1086,10 +1091,33 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
     </div>
 
     <?php if ($role === 'admin'): ?>
+    <!-- ══ ADMIN: PRIVATE EMAIL MAILBOX ══ -->
+    <div class="section-panel" id="panel-mailbox">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h3 data-ar="البريد الوارد" data-en="Mailbox">البريد الوارد</h3>
+            <small id="mailboxAddress" style="display:block;color:var(--muted);margin-top:4px"></small>
+          </div>
+          <div class="flex gap-8">
+            <button class="btn btn-outline btn-sm" onclick="openMailboxCompose()">رسالة جديدة</button>
+            <button class="btn btn-ghost btn-sm" onclick="loadMailbox()">تحديث</button>
+          </div>
+        </div>
+        <div id="mailboxStatus" class="hidden mb-8"></div>
+        <table class="data-table">
+          <thead><tr><th>المرسل</th><th>الموضوع</th><th>التاريخ</th><th>الحالة</th></tr></thead>
+          <tbody id="mailboxTbody">
+            <tr><td colspan="4" style="text-align:center;padding:32px;color:var(--muted)">افتح البريد الوارد لتحميل الرسائل</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- ══ ADMIN: CONTACT INBOX ══ -->
     <div class="section-panel" id="panel-contact-inbox">
       <div class="card">
-        <div class="card-header"><h3 data-ar="إدارة البريد" data-en="Email management">إدارة البريد</h3></div>
+        <div class="card-header"><h3 data-ar="رسائل الموقع" data-en="Website messages">رسائل الموقع</h3></div>
         <table class="data-table">
           <thead><tr><th>الاسم</th><th>البريد</th><th>الرسالة</th><th>التاريخ</th><th>إجراء</th></tr></thead>
           <tbody id="contactInboxTbody">
@@ -1111,6 +1139,20 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
           <div class="form-group">
             <label>رقم واتساب الدعم</label>
             <input type="text" class="form-control" id="setWhatsapp" placeholder="966500000000" dir="ltr">
+          </div>
+        </div>
+        <div class="card" style="padding:24px">
+          <h3 style="font-size:15px;font-weight:800;margin-bottom:8px;color:var(--p)">صندوق البريد المرسل</h3>
+          <p style="font-size:12px;color:var(--muted);line-height:1.8;margin-bottom:16px">
+            يستخدم النظام هذا الحساب لإرسال عروض الأسعار وقراءة البريد الوارد. كلمة المرور محفوظة بأمان ولا تظهر هنا.
+          </p>
+          <div class="form-group">
+            <label>عنوان البريد</label>
+            <input type="email" class="form-control" id="setMailboxEmail" placeholder="info@tas3eerah.com" dir="ltr">
+          </div>
+          <div class="form-group">
+            <label>اسم المرسل</label>
+            <input type="text" class="form-control" id="setMailboxName" placeholder="تسعيرة">
           </div>
         </div>
         <div class="card" style="padding:24px">
@@ -1218,6 +1260,40 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
   </div>
 </div>
 
+<!-- PRIVATE MAILBOX COMPOSE MODAL -->
+<div class="modal-overlay hidden" id="mailboxComposeModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>رسالة بريد جديدة</h3>
+      <button class="modal-close" onclick="document.getElementById('mailboxComposeModal').classList.add('hidden')">✕</button>
+    </div>
+    <div class="form-group">
+      <label>من</label>
+      <input type="text" class="form-control" id="mailboxFrom" readonly dir="ltr" style="background:var(--surface)">
+    </div>
+    <div class="form-group"><label>إلى</label><input type="email" class="form-control" id="mailboxTo" dir="ltr" placeholder="client@example.com"></div>
+    <div class="form-group"><label>الموضوع</label><input type="text" class="form-control" id="mailboxSubject"></div>
+    <div class="form-group"><label>الرسالة</label><textarea class="form-control" id="mailboxMessage" style="height:150px"></textarea></div>
+    <div id="mailboxComposeMsg" class="hidden mb-8"></div>
+    <button class="btn btn-primary w-full" onclick="sendMailboxEmail()">إرسال من صندوق البريد</button>
+  </div>
+</div>
+
+<!-- PRIVATE MAILBOX MESSAGE MODAL -->
+<div class="modal-overlay hidden" id="mailboxReadModal">
+  <div class="modal-box" style="max-width:680px">
+    <div class="modal-header">
+      <h3 id="mailboxReadSubject">رسالة</h3>
+      <button class="modal-close" onclick="document.getElementById('mailboxReadModal').classList.add('hidden')">✕</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.9;margin-bottom:16px">
+      <div><strong>من:</strong> <span id="mailboxReadFrom" class="user-content"></span></div>
+      <div><strong>التاريخ:</strong> <span id="mailboxReadDate"></span></div>
+    </div>
+    <div id="mailboxReadBody" class="user-content" style="white-space:pre-wrap;line-height:1.9;border-top:1px solid var(--border);padding-top:16px;max-height:420px;overflow:auto"></div>
+  </div>
+</div>
+
 <!-- PDF OVERLAY -->
 <div class="pdf-overlay hidden" id="pdfOverlay">
   <div style="max-width:760px;width:100%">
@@ -1295,7 +1371,7 @@ const APP = <?= json_encode([
 ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 </script>
 <script src="/assets/js/currency.js?v=1"></script>
-<script src="/assets/js/app.js?v=lang-3"></script>
+<script src="/assets/js/app.js?v=mailbox-1"></script>
 </body>
 </html>
 

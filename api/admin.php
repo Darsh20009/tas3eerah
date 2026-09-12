@@ -3,6 +3,7 @@ require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../src/DB.php';
 require_once __DIR__ . '/../src/Auth.php';
 require_once __DIR__ . '/../src/Response.php';
+require_once __DIR__ . '/../src/PrivateEmail.php';
 
 $user   = Auth::requireRole('admin');
 $body   = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -22,6 +23,10 @@ match ($action) {
     'contact_messages'  => contactMessages(),
     'contact_mark_read' => contactMarkRead($body),
     'contact_delete'    => contactDelete($body),
+    'mailbox_status'    => mailboxStatus(),
+    'mailbox_inbox'     => mailboxInbox(),
+    'mailbox_mark_read' => mailboxMarkRead($body),
+    'mailbox_send'      => mailboxSend($body),
     'get_settings'      => getSettings(),
     'save_settings'     => saveSettings($user, $body),
     default             => Response::err('إجراء غير معروف', 400),
@@ -234,6 +239,56 @@ function contactDelete(array $b): never {
     Response::ok([], 'تم الحذف');
 }
 
+// ── Private Email mailbox ──────────────────────────────────────────────
+function adminSettingsMap(): array {
+    $map = [];
+    foreach (DB::findAll('settings') as $row) {
+        if (isset($row['key'])) $map[$row['key']] = $row['value'] ?? '';
+    }
+    return $map;
+}
+
+function mailboxStatus(): never {
+    Response::ok(PrivateEmail::publicConfig(adminSettingsMap()));
+}
+
+function mailboxInbox(): never {
+    try {
+        Response::ok([
+            'messages' => PrivateEmail::inbox(adminSettingsMap(), 60),
+            'mailbox' => PrivateEmail::publicConfig(adminSettingsMap()),
+        ]);
+    } catch (Throwable $e) {
+        Response::err($e->getMessage(), 502);
+    }
+}
+
+function mailboxMarkRead(array $b): never {
+    try {
+        PrivateEmail::markRead((int)($b['uid'] ?? 0), adminSettingsMap());
+        Response::ok([], 'تم تعليم الرسالة كمقروءة');
+    } catch (Throwable $e) {
+        Response::err($e->getMessage(), 502);
+    }
+}
+
+function mailboxSend(array $b): never {
+    $to = trim((string)($b['to'] ?? ''));
+    $subject = trim((string)($b['subject'] ?? ''));
+    $message = trim((string)($b['message'] ?? ''));
+    if (!filter_var($to, FILTER_VALIDATE_EMAIL)) Response::err('البريد المستلم غير صحيح');
+    if (!$subject) Response::err('موضوع الرسالة مطلوب');
+    if (!$message) Response::err('نص الرسالة مطلوب');
+
+    try {
+        $html = nl2br(htmlspecialchars($message, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+        PrivateEmail::sendHtml($to, $subject, '<div dir="rtl" style="font-family:Arial,sans-serif;line-height:1.9">' . $html . '</div>', adminSettingsMap());
+        Response::ok([], 'تم إرسال الرسالة من صندوق البريد');
+    } catch (Throwable $e) {
+        Response::err($e->getMessage(), 502);
+    }
+}
+
 // ── System Settings ───────────────────────────────────────────────────
 function getSettings(): never {
     $rows = DB::findAll('settings');
@@ -243,7 +298,7 @@ function getSettings(): never {
 }
 
 function saveSettings(array $me, array $b): never {
-    $allowed = ['contact_email', 'whatsapp', 'site_name', 'welcome_message'];
+    $allowed = ['contact_email', 'whatsapp', 'site_name', 'welcome_message', 'mailbox_email', 'mailbox_name'];
     foreach ($allowed as $key) {
         if (array_key_exists($key, $b)) {
             DB::upsertByKey('settings', 'key', $key, ['value' => trim((string)$b[$key])]);

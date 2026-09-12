@@ -3,6 +3,7 @@ require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../src/DB.php';
 require_once __DIR__ . '/../src/Auth.php';
 require_once __DIR__ . '/../src/Response.php';
+require_once __DIR__ . '/../src/PrivateEmail.php';
 
 $user   = Auth::require();
 $method = $_SERVER['REQUEST_METHOD'];
@@ -266,15 +267,7 @@ function emailQuote(array $u, array $b): never {
     if (!$client || empty($client['email'])) Response::err('لا يمكن إيجاد بريد العميل');
 
     $to      = $client['email'];
-    $subject = "=?UTF-8?B?" . base64_encode("عرض سعر جديد: {$q['title']} — رقم {$q['number']}") . "?=";
-    $fromName = base64_encode('تسعيرة');
-    $headers  = implode("\r\n", [
-        "From: =?UTF-8?B?{$fromName}?= <no-reply@" . parse_url(APP_URL, PHP_URL_HOST) . ">",
-        "Reply-To: {$u['email']}",
-        "MIME-Version: 1.0",
-        "Content-Type: text/html; charset=UTF-8",
-        "X-Mailer: Tas3eerah/1.0",
-    ]);
+    $subject = "عرض سعر جديد: {$q['title']} — رقم {$q['number']}";
 
     $itemsHtml = '';
     foreach ($q['items'] ?? [] as $it) {
@@ -324,8 +317,11 @@ function emailQuote(array $u, array $b): never {
 </div></body></html>
 HTML;
 
-    $sent = mail($to, $subject, $body, $headers);
-    if (!$sent) Response::err('تعذّر إرسال البريد. يرجى التحقق من إعداد خادم البريد.');
+    try {
+        PrivateEmail::sendHtml($to, $subject, $body, settingsMap(), $u['email']);
+    } catch (Throwable $e) {
+        Response::err($e->getMessage(), 502);
+    }
 
     DB::insertDoc('activity_log', [
         'user_id' => (int)$u['id'],
@@ -333,6 +329,14 @@ HTML;
         'details' => "تم إرسال العرض $quoteNum إلى $to",
     ]);
     Response::ok([], "تم إرسال عرض السعر إلى $to");
+}
+
+function settingsMap(): array {
+    $map = [];
+    foreach (DB::findAll('settings') as $row) {
+        if (isset($row['key'])) $map[$row['key']] = $row['value'] ?? '';
+    }
+    return $map;
 }
 
 function listClients(array $u): never {
