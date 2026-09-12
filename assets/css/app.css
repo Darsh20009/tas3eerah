@@ -1641,4 +1641,62 @@ select.form-control { cursor: pointer; }
     justify-content: space-between;
     gap: 12px;
   }
+
+  /* قسم المميزات: لا تسمح للأعمدة الأربعة المرجعية بدفع الصفحة أفقياً */
+  .features {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    padding: 56px 16px;
+    overflow: hidden;
+  }
+  .features .section-head {
+    margin-bottom: 24px;
+    padding-inline: 4px;
+  }
+  .features .section-head h2 {
+    font-size: clamp(25px, 7.5vw, 34px);
+    line-height: 1.35;
+    text-wrap: balance;
+  }
+  .features .section-head p {
+    max-width: 340px;
+    font-size: 13px;
+    line-height: 1.85;
+  }
+  .features .feat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+  .features .feat-card {
+    min-width: 0;
+    min-height: 0;
+    padding: 22px 14px;
+  }
+  .features .feat-icon-img {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 12px;
+  }
+  .features .feat-icon {
+    margin-bottom: 12px;
+    font-size: 21px;
+  }
+  .features .feat-card h3 {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .features .feat-card p {
+    font-size: 11px;
+    line-height: 1.8;
+  }
+}
+
+@media (max-width: 480px) {
+  .features .feat-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .features .feat-card {
+    padding: 22px 18px;
+  }
 }
