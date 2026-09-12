@@ -56,8 +56,36 @@ class DB {
         } catch (\Throwable) {}
         // Preserve legacy enterprise access under the new Pro plan.
         try { self::$mdb->users->updateMany(['plan' => 'enterprise'], ['$set' => ['plan' => 'pro']]); } catch (\Throwable) {}
+        self::mEnsureConfiguredAdmin();
         if (self::$mdb->users->countDocuments(['role' => 'admin']) === 0) {
             self::mSeed();
+        }
+    }
+
+    private static function mEnsureConfiguredAdmin(): void {
+        $configured = self::configuredAdmin();
+        if (!$configured) return;
+
+        $users = self::col('users');
+        $existing = $users->findOne(['email' => $configured['email']], self::tm());
+        $update = [
+            'name'            => 'مدير النظام',
+            'email'           => $configured['email'],
+            'role'            => 'admin',
+            'plan'            => 'pro',
+            'plan_expires_at' => null,
+            'is_active'       => 1,
+        ];
+        if (!$existing || !password_verify($configured['password'], (string)($existing['password_hash'] ?? ''))) {
+            $update['password_hash'] = password_hash($configured['password'], PASSWORD_BCRYPT);
+        }
+
+        if ($existing) {
+            $users->updateOne(['email' => $configured['email']], ['$set' => $update]);
+        } else {
+            self::insertDoc('users', $update + [
+                'password_hash' => password_hash($configured['password'], PASSWORD_BCRYPT),
+            ]);
         }
     }
 
@@ -123,6 +151,15 @@ class DB {
     //  SQLITE BACKEND
     // ══════════════════════════════════════════════════════════════════
     private static ?PDO $pdo = null;
+
+    private static function configuredAdmin(): ?array {
+        $email = strtolower(trim((string)($_ENV['INITIAL_ADMIN_EMAIL'] ?? getenv('INITIAL_ADMIN_EMAIL') ?: '')));
+        $password = (string)($_ENV['INITIAL_ADMIN_PASSWORD'] ?? getenv('INITIAL_ADMIN_PASSWORD') ?: '');
+        if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($password) < 12) {
+            return null;
+        }
+        return ['email' => $email, 'password' => $password];
+    }
 
     public static function get(): PDO {
         if (self::$pdo !== null) return self::$pdo;
@@ -212,6 +249,46 @@ class DB {
         }
         // Preserve legacy enterprise access under the new Pro plan.
         try { self::$pdo->exec("UPDATE users SET plan = 'pro' WHERE plan = 'enterprise'"); } catch (\Throwable) {}
+
+        $configured = self::configuredAdmin();
+        if ($configured) {
+            $stmt = self::$pdo->prepare("SELECT id, password_hash FROM users WHERE email = ? LIMIT 1");
+            $stmt->execute([$configured['email']]);
+            $existing = $stmt->fetch();
+            $update = [
+                'name'            => 'مدير النظام',
+                'role'            => 'admin',
+                'plan'            => 'pro',
+                'plan_expires_at' => null,
+                'is_active'       => 1,
+            ];
+            if (!$existing || !password_verify($configured['password'], (string)($existing['password_hash'] ?? ''))) {
+                $update['password_hash'] = password_hash($configured['password'], PASSWORD_BCRYPT);
+            }
+            if ($existing) {
+                $set = [];
+                $values = [];
+                foreach ($update as $column => $value) {
+                    $set[] = "{$column} = ?";
+                    $values[] = $value;
+                }
+                $values[] = $configured['email'];
+                self::$pdo->prepare("UPDATE users SET " . implode(', ', $set) . " WHERE email = ?")
+                    ->execute($values);
+            } else {
+                $insert = self::$pdo->prepare(
+                    "INSERT INTO users (name,email,password_hash,role,plan,plan_expires_at,is_active) VALUES (?,?,?,?,?,?,1)"
+                );
+                $insert->execute([
+                    'مدير النظام',
+                    $configured['email'],
+                    $update['password_hash'] ?? password_hash($configured['password'], PASSWORD_BCRYPT),
+                    'admin',
+                    'pro',
+                    null,
+                ]);
+            }
+        }
 
         // Ensure admin exists
         $has = self::$pdo->query("SELECT id FROM users WHERE role='admin' LIMIT 1")->fetch();
