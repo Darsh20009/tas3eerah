@@ -84,7 +84,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
   <nav class="sb-nav">
     <!-- Common -->
     <div class="sb-section">الرئيسية</div>
-    <button class="sb-item" data-panel="overview" onclick="nav(this)">
+    <button class="sb-item active" data-panel="overview" onclick="nav(this)">
       <span class="sb-icon">◈</span> نظرة عامة
     </button>
 
@@ -132,7 +132,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
     </button>
 
     <div class="sb-section">الأدوات</div>
-    <button class="sb-item active" data-panel="tools" onclick="nav(this)">
+    <button class="sb-item" data-panel="tools" onclick="nav(this)">
       <span class="sb-icon">◈</span> أدوات التسعير
     </button>
 
@@ -182,7 +182,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
       <button class="hamburger" id="hamburgerBtn" onclick="openSidebar()" aria-label="القائمة">
         <span></span><span></span><span></span>
       </button>
-    <div class="topbar-title" id="topbarTitle">اختر أداة التسعير المناسبة</div>
+    <div class="topbar-title" id="topbarTitle">نظرة عامة</div>
     </div>
     <div class="topbar-actions">
       <a class="btn btn-ghost btn-sm dashboard-home-link" href="/">الصفحة الرئيسية</a>
@@ -207,7 +207,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
   <div class="workspace" id="workspace">
 
     <!-- ══ OVERVIEW ══ -->
-    <div class="section-panel" id="panel-overview">
+    <div class="section-panel active" id="panel-overview">
       <div class="dashboard-welcome">
         <div>
           <span class="dashboard-welcome-kicker">لوحة العمل</span>
@@ -258,100 +258,6 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
         <?php endforeach; ?>
       </div>
 
-      <div class="overview-grid">
-        <div class="card overview-quick-card">
-          <div class="card-header">
-            <div>
-              <span class="overview-kicker">ابدأ من هنا</span>
-              <h3>أدواتك السريعة</h3>
-            </div>
-            <span class="overview-card-mark">T</span>
-          </div>
-          <div class="overview-quick-list">
-            <button onclick="navDirect('tools');setTimeout(()=>openTool('calc_basic'),80)">
-              <span class="overview-quick-icon">01</span><span><b>تسعير الخدمات</b><small>للمشاريع والخدمات اليومية</small></span><strong>←</strong>
-            </button>
-            <button onclick="navDirect('tools');setTimeout(()=>openTool('calc_pkg'),80)">
-              <span class="overview-quick-icon">02</span><span><b>الباقات والاشتراكات</b><small>وزّع التكلفة على مستوياتك</small></span><strong>←</strong>
-            </button>
-            <button onclick="navDirect('tools');setTimeout(()=>openTool('calc_labor'),80)">
-              <span class="overview-quick-icon">03</span><span><b>المشاريع التقنية</b><small>احسب الوقت والموارد والنطاق</small></span><strong>←</strong>
-            </button>
-          </div>
-        </div>
-        <div class="card overview-plan-card">
-          <div class="card-header">
-            <div>
-              <span class="overview-kicker">مساحة العمل</span>
-              <h3>خطتك الحالية</h3>
-            </div>
-            <span class="badge badge-<?= htmlspecialchars($effectivePlan) ?>"><?= htmlspecialchars($planName) ?></span>
-          </div>
-          <div class="overview-plan-price"><?= $plan['price'] === 0 ? 'مجاني' : number_format($plan['price']) . ' ر.س' ?><small><?= $plan['price'] === 0 ? 'ابدأ الآن بدون التزام' : 'شهرياً' ?></small></div>
-          <div class="overview-plan-line"><span>التسعيرات الشهرية</span><b><?= $plan['max_quotes'] === -1 ? 'غير محدود' : $plan['max_quotes'] ?></b></div>
-          <div class="overview-plan-line"><span>تقارير PDF</span><b><?= $plan['max_pdf_reports'] === -1 ? 'غير محدود' : $plan['max_pdf_reports'] ?></b></div>
-          <button class="btn btn-outline w-full" onclick="navDirect('tools')">عرض كل الأدوات</button>
-        </div>
-      </div>
-
-      <!-- Recent quotes -->
-      <div class="card">
-        <div class="card-header">
-          <h3>آخر عروض الأسعار</h3>
-          <button class="btn btn-ghost btn-sm" onclick="nav(document.querySelector('[data-panel=quotes]'))">عرض الكل</button>
-        </div>
-        <?php
-        $qLookupBase = [
-            ['$lookup'   => ['from' => 'users', 'localField' => 'client_id',   'foreignField' => 'id', 'as' => 'client']],
-            ['$lookup'   => ['from' => 'users', 'localField' => 'employee_id', 'foreignField' => 'id', 'as' => 'employee']],
-            ['$addFields' => [
-                'client_name'   => ['$arrayElemAt' => ['$client.name',   0]],
-                'employee_name' => ['$arrayElemAt' => ['$employee.name', 0]],
-            ]],
-            ['$project'  => ['client' => 0, 'employee' => 0, 'items' => 0]],
-        ];
-        if ($role === 'admin') {
-            $recentPipeline = array_merge(
-                [['$sort' => ['created_at' => -1]], ['$limit' => 5]],
-                $qLookupBase
-            );
-        } elseif ($role === 'employee') {
-            $recentPipeline = array_merge(
-                [['$match' => ['employee_id' => (int)$user['id']]], ['$sort' => ['created_at' => -1]], ['$limit' => 5]],
-                $qLookupBase
-            );
-        } else {
-            $recentPipeline = array_merge(
-                [['$match' => ['client_id' => (int)$user['id']]], ['$sort' => ['created_at' => -1]], ['$limit' => 5]],
-                $qLookupBase
-            );
-        }
-        $recentQ = DB::aggregate('quotes', $recentPipeline);
-        ?>
-        <table class="data-table">
-          <thead><tr>
-            <th>رقم العرض</th>
-            <th>العنوان</th>
-            <?= $role !== 'client' ? '<th data-ar="العميل" data-en="Client">العميل</th>' : '' ?>
-            <?= $role !== 'employee' ? '<th data-ar="الموظف" data-en="Employee">الموظف</th>' : '' ?>
-            <th>الإجمالي</th>
-            <th>الحالة</th>
-          </tr></thead>
-          <tbody>
-          <?php foreach ($recentQ as $q): ?>
-          <tr>
-            <td><code><?= htmlspecialchars($q['number']) ?></code></td>
-            <td class="user-content"><?= htmlspecialchars($q['title']) ?></td>
-            <?= $role !== 'client' ? '<td class="user-content">' . htmlspecialchars($q['client_name'] ?? '-') . '</td>' : '' ?>
-            <?= $role !== 'employee' ? '<td class="user-content">' . htmlspecialchars($q['employee_name'] ?? '-') . '</td>' : '' ?>
-            <td><?= number_format($q['total'], 0) ?> ر.س</td>
-            <td><span class="badge badge-<?= $q['status'] ?>"><?= statusLabel($q['status']) ?></span></td>
-          </tr>
-          <?php endforeach; ?>
-          <?php if (empty($recentQ)): ?><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">لا توجد عروض أسعار بعد</td></tr><?php endif; ?>
-          </tbody>
-        </table>
-      </div>
     </div>
 
     <!-- ══ QUOTES LIST ══ -->
@@ -555,7 +461,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
     </div>
 
     <!-- ══ TOOLS ══ -->
-    <div class="section-panel active" id="panel-tools">
+    <div class="section-panel" id="panel-tools">
       <?php
   $userTools = OPEN_ACCESS_MODE ? ['all'] : $plan['tools'];
       ?>
