@@ -1626,11 +1626,11 @@ select.form-control { cursor: pointer; }
     overflow: hidden;
   }
   .hero-visual {
-    order: 0;
+    order: 1;
     min-height: 300px;
   }
   .hero-content {
-    order: 1;
+    order: 0;
     padding: 46px 20px 42px;
     align-items: stretch;
   }
