@@ -47,6 +47,25 @@ if ($uri === '/legacy-calculator.html') {
     http_response_code(404); exit;
 }
 
+// Production must use the persistent MongoDB backend. Never fall back to
+// ephemeral container SQLite when Render is missing its database settings.
+if (defined('APP_ENV') && APP_ENV === 'production') {
+    try {
+        DB::assertProductionReady();
+    } catch (Throwable $e) {
+        http_response_code(503);
+        if (str_starts_with($uri, '/api/')) {
+            Response::json([
+                'error' => 'قاعدة بيانات الإنتاج غير مهيأة',
+                'details' => $e->getMessage(),
+                'code' => 'PRODUCTION_DATABASE_NOT_READY',
+            ], 503);
+        }
+        echo '<!doctype html><meta charset="utf-8"><title>تسعيرة</title><p dir="rtl" style="font-family:Arial;padding:32px">قاعدة بيانات الإنتاج غير مهيأة. أضف MONGODB_URI ثم أعد النشر.</p>';
+        exit;
+    }
+}
+
 // API routes
 if (str_starts_with($uri, '/api/')) {
     header('Content-Type: application/json; charset=utf-8');

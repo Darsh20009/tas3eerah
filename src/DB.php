@@ -15,8 +15,20 @@ class DB {
     // ── mode ─────────────────────────────────────────────────────────
     private static ?bool $mongo = null;
 
+    public static function assertProductionReady(): void {
+        if (defined('APP_ENV') && APP_ENV === 'production') {
+            if (!extension_loaded('mongodb')) {
+                throw new RuntimeException('إضافة MongoDB غير مفعّلة في بيئة الإنتاج');
+            }
+            if (trim((string)MONGODB_URI) === '') {
+                throw new RuntimeException('لم يتم إعداد MONGODB_URI في بيئة الإنتاج');
+            }
+        }
+    }
+
     public static function isMongo(): bool {
         if (self::$mongo === null) {
+            self::assertProductionReady();
             self::$mongo = extension_loaded('mongodb') && !empty(MONGODB_URI);
         }
         return self::$mongo;
@@ -50,6 +62,23 @@ class DB {
     }
 
     private static function mSeed(): void {
+        if (defined('APP_ENV') && APP_ENV === 'production') {
+            $email = strtolower(trim((string)(getenv('INITIAL_ADMIN_EMAIL') ?: '')));
+            $password = (string)(getenv('INITIAL_ADMIN_PASSWORD') ?: '');
+            if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($password) < 12) {
+                return;
+            }
+            self::insertDoc('users', [
+                'name' => 'مدير النظام',
+                'email' => $email,
+                'password_hash' => password_hash($password, PASSWORD_BCRYPT),
+                'role' => 'admin',
+                'plan' => 'pro',
+                'plan_expires_at' => null,
+                'is_active' => 1,
+            ]);
+            return;
+        }
         $h = fn(string $p) => password_hash($p, PASSWORD_BCRYPT);
         self::insertDoc('users', ['name' => 'مدير النظام', 'email' => 'admin@tas3eerah.com',
             'password_hash' => $h('Admin@2025'), 'role' => 'admin', 'plan' => 'pro',

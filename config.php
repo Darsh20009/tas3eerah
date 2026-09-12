@@ -2,7 +2,7 @@
 define('APP_NAME_AR', 'تسعيرة');
 define('APP_NAME_EN', 'Tas3eerah');
 
-define('APP_URL',     rtrim($_ENV['APP_URL']     ?? getenv('APP_URL')     ?: 'http://localhost:5000', '/'));
+define('APP_URL',     rtrim($_ENV['APP_URL']     ?? getenv('APP_URL')     ?: getenv('RENDER_EXTERNAL_URL') ?: 'http://localhost:5000', '/'));
 define('APP_ENV',     $_ENV['APP_ENV']     ?? getenv('APP_ENV')     ?: 'development');
 define('MONGODB_URI', $_ENV['MONGODB_URI'] ?? getenv('MONGODB_URI') ?: '');
 define('DB_PATH',     __DIR__ . '/database/tas3eerah.db');

@@ -7,6 +7,12 @@ services:
     envVars:
       - key: APP_ENV
         value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: INITIAL_ADMIN_EMAIL
+        sync: false
+      - key: INITIAL_ADMIN_PASSWORD
+        sync: false
       # Fill these in Render before sending branded production email.
       - key: APP_URL
         sync: false
