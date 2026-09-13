@@ -862,6 +862,41 @@ function showPlanUpgrade() {
   document.getElementById('upgradeModal').classList.remove('hidden');
 }
 
+async function requestUpgrade(planKey, planName) {
+  const msg = document.getElementById('upgradeRequestMsg');
+  const showMessage = (text, isError = false) => {
+    if (!msg) return;
+    msg.className = `alert alert-${isError ? 'danger' : 'success'} mt-16`;
+    msg.textContent = text;
+  };
+
+  showMessage('جارٍ إرسال طلب الترقية...');
+
+  const contactsResponse = await api('messages?action=contacts');
+  const contacts = contactsResponse.success && Array.isArray(contactsResponse.data)
+    ? contactsResponse.data
+    : [];
+  const admin = contacts.find(contact => contact.role === 'admin');
+
+  if (!admin) {
+    showMessage('تعذر العثور على حساب الإدارة لإرسال الطلب.', true);
+    return;
+  }
+
+  const response = await api('messages', {
+    action: 'send',
+    receiver_id: admin.id,
+    subject: `طلب ترقية إلى خطة ${planName}`,
+    body: `أرغب في الترقية إلى خطة ${planName} (${planKey}). يرجى التواصل معي لاستكمال الطلب.`,
+  });
+
+  if (response.success) {
+    showMessage('تم إرسال طلب الترقية إلى الإدارة بنجاح.');
+  } else {
+    showMessage(response.error || 'تعذر إرسال طلب الترقية حالياً.', true);
+  }
+}
+
 // ─── TOOL STATE (sessionStorage) ─────────
 function saveToolState(slug) {
   const panel = document.getElementById('tool-' + slug);
