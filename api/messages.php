@@ -13,6 +13,7 @@ match (true) {
     $action === 'inbox'        => inbox($user),
     $action === 'thread'       => thread($user, (int)($body['id'] ?? $_GET['id'] ?? 0)),
     $action === 'send'         => send($user, $body),
+    $action === 'upgrade_request' => upgradeRequest($user, $body),
     $action === 'read'         => markRead($user, $body),
     $action === 'contacts'     => contacts($user),
     $action === 'unread_count' => unreadCount($user),
@@ -123,6 +124,49 @@ function send(array $u, array $b): never {
         'details' => "إلى المستخدم: $to",
     ]);
     Response::ok(['id' => $id], 'تم الإرسال');
+}
+
+function upgradeRequest(array $u, array $b): never {
+    if (($u['role'] ?? '') !== 'client') {
+        Response::err('طلبات الترقية متاحة للعملاء فقط', 403);
+    }
+
+    $to       = (int)($b['receiver_id'] ?? 0);
+    $plan     = trim((string)($b['plan'] ?? ''));
+    $planName = trim((string)($b['plan_name'] ?? $plan));
+    $month    = date('Y-m');
+
+    if (!$to || !$plan) Response::err('بيانات طلب الترقية ناقصة');
+    if (!array_key_exists($plan, PLANS)) Response::err('الخطة المطلوبة غير صحيحة');
+
+    $admin = DB::findOne('users', ['id' => $to, 'role' => 'admin', 'is_active' => 1]);
+    if (!$admin) Response::err('حساب الإدارة غير موجود');
+
+    $alreadyRequested = DB::count('messages', [
+        'sender_id'  => (int)$u['id'],
+        'receiver_id'=> $to,
+        'subject'    => "طلب ترقية إلى خطة $planName",
+        'created_at' => ['$regex' => '^' . $month],
+    ]);
+    if ($alreadyRequested > 0) {
+        Response::err('تم إرسال طلب ترقية لهذه الخطة هذا الشهر مسبقاً');
+    }
+
+    $id = DB::insertDoc('messages', [
+        'sender_id'   => (int)$u['id'],
+        'receiver_id' => $to,
+        'subject'     => "طلب ترقية إلى خطة $planName",
+        'body'        => "يرغب العميل في الترقية إلى خطة $planName ($plan). يرجى التواصل معه لاستكمال الطلب.",
+        'parent_id'   => null,
+        'is_read'     => 0,
+    ]);
+    DB::insertDoc('activity_log', [
+        'user_id' => (int)$u['id'],
+        'action'  => 'upgrade_request',
+        'details' => "طلب ترقية إلى خطة $planName",
+    ]);
+
+    Response::ok(['id' => $id], 'تم إرسال طلب الترقية');
 }
 
 function markRead(array $u, array $b): never {

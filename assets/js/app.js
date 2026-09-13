@@ -884,10 +884,10 @@ async function requestUpgrade(planKey, planName) {
   }
 
   const response = await api('messages', {
-    action: 'send',
+    action: 'upgrade_request',
     receiver_id: admin.id,
-    subject: `طلب ترقية إلى خطة ${planName}`,
-    body: `أرغب في الترقية إلى خطة ${planName} (${planKey}). يرجى التواصل معي لاستكمال الطلب.`,
+    plan: planKey,
+    plan_name: planName,
   });
 
   if (response.success) {
