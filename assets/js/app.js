@@ -284,6 +284,7 @@ const panelTitles = {
   overview: ['نظرة عامة', 'Overview'], quotes: ['عروض الأسعار', 'Quotes'],
   'quote-new': ['عرض سعر جديد', 'New Quote'], clients: ['العملاء', 'Clients'],
   messages: ['صندوق البريد', 'Inbox'], tools: ['أدوات التسعير', 'Pricing Tools'],
+  'project-log': ['سجل المشاريع', 'Project Log'],
   users: ['إدارة المستخدمين', 'User Management'], subscriptions: ['الاشتراكات', 'Subscriptions'],
   mailbox: ['البريد الوارد', 'Mailbox'],
   'contact-inbox': ['رسائل الموقع', 'Website messages'], activity: ['سجل النشاط', 'Activity Log'],
@@ -399,6 +400,7 @@ function nav(btn) {
   if (panel === 'activity')        loadActivity();
   if (panel === 'settings')        loadSettings();
   if (panel === 'quote-new')       initQuoteForm();
+  if (panel === 'project-log')     loadProjectLedger();
 }
 
 // ─── DIRECT NAVIGATION (by panel id, no sidebar button required) ─────
@@ -425,6 +427,84 @@ function navDirect(panelId) {
   if (panelId === 'contact-inbox') loadContactInbox();
   if (panelId === 'activity')      loadActivity();
   if (panelId === 'settings')      loadSettings();
+  if (panelId === 'project-log')   loadProjectLedger();
+}
+
+function readLocalProjects(key) {
+  try {
+    const value = JSON.parse(localStorage.getItem(key) || '[]');
+    return Array.isArray(value) ? value : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+function loadProjectLedger() {
+  const list = document.getElementById('projectLedgerList');
+  const empty = document.getElementById('projectLedgerEmpty');
+  if (!list || !empty) return;
+
+  const sourceNames = {
+    services: 'الخدمات',
+    packages: 'الباقات',
+    retail: 'التجزئة',
+    tech: 'المشاريع التقنية',
+    saas: 'الاشتراكات التقنية',
+    ds: 'التصميم'
+  };
+  const projects = [
+    ...readLocalProjects('proj_log').map(project => ({
+      id: Number(project.id) || 0,
+      title: [project.svc, project.desc].filter(Boolean).join(' — ') || 'مشروع خدمات',
+      source: sourceNames.services,
+      date: project.date || '—',
+      price: Number(project.price) || 0,
+      currency: project.currency || 'ريال',
+      lines: [
+        ['المجال', project.field],
+        ['إجمالي التكلفة', project.baseCost],
+        ['الربح', project.profit]
+      ]
+    })),
+    ...['packages', 'retail', 'tech', 'saas', 'ds'].flatMap(key =>
+      readLocalProjects(key).map(project => ({
+        id: Number(project.id) || 0,
+        title: project.title || 'مشروع محفوظ',
+        source: sourceNames[key],
+        date: project.date || '—',
+        price: Number(project.price) || 0,
+        currency: project.currency || 'ريال',
+        lines: Array.isArray(project.lines) ? project.lines.slice(0, 3) : []
+      }))
+    )
+  ].sort((a, b) => b.id - a.id);
+
+  const total = projects.reduce((sum, project) => sum + project.price, 0);
+  setText('projectLedgerCount', projects.length.toLocaleString('ar-SA'));
+  setText('projectLedgerRevenue', `${Math.round(total).toLocaleString('ar-SA')} ريال`);
+  setText('projectLedgerLatest', projects[0]?.date || '—');
+
+  const badge = document.getElementById('projectLogBadge');
+  if (badge) {
+    badge.textContent = projects.length;
+    badge.classList.toggle('hidden', projects.length === 0);
+  }
+
+  empty.classList.toggle('hidden', projects.length > 0);
+  list.innerHTML = projects.map(project => `
+    <article class="card project-ledger-item">
+      <div class="project-ledger-item-head">
+        <div>
+          <h3>${esc(project.title)}</h3>
+          <p>${esc(project.source)} · ${esc(project.date)}</p>
+        </div>
+        <strong>${Math.round(project.price).toLocaleString('ar-SA')} ${esc(project.currency)}</strong>
+      </div>
+      ${project.lines.length ? `<div class="project-ledger-lines">${project.lines.map(line =>
+        `<span><small>${esc(line[0] || '')}</small><b>${esc(String(line[1] ?? '—'))}</b></span>`
+      ).join('')}</div>` : ''}
+    </article>
+  `).join('');
 }
 
 function navToQuickTool(slug) {
@@ -1014,11 +1094,17 @@ async function openClassicQuote(slug, title, amount, notes = '') {
 function installClassicQuoteBridge() {
   if (!document.getElementById('integrated-tools')) return;
 
+  // Keep the calculator's local history as well as opening the system quote
+  // dialog. The sidebar project log reads these local entries.
+  const legacySaveProject = window.saveProject;
+  const legacySaveGenericProject = window.saveGenericProject;
+
   window.saveProject = function () {
     if (typeof svcLast === 'undefined' || !svcLast || !svcLast.price) {
       alert('احسب نتيجة الخدمة أولاً قبل حفظها.');
       return;
     }
+    if (typeof legacySaveProject === 'function') legacySaveProject();
     openClassicQuote(
       'services',
       svcLast.title || 'تسعيرة الخدمات',
@@ -1036,6 +1122,9 @@ function installClassicQuoteBridge() {
     if (!project || !project.price) {
       alert('أدخل بيانات كافية أولاً حتى تظهر النتيجة المقترحة.');
       return;
+    }
+    if (typeof legacySaveGenericProject === 'function') {
+      legacySaveGenericProject(tool);
     }
     const notes = (project.lines || [])
       .map(line => `${line[0]}: ${line[1]}`)

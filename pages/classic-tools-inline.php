@@ -85,6 +85,30 @@ $scopedCss = preg_replace('/(?<![A-Za-z0-9_-])body\s+/', '#integrated-tools ', $
   border-radius:var(--r-lg);
   overflow:hidden;
 }
+#integrated-tools .tool-screen,
+#integrated-tools .page,
+#integrated-tools .wrap,
+#integrated-tools #page-log {
+  background:var(--bg)!important;
+  color:var(--text)!important;
+}
+#integrated-tools .log-topbar h2,
+#integrated-tools .log-empty,
+#integrated-tools .log-empty span {
+  color:var(--text)!important;
+}
+#integrated-tools .log-empty {
+  color:var(--muted)!important;
+}
+#integrated-tools .ls-cell {
+  background:rgba(26,43,32,.06)!important;
+}
+#integrated-tools #services-tabs #log-tab,
+#integrated-tools #page-log,
+#integrated-tools [id$="-log-panel"],
+#integrated-tools button[onclick^="toggleGenericLog"] {
+  display:none!important;
+}
 #integrated-tools #platform-home {
   min-height:0!important;
   padding:0 0 24px!important;

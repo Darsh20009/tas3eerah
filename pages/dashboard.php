@@ -149,6 +149,10 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
     <button class="sb-item" data-panel="tools" onclick="nav(this)">
       <span class="sb-icon">◈</span> أدوات التسعير
     </button>
+    <button class="sb-item" data-panel="project-log" onclick="nav(this)">
+      <span class="sb-icon">▤</span> سجل المشاريع
+      <span class="sb-badge hidden" id="projectLogBadge">0</span>
+    </button>
 
     <?php if ($role === 'admin'): ?>
     <div class="sb-section">الإدارة</div>
@@ -1033,6 +1037,30 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
 
       <?php endif; ?>
     </div><!-- /panel-tools -->
+
+    <!-- ══ SHARED: PROJECT LOG ══ -->
+    <div class="section-panel" id="panel-project-log">
+      <div class="panel-heading">
+        <div>
+          <h2>سجل المشاريع</h2>
+          <p>كل النتائج المحفوظة من حاسبات القطاعات في مكان واحد.</p>
+        </div>
+        <button class="btn btn-ghost btn-sm" type="button" onclick="loadProjectLedger()">تحديث السجل</button>
+      </div>
+      <div class="project-ledger-summary">
+        <div class="card project-ledger-stat"><span>عدد المشاريع</span><strong id="projectLedgerCount">0</strong></div>
+        <div class="card project-ledger-stat"><span>إجمالي الأسعار</span><strong id="projectLedgerRevenue">0</strong></div>
+        <div class="card project-ledger-stat"><span>آخر حفظ</span><strong id="projectLedgerLatest">—</strong></div>
+      </div>
+      <div class="card" id="projectLedgerEmpty">
+        <div class="empty-state">
+          <div class="empty-state-icon">▤</div>
+          <h3>لا توجد مشاريع محفوظة بعد</h3>
+          <p>احسب نتيجة من إحدى الحاسبات ثم احفظها لتظهر هنا.</p>
+        </div>
+      </div>
+      <div id="projectLedgerList" class="project-ledger-list"></div>
+    </div>
 
     <!-- ══ ADMIN: USERS ══ -->
     <?php if ($role === 'admin'): ?>
