@@ -40,11 +40,41 @@ if (preg_match('#^/assets/.+#', $uri)) {
     http_response_code(404); exit;
 }
 
+// Browsers request a root favicon for the standalone detailed tools document.
+// Serve the existing brand mark instead of producing a noisy 404 in previews.
+if ($uri === '/favicon.ico') {
+    $favicon = __DIR__ . '/assets/logo.png';
+    if (file_exists($favicon) && is_file($favicon)) {
+        header('Content-Type: image/png');
+        header('Cache-Control: public, max-age=3600');
+        readfile($favicon);
+        exit;
+    }
+    http_response_code(404);
+    exit;
+}
+
 // Legacy calculator
 if ($uri === '/legacy-calculator.html') {
     $f = __DIR__ . '/legacy-calculator.html';
     if (file_exists($f)) { readfile($f); exit; }
     http_response_code(404); exit;
+}
+
+// The detailed calculator reference is kept as a first-class app route so the
+// authenticated dashboard can show the complete sector tools without
+// duplicating their large, self-contained markup in the PHP page.
+if ($uri === '/classic-tools') {
+    $f = __DIR__ . '/attached_assets/index_1789370030522.html';
+    if (file_exists($f) && is_file($f)) {
+        header('Content-Type: text/html; charset=UTF-8');
+        header('Cache-Control: no-store');
+        readfile($f);
+        exit;
+    }
+    http_response_code(404);
+    echo '404';
+    exit;
 }
 
 if (defined('APP_ENV') && APP_ENV === 'production') {

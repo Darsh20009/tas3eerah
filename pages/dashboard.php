@@ -9,10 +9,22 @@ $user          = Auth::require();
 $role          = $user['role'];
 $effectivePlan = Auth::effectivePlan($user);
 $plan          = PLANS[$effectivePlan] ?? PLANS['free'];
-$canSaveQuote  = true;
+$canSaveQuote  = Auth::canCreateQuote($user);
 
 $roleLabel = ['admin' => 'مدير النظام', 'employee' => 'موظف', 'client' => 'عميل'][$role] ?? $role;
 $planName  = $plan['name_ar'];
+$usageField = $role === 'client' ? 'client_id' : 'employee_id';
+$quotesUsedThisMonth = DB::count('quotes', [
+    $usageField  => (int)$user['id'],
+    'created_at' => ['$regex' => '^' . date('Y-m')],
+]);
+$maxQuotesThisMonth = $plan['max_quotes'];
+$quotesRemaining = $maxQuotesThisMonth === -1
+    ? null
+    : max(0, $maxQuotesThisMonth - $quotesUsedThisMonth);
+$quotaLabel = $maxQuotesThisMonth === -1
+    ? 'تسعير غير محدود'
+    : "متبقي {$quotesRemaining} من {$maxQuotesThisMonth} هذا الشهر";
 
 // Expiry warning banner
 $showExpiryBanner = false;
@@ -79,6 +91,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
      <div class="sb-user-name user-content"><?= htmlspecialchars($user['name']) ?></div>
     <div class="sb-user-role"><?= $roleLabel ?></div>
     <div class="sb-plan"><?= $planName ?></div>
+    <div class="sb-plan-usage"><?= htmlspecialchars($quotaLabel) ?></div>
   </div>
 
   <nav class="sb-nav">
@@ -187,6 +200,10 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
     <div class="topbar-actions">
       <a class="btn btn-ghost btn-sm dashboard-home-link" href="/">الصفحة الرئيسية</a>
       <button class="btn btn-ghost btn-sm" onclick="toggleLang()" id="langBtn">EN</button>
+      <div class="topbar-plan-summary" aria-label="حالة الخطة">
+        <strong>الخطة: <?= htmlspecialchars($planName) ?></strong>
+        <span id="topbarPlanQuota"><?= htmlspecialchars($quotaLabel) ?></span>
+      </div>
       <?php if ($role === 'employee' || $role === 'admin'): ?>
       <button class="btn btn-primary btn-sm" onclick="navDirect('quote-new')">
         + عرض سعر
@@ -466,6 +483,16 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
   $userTools = OPEN_ACCESS_MODE ? ['all'] : $plan['tools'];
       ?>
 
+      <div class="classic-tools-embed">
+        <iframe
+          class="classic-tools-frame"
+          src="/classic-tools"
+          title="أدوات التسعير التفصيلية"
+          loading="eager"
+          allow="clipboard-write"></iframe>
+      </div>
+
+      <?php if (false): ?>
       <!-- ═ TOOLS MENU ═ -->
       <div class="tools-intro">
         <div class="tools-intro-copy">
@@ -889,6 +916,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
         </div>
       </div>
 
+      <?php endif; ?>
     </div><!-- /panel-tools -->
 
     <!-- ══ ADMIN: USERS ══ -->
@@ -1259,8 +1287,13 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
       <input type="text" class="form-control" id="tqmQuoteTitle" placeholder="عنوان العرض...">
     </div>
     <div class="form-group">
+      <?php if ($role === 'client'): ?>
+      <input type="hidden" id="tqmClient" value="<?= (int)$user['id'] ?>">
+      <div class="client-self-note">سيتم حفظ هذه التسعيرة مباشرة في حسابك، ولا تحتاج إلى اختيار عميل.</div>
+      <?php else: ?>
       <label>العميل *</label>
       <select class="form-control" id="tqmClient"><option value="">اختر العميل...</option></select>
+      <?php endif; ?>
     </div>
     <div class="form-group">
       <label>ملاحظات</label>
@@ -1300,6 +1333,9 @@ const APP = <?= json_encode([
   'effectivePlan' => $effectivePlan,
   'isPaid'        => true,
   'name'          => $user['name'],
+  'maxQuotes'     => $maxQuotesThisMonth,
+  'quotesUsed'    => $quotesUsedThisMonth,
+  'quotesRemaining' => $quotesRemaining,
 ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 </script>
 <script src="/assets/js/currency.js?v=1"></script>

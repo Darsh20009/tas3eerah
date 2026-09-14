@@ -1166,16 +1166,23 @@ async function openToolQuote(slug, toolName) {
   document.getElementById('tqmSlug').value   = slug;
   document.getElementById('tqmAmount').value = amount;
   document.getElementById('tqmTitle').textContent = `حفظ نتيجة ${toolName} كعرض سعر`;
+  if (APP.role === 'client') {
+    document.getElementById('tqmTitle').textContent = `حفظ تسعيرتي: ${toolName}`;
+    const ownClient = document.getElementById('tqmClient');
+    if (ownClient) ownClient.value = String(APP.uid);
+  }
   document.getElementById('tqmQuoteTitle').value  = toolName;
   document.getElementById('tqmNotes').value = '';
   document.getElementById('tqmMsg').className = 'hidden';
 
-  // Load clients into the select
-  await ensureClientsLoaded();
-  const sel = document.getElementById('tqmClient');
-  if (sel && clientsCache) {
-    sel.innerHTML = '<option value="">اختر العميل...</option>' +
-      clientsCache.map(c => `<option value="${c.id}">${esc(c.name)} ${esc(c.email)}</option>`).join('');
+  // Employees and admins choose the client. A client always owns the quote.
+  if (APP.role !== 'client') {
+    await ensureClientsLoaded();
+    const sel = document.getElementById('tqmClient');
+    if (sel && clientsCache) {
+      sel.innerHTML = '<option value="">اختر العميل...</option>' +
+        clientsCache.map(c => `<option value="${c.id}">${esc(c.name)} ${esc(c.email)}</option>`).join('');
+    }
   }
 
   document.getElementById('toolQuoteModal').classList.remove('hidden');
@@ -1185,7 +1192,9 @@ async function saveToolQuote() {
   const slug     = document.getElementById('tqmSlug').value;
   const amount   = parseFloat(document.getElementById('tqmAmount').value) || 0;
   const title    = document.getElementById('tqmQuoteTitle').value.trim();
-  const clientId = document.getElementById('tqmClient').value;
+  const clientId = APP.role === 'client'
+    ? String(APP.uid)
+    : (document.getElementById('tqmClient')?.value || '');
   const notes    = document.getElementById('tqmNotes').value.trim();
   const msgEl    = document.getElementById('tqmMsg');
 
@@ -1195,7 +1204,7 @@ async function saveToolQuote() {
   };
 
   if (!title) { showMsg('عنوان العرض مطلوب', true); return; }
-  if (!clientId) { showMsg('يرجى اختيار العميل', true); return; }
+  if (APP.role !== 'client' && !clientId) { showMsg('يرجى اختيار العميل', true); return; }
 
   const toolLabel = {
     basic: 'تسعير الخدمات', pkg: 'الباقات والاشتراكات', menu: 'قائمة المطاعم والكافيهات',
@@ -1211,13 +1220,20 @@ async function saveToolQuote() {
 
   if (!items.length) { showMsg('لا توجد بنود في التسعيرة', true); return; }
 
-  const r = await api('quotes', {
-    action: 'create', title, client_id: clientId,
-    items, tax_rate: taxRate, discount, notes,
-  });
+  const payload = {
+    action: 'create', title, items, tax_rate: taxRate, discount, notes,
+  };
+  if (APP.role !== 'client') payload.client_id = clientId;
+  const r = await api('quotes', payload);
 
   if (r.success) {
     showMsg('✅ تم حفظ العرض كمسودة بنجاح', false);
+    if (APP.role === 'client' && APP.maxQuotes !== -1) {
+      APP.quotesUsed = Number(APP.quotesUsed || 0) + 1;
+      APP.quotesRemaining = Math.max(0, Number(APP.maxQuotes) - APP.quotesUsed);
+      const quota = document.getElementById('topbarPlanQuota');
+      if (quota) quota.textContent = `متبقي ${APP.quotesRemaining} من ${APP.maxQuotes} هذا الشهر`;
+    }
     setTimeout(() => {
       document.getElementById('toolQuoteModal').classList.add('hidden');
       // Switch to quotes panel
