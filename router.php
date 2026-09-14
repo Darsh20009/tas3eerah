@@ -30,6 +30,7 @@ if (preg_match('#^/assets/.+#', $uri)) {
             'ttf'  => 'font/ttf',
             'otf'  => 'font/otf',
             'eot'  => 'application/vnd.ms-fontobject',
+            'webmanifest' => 'application/manifest+json; charset=UTF-8',
             default => 'application/octet-stream',
         };
         header("Content-Type: $mime");
@@ -43,7 +44,7 @@ if (preg_match('#^/assets/.+#', $uri)) {
 // Browsers request a root favicon for the standalone detailed tools document.
 // Serve the existing brand mark instead of producing a noisy 404 in previews.
 if ($uri === '/favicon.ico') {
-    $favicon = __DIR__ . '/assets/logo.png';
+    $favicon = __DIR__ . '/assets/icons/icon-192.png';
     if (file_exists($favicon) && is_file($favicon)) {
         header('Content-Type: image/png');
         header('Cache-Control: public, max-age=3600');
@@ -168,6 +169,8 @@ body{padding-bottom:0!important}
 CSS;
             if (is_string($html)) {
                 $html = preg_replace('/<\/head>/i', $identityCss . '</head>', $html, 1) ?? $html;
+                $appHead = '<link rel="manifest" href="/assets/manifest.webmanifest"><link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-180.png"><meta name="theme-color" content="#F8F5ED"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default">';
+                $html = preg_replace('/<head>/i', '<head>' . $appHead, $html, 1) ?? $html;
                 $selectedTool = preg_replace('/[^a-z-]/', '', (string)($_GET['tool'] ?? ''));
                 if ($selectedTool !== '') {
                     $autoOpen = '<script>window.goHome=function(){window.location.href="/dashboard";};document.addEventListener("DOMContentLoaded",function(){if(window.openTool){window.openTool("' . $selectedTool . '");}});</script>';

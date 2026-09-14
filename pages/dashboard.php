@@ -57,8 +57,14 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#F8F5ED">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>تسعيرة | لوحة التحكم</title>
-  <link rel="icon" type="image/png" href="/assets/logo.png">
+  <link rel="manifest" href="/assets/manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-180.png">
   <link rel="stylesheet" href="/assets/css/app.css?v=<?= @filemtime(__DIR__.'/../assets/css/app.css') ?: time() ?>">
   <meta name="csrf-token" content="<?= htmlspecialchars(Auth::csrfToken(), ENT_QUOTES) ?>">
 </head>

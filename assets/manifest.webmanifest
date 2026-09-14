@@ -1,0 +1,28 @@
+{
+  "id": "/",
+  "name": "تسعيرة | منصة التسعير العربية",
+  "short_name": "تسعيرة",
+  "description": "أدوات التسعير وعروض الأسعار وإدارة المشاريع في مساحة عربية واحدة.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#F8F5ED",
+  "background_color": "#F8F5ED",
+  "icons": [
+    {
+      "src": "/assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
