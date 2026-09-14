@@ -331,6 +331,11 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
         $overviewSent = count(array_filter($overviewQuotes, static fn($quote) => ($quote['status'] ?? '') === 'sent'));
         $overviewConversion = count($overviewQuotes) > 0 ? (int)round(($overviewAccepted / count($overviewQuotes)) * 100) : 0;
         $overviewAverage = count($overviewQuotes) > 0 ? $overviewTotal / count($overviewQuotes) : 0;
+        $overviewStatusCounts = array_fill_keys(['draft', 'sent', 'accepted', 'rejected'], 0);
+        foreach ($overviewQuotes as $overviewQuote) {
+          $overviewStatus = $overviewQuote['status'] ?? 'draft';
+          if (isset($overviewStatusCounts[$overviewStatus])) $overviewStatusCounts[$overviewStatus]++;
+        }
       ?>
       <div class="overview-lower-grid">
         <section class="overview-card quick-actions-card">
@@ -387,6 +392,29 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
           </div>
         </section>
       </div>
+      <?php if ($role === 'admin'): ?>
+      <section class="admin-control-panel">
+        <div class="overview-card-heading">
+          <div>
+            <span class="section-eyebrow">مركز الإدارة</span>
+            <h2>كل تفاصيل المنصة في نظرة واحدة</h2>
+          </div>
+          <span class="admin-control-pulse"><i></i> متابعة مباشرة</span>
+        </div>
+        <div class="admin-control-metrics">
+          <div><b><?= number_format($overviewStatusCounts['draft']) ?></b><span>مسودات</span></div>
+          <div><b><?= number_format($overviewStatusCounts['sent']) ?></b><span>مرسلة</span></div>
+          <div><b><?= number_format($overviewStatusCounts['accepted']) ?></b><span>مقبولة</span></div>
+          <div><b><?= number_format($overviewStatusCounts['rejected']) ?></b><span>مرفوضة</span></div>
+          <div><b><?= number_format($overviewTotal, 0) ?> <small>ر.س</small></b><span>القيمة الإجمالية</span></div>
+        </div>
+        <div class="admin-control-actions">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="navDirect('quotes')">تفاصيل كل العروض</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="navDirect('activity')">سجل النشاط الكامل</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="navDirect('subscriptions')">الخطط والاستخدام</button>
+        </div>
+      </section>
+      <?php endif; ?>
     </div>
 
     <!-- ══ QUOTES LIST ══ -->

@@ -146,6 +146,7 @@ function createQuote(array $u, array $b): never {
         if (trim($item['description'] ?? '') === '') Response::err('وصف البند مطلوب لكل بند');
     }
 
+    $client = null;
     // Validate client exists (for non-client creators the client must be a real client user)
     if (!$isClient) {
         $client = DB::findOne('users', ['id' => $clientId, 'role' => 'client', 'is_active' => 1]);
@@ -183,7 +184,14 @@ function createQuote(array $u, array $b): never {
     DB::insertDoc('activity_log', [
         'user_id' => (int)$u['id'],
         'action'  => 'quote_created',
-        'details' => "رقم العرض: $number",
+        'details' => sprintf(
+            'رقم العرض: %s | العنوان: %s | العميل: %s | الإجمالي: %s ر.س | %s',
+            $number,
+            $title,
+            $client['name'] ?? ($isClient ? ($u['name'] ?? 'العميل') : $clientId),
+            number_format((float)$total, 2),
+            $notes !== '' ? 'توجد ملاحظات' : 'بدون ملاحظات'
+        ),
     ]);
 
     Response::ok(['id' => $qid, 'number' => $number], 'تم إنشاء عرض السعر');
@@ -280,7 +288,14 @@ function changeStatus(array $u, array $b): never {
     DB::insertDoc('activity_log', [
         'user_id' => (int)$u['id'],
         'action'  => 'quote_status_changed',
-        'details' => "عرض $id: $current → $status",
+        'details' => sprintf(
+            'العرض %s (%s): %s → %s | الإجمالي: %s ر.س',
+            $q['number'] ?? $id,
+            $q['title'] ?? 'بدون عنوان',
+            $current,
+            $status,
+            number_format((float)($q['total'] ?? 0), 2)
+        ),
     ]);
     Response::ok(['status' => $status], 'تم تحديث الحالة');
 }

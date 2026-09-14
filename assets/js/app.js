@@ -639,19 +639,56 @@ async function viewQuote(id) {
 function typeQuoteNotes(text) {
   const target = document.getElementById('quoteNotesTyping');
   if (!target) return;
+  if (window.__quoteNotesTimer) {
+    window.clearTimeout(window.__quoteNotesTimer);
+    window.__quoteNotesTimer = null;
+  }
   target.textContent = '';
   if (!text) return;
-  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  target.dataset.fullText = text;
+  target.classList.remove('is-complete');
+
+  const showAll = () => {
+    if (window.__quoteNotesTimer) {
+      window.clearTimeout(window.__quoteNotesTimer);
+      window.__quoteNotesTimer = null;
+    }
     target.textContent = text;
+    target.classList.add('is-complete');
+  };
+
+  target.onclick = showAll;
+  target.onkeydown = event => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      showAll();
+    }
+  };
+  target.setAttribute('role', 'button');
+  target.setAttribute('tabindex', '0');
+  target.setAttribute('aria-label', 'إظهار الملاحظات كاملة');
+
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    showAll();
     return;
   }
+
+  const characters = Array.from(text);
+  const duration = Math.min(2200, Math.max(500, characters.length * 12));
+  const delay = duration / Math.max(1, characters.length);
   let index = 0;
   const write = () => {
-    if (!document.body.contains(target)) return;
-    target.textContent = text.slice(0, index);
-    if (index < text.length) {
+    if (!document.body.contains(target)) {
+      window.__quoteNotesTimer = null;
+      return;
+    }
+    target.textContent = characters.slice(0, index).join('');
+    if (index < characters.length) {
       index += 1;
-      window.setTimeout(write, text[index - 1] === '\n' ? 180 : 24);
+      window.__quoteNotesTimer = window.setTimeout(write, delay);
+    } else {
+      window.__quoteNotesTimer = null;
+      target.classList.add('is-complete');
     }
   };
   write();
