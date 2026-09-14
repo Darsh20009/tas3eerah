@@ -610,20 +610,23 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
       <div id="toolsMenu">
         <?php
         $toolCards = [
-          ['calc_basic',  'تسعير الخدمات',             'خدمات · تدريب · تصوير · هدايا',       'احسب السعر العادل لخدماتك بناءً على التكاليف والهامش المناسب.', '01', 'warm'],
-          ['calc_pkg',    'تسعير الباقات والاشتراكات', 'خدمات · منصات · عضويات',             'سعّر باقاتك مع توزيع التكاليف والهامش على المشتركين.', '02', 'blue'],
-          ['calc_menu',   'تسعير قائمة المطاعم والكافيهات','كافيه · مطعم · حلويات · مشروبات', 'ابنِ سعر طبقك بدقة من تكلفة المكونات والهدر والهامش.', '03', 'green'],
-          ['calc_store',  'تسعير التجزئة والجملة',     'ملابس · إلكترونيات · بقالة',          'حدد سعر البيع بناءً على تكلفة المنتج والعمولات والعروض.', '04', 'gold'],
-          ['calc_labor',  'تسعير المشاريع التقنية',    'تطبيقات · ERP · مواقع · أجهزة ذكية',  'احسب تكلفة المشروع التقني حسب الساعات والموارد والنطاق.', '05', 'blue'],
-          ['calc_custom', 'تسعير الشركات التقنية',     'SaaS · استضافة · صيانة · تراخيص',    'احسب سعر الاشتراك والخدمات المتكررة على أساس تكاليفك الحقيقية.', '06', 'purple'],
-          ['calc_office', 'تسعير التصميم الداخلي والمعماري','سكني · تجاري · معماري',          'سعّر مشاريع التصميم والتنفيذ وفق المساحة والمراحل والتكاليف.', '07', 'sand'],
+          ['calc_basic',  'تسعير الخدمات',             'خدمات · تدريب · تصوير · هدايا',       'احسب السعر العادل لخدماتك بناءً على التكاليف والهامش المناسب.', '01', 'warm',  '/assets/landing/sector-services-icon.png'],
+          ['calc_pkg',    'تسعير الباقات والاشتراكات', 'خدمات · منصات · عضويات',             'سعّر باقاتك مع توزيع التكاليف والهامش على المشتركين.', '02', 'blue',  '/assets/landing/empty-box.png'],
+          ['calc_menu',   'تسعير قائمة المطاعم والكافيهات','كافيه · مطعم · حلويات · مشروبات', 'ابنِ سعر طبقك بدقة من تكلفة المكونات والهدر والهامش.', '03', 'green', '/assets/landing/sector-restaurants-icon.png'],
+          ['calc_store',  'تسعير التجزئة والجملة',     'ملابس · إلكترونيات · بقالة',          'حدد سعر البيع بناءً على تكلفة المنتج والعمولات والعروض.', '04', 'gold',  '/assets/landing/sector-retail-icon.png'],
+          ['calc_labor',  'تسعير المشاريع التقنية',    'تطبيقات · ERP · مواقع · أجهزة ذكية',  'احسب تكلفة المشروع التقني حسب الساعات والموارد والنطاق.', '05', 'blue',  '/assets/landing/sector-technology-icon.png'],
+          ['calc_custom', 'تسعير الشركات التقنية',     'SaaS · استضافة · صيانة · تراخيص',    'احسب سعر الاشتراك والخدمات المتكررة على أساس تكاليفك الحقيقية.', '06', 'purple', '/assets/landing/sector-technology-icon.png'],
+          ['calc_office', 'تسعير التصميم الداخلي والمعماري','سكني · تجاري · معماري',          'سعّر مشاريع التصميم والتنفيذ وفق المساحة والمراحل والتكاليف.', '07', 'sand',  '/assets/landing/sector-design-icon.png'],
         ];
-        foreach ($toolCards as [$slug, $name, $sectors, $desc, $icon, $tone]):
+        foreach ($toolCards as [$slug, $name, $sectors, $desc, $icon, $tone, $image]):
           $locked = !in_array($slug, $userTools) && !in_array('all', $userTools);
         ?>
         <div class="tool-card sector-card tone-<?= $tone ?> <?= $locked ? 'locked' : '' ?>" onclick="<?= $locked ? "showPlanUpgrade()" : "openTool('$slug')" ?>">
           <?php if ($locked): ?><div class="tool-lock ui-icon ui-icon-lock" aria-label="مقفل بالخطة"></div><?php endif; ?>
-          <div class="sector-icon"><?= $icon ?></div>
+          <div class="sector-icon">
+            <img class="sector-icon-image" src="<?= $image ?>" alt="" loading="lazy">
+            <span class="sector-icon-number"><?= $icon ?></span>
+          </div>
           <div class="tool-tag"><?= $locked ? 'مقفل في باقتك' : $sectors ?></div>
           <h3><?= $name ?></h3>
           <p><?= $desc ?></p>

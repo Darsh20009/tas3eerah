@@ -109,7 +109,7 @@ if ($user) { header('Location: /dashboard'); exit; }
     <div class="hero-visual">
       <img
         class="hero-reference-image"
-        src="/assets/hero-reference-art.png?v=2"
+        src="/assets/landing/hero-saudi.png?v=1"
         alt="لوحة منصة تسعيرة"
       >
     </div>
@@ -161,6 +161,37 @@ if ($user) { header('Location: /dashboard'); exit; }
       <h3 data-ar="نظام الخطط" data-en="Plan System">نظام الخطط</h3>
       <p data-ar="ثلاث باقات واضحة: مجاني وPlus وPro، تناسب احتياجك وعدد أفراد فريقك." data-en="Three clear plans: Free, Plus and Pro, sized for your needs and team.">ثلاث باقات واضحة: مجاني وPlus وPro، تناسب احتياجك وعدد أفراد فريقك.</p>
     </div>
+  </div>
+</section>
+
+<!-- ═══ القطاعات ═══ -->
+<section id="sectors" class="sector-showcase">
+  <div class="section-head">
+    <div class="eyebrow" data-ar="القطاعات" data-en="Sectors">القطاعات</div>
+    <h2 data-ar="صممت لكل نشاط طريقة تسعير مناسبة" data-en="A pricing path for every business">صممت لكل نشاط طريقة تسعير مناسبة</h2>
+    <p data-ar="اختر القطاع الأقرب لنشاطك وابدأ من حاسبة مبنية على طبيعة عملك." data-en="Choose your sector and start with a calculator built around how you work.">اختر القطاع الأقرب لنشاطك وابدأ من حاسبة مبنية على طبيعة عملك.</p>
+  </div>
+  <div class="sector-showcase-grid">
+    <button class="sector-showcase-card" onclick="showAuth('register')">
+      <img src="/assets/landing/sector-services.png" alt="قطاع الخدمات" loading="lazy">
+      <span data-ar="الخدمات" data-en="Services">الخدمات</span>
+    </button>
+    <button class="sector-showcase-card" onclick="showAuth('register')">
+      <img src="/assets/landing/sector-restaurants.png" alt="قطاع المطاعم" loading="lazy">
+      <span data-ar="المطاعم والقوائم" data-en="Restaurants and menus">المطاعم والقوائم</span>
+    </button>
+    <button class="sector-showcase-card" onclick="showAuth('register')">
+      <img src="/assets/landing/sector-retail.png" alt="قطاع التجزئة" loading="lazy">
+      <span data-ar="التجزئة والجملة" data-en="Retail and wholesale">التجزئة والجملة</span>
+    </button>
+    <button class="sector-showcase-card" onclick="showAuth('register')">
+      <img src="/assets/landing/sector-technology.png" alt="قطاع التقنية" loading="lazy">
+      <span data-ar="المشاريع التقنية" data-en="Technology projects">المشاريع التقنية</span>
+    </button>
+    <button class="sector-showcase-card" onclick="showAuth('register')">
+      <img src="/assets/landing/sector-design.png" alt="قطاع التصميم" loading="lazy">
+      <span data-ar="التصميم الداخلي والمعماري" data-en="Interior and architectural design">التصميم الداخلي والمعماري</span>
+    </button>
   </div>
 </section>
 
