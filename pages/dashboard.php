@@ -76,20 +76,6 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
   </div>
 </div>
 
-<?php if ($role === 'client'): ?>
-<div class="frame-entry-loader" data-frame-entry role="status" aria-live="polite" aria-label="جارٍ تجهيز لوحة التسعير">
-  <div class="frame-entry-content">
-    <div class="frame-entry-mark frame-crossfade" data-frame-animation data-frame-speed="100">
-      <img data-frame-image class="is-visible" src="/assets/ui/frame-sequence/frame-01.png" alt="تسعيرة">
-      <img data-frame-image src="/assets/ui/frame-sequence/frame-01.png" alt="" aria-hidden="true">
-    </div>
-    <strong>نجهّز مساحة التسعير</strong>
-    <span>لحظات ونبدأ معك</span>
-    <div class="frame-entry-progress" aria-hidden="true"><i></i></div>
-  </div>
-</div>
-<?php endif; ?>
-
 <div class="app-shell">
 
 <!-- Mobile sidebar overlay -->

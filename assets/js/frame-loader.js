@@ -51,30 +51,6 @@
     const animations = document.querySelectorAll('[data-frame-animation]');
     animations.forEach(startFrameAnimation);
 
-    const entry = document.querySelector('[data-frame-entry]');
-    if (!entry) return;
-
-    document.body.classList.add('frame-loader-open');
-    let hidden = false;
-    const startedAt = performance.now();
-    const hideEntry = () => {
-      if (hidden) return;
-      hidden = true;
-      const wait = Math.max(0, 850 - (performance.now() - startedAt));
-      window.setTimeout(() => {
-        entry.classList.add('is-hidden');
-        document.body.classList.remove('frame-loader-open');
-        window.setTimeout(() => entry.remove(), 500);
-      }, wait);
-    };
-
-    if (document.readyState === 'complete') {
-      hideEntry();
-    } else {
-      window.addEventListener('load', hideEntry, { once: true });
-      // Network failures must never leave the client behind a loading screen.
-      window.setTimeout(hideEntry, 5000);
-    }
   }
 
   if (document.readyState === 'loading') {
