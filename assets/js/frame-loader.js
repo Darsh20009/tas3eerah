@@ -15,6 +15,7 @@
     let activeImage = 0;
     let timer = null;
     const speed = Math.max(70, Number(node.dataset.frameSpeed) || 100);
+    const finalHold = Math.max(3000, Number(node.dataset.frameFinalHold) || 3000);
 
     const showFrame = () => {
       const nextImage = images.length > 1 ? (activeImage === 0 ? 1 : 0) : 0;
@@ -24,8 +25,9 @@
         images[activeImage].classList.remove('is-visible');
         activeImage = nextImage;
       }
-      frame = frame === frameCount ? 1 : frame + 1;
-      timer = window.setTimeout(showFrame, speed);
+      const isFinalFrame = frame === frameCount;
+      frame = isFinalFrame ? 1 : frame + 1;
+      timer = window.setTimeout(showFrame, isFinalFrame ? finalHold : speed);
     };
 
     images.forEach(image => {
