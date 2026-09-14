@@ -605,7 +605,7 @@ async function viewQuote(id) {
   const taxAmt   = (subtotal - discount) * (q.tax_rate / 100);
   document.getElementById('pdfDoc').innerHTML = `
     <div class="pdf-header">
-      <div><img src="/assets/brand-logo-transparent.png" class="pdf-logo" alt="تسعيرة"></div>
+      <div><img src="/assets/logo.png" class="pdf-logo" alt="تسعيرة"></div>
       <div style="text-align:left">
         <h1>${translateString('عرض سعر')}</h1>
         <div class="pdf-meta">${translateString('رقم')}: ${q.number}</div>
@@ -634,6 +634,29 @@ async function viewQuote(id) {
   typeQuoteNotes(q.notes || '');
   renderQuoteRating(q);
   document.getElementById('pdfOverlay').classList.remove('hidden');
+}
+
+function downloadQuotePdf() {
+  if (!activeQuote) {
+    window.print();
+    return;
+  }
+
+  const previousTitle = document.title;
+  const safeNumber = String(activeQuote.number || activeQuote.id || 'quote')
+    .replace(/[^\w\u0600-\u06FF-]+/g, '-');
+  let restored = false;
+  const restoreTitle = () => {
+    if (restored) return;
+    restored = true;
+    document.title = previousTitle;
+    window.removeEventListener('afterprint', restoreTitle);
+  };
+
+  document.title = `Tas3eerah-${safeNumber}`;
+  window.addEventListener('afterprint', restoreTitle, { once: true });
+  window.print();
+  window.setTimeout(restoreTitle, 2500);
 }
 
 function typeQuoteNotes(text) {

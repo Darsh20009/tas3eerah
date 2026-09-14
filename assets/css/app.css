@@ -820,6 +820,23 @@ select.form-control { cursor: pointer; }
   color:var(--muted); font-size:10px; white-space:nowrap;
 }
 .topbar-plan-summary strong { color:var(--text); font-size:11px; }
+.client-header-frame {
+  width: 42px;
+  height: 27px;
+  flex: 0 0 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: .9;
+  overflow: hidden;
+  border-inline-end: 1px solid var(--line);
+  padding-inline-end: 8px;
+}
+.client-header-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
 .client-self-note {
   padding:10px 12px; border:1px solid rgba(46,139,87,.22); border-radius:var(--r);
   background:rgba(46,139,87,.07); color:var(--green); font-size:12px; line-height:1.8;
@@ -888,8 +905,14 @@ select.form-control { cursor: pointer; }
 .pdf-doc .pdf-footer { margin-top: 28px; border-top: 1px solid #ede9df; padding-top: 14px; text-align: center; font-size: 11px; color: #6b7c73; }
 .pdf-actions { display: flex; gap: 8px; margin-top: 12px; justify-content: center; }
 @media print {
+  @page { size: A4; margin: 12mm; }
+  body > *:not(#pdfOverlay) { display: none !important; }
   .pdf-overlay { background: none; }
-  .pdf-doc { box-shadow: none; max-height: none; border-radius: 0; }
+  .pdf-overlay,
+  .pdf-overlay.hidden { display: block !important; position: static; padding: 0; }
+  .pdf-doc { box-shadow: none; max-height: none; border-radius: 0; width: 100%; max-width: none; padding: 0; overflow: visible; }
+  .quote-tool-rail,
+  .quote-rating-panel { display: none !important; }
   .pdf-actions { display: none; }
 }
 
@@ -1088,6 +1111,105 @@ select.form-control { cursor: pointer; }
 .splash-brand-sub {
   font-family: 'BritishCouncil', 'Arial', sans-serif;
   font-size: 13px; color: rgba(143,176,154,.7); letter-spacing: 1px; font-weight: 600;
+}
+
+/* تسلسل إطارات الدخول للعميل */
+.frame-loader-open { overflow: hidden; }
+.frame-entry-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0d2b1c;
+  color: #fff;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity .45s ease, visibility .45s ease;
+}
+.frame-entry-loader.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.frame-entry-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  text-align: center;
+}
+.frame-entry-mark {
+  width: min(280px, 72vw);
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+.frame-crossfade {
+  position: relative;
+}
+.frame-crossfade img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity .07s linear;
+}
+.frame-crossfade img.is-visible {
+  opacity: 1;
+}
+.footer-frame-logo {
+  width: 112px;
+  height: 48px;
+  border-radius: 7px;
+  background: transparent;
+  overflow: hidden;
+}
+.frame-entry-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.frame-entry-content strong {
+  color: var(--gold);
+  font-size: 17px;
+  font-weight: 800;
+}
+.frame-entry-content span {
+  color: rgba(255,255,255,.6);
+  font-size: 11px;
+}
+.frame-entry-progress {
+  width: 116px;
+  height: 2px;
+  margin-top: 11px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: rgba(255,255,255,.14);
+}
+.frame-entry-progress i {
+  display: block;
+  width: 38%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--gold);
+  animation: frame-progress 1.9s ease-in-out infinite;
+}
+@keyframes frame-progress {
+  0% { transform: translateX(-170%); }
+  50% { transform: translateX(160%); }
+  100% { transform: translateX(280%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .frame-entry-progress i {
+    animation: none;
+    transform: none;
+  }
 }
 
 

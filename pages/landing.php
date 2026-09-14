@@ -335,8 +335,9 @@ if ($user) { header('Location: /dashboard'); exit; }
     <div class="footer-grid">
       <div>
         <div class="footer-brand">
-          <div class="footer-brand-logo">
-            <img src="/assets/logo.png" alt="تسعيرة" style="width:100%;height:100%;object-fit:cover;object-position:center 38%;">
+          <div class="footer-brand-logo footer-frame-logo frame-crossfade" data-frame-animation data-frame-speed="85" aria-label="تسعيرة">
+            <img data-frame-image class="is-visible" src="/assets/ui/frame-sequence/frame-01.png" alt="تسعيرة">
+            <img data-frame-image src="/assets/ui/frame-sequence/frame-01.png" alt="" aria-hidden="true">
           </div>
         </div>
         <div class="footer-gold-line"></div>
@@ -834,5 +835,6 @@ function submitContact() {
 }
 </script>
 <script src="/assets/js/form-enhancements.js?v=<?= @filemtime(__DIR__.'/../assets/js/form-enhancements.js') ?: time() ?>"></script>
+<script src="/assets/js/frame-loader.js?v=<?= @filemtime(__DIR__.'/../assets/js/frame-loader.js') ?: time() ?>"></script>
 </body>
 </html>

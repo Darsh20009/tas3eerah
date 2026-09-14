@@ -76,6 +76,20 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
   </div>
 </div>
 
+<?php if ($role === 'client'): ?>
+<div class="frame-entry-loader" data-frame-entry role="status" aria-live="polite" aria-label="جارٍ تجهيز لوحة التسعير">
+  <div class="frame-entry-content">
+    <div class="frame-entry-mark frame-crossfade" data-frame-animation data-frame-speed="100">
+      <img data-frame-image class="is-visible" src="/assets/ui/frame-sequence/frame-01.png" alt="تسعيرة">
+      <img data-frame-image src="/assets/ui/frame-sequence/frame-01.png" alt="" aria-hidden="true">
+    </div>
+    <strong>نجهّز مساحة التسعير</strong>
+    <span>لحظات ونبدأ معك</span>
+    <div class="frame-entry-progress" aria-hidden="true"><i></i></div>
+  </div>
+</div>
+<?php endif; ?>
+
 <div class="app-shell">
 
 <!-- Mobile sidebar overlay -->
@@ -200,6 +214,12 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
       <button class="hamburger" id="hamburgerBtn" onclick="openSidebar()" aria-label="القائمة">
         <span></span><span></span><span></span>
       </button>
+      <?php if ($role === 'client'): ?>
+      <div class="client-header-frame frame-crossfade" data-frame-animation data-frame-speed="85" aria-hidden="true">
+        <img data-frame-image class="is-visible" src="/assets/ui/frame-sequence/frame-01.png" alt="">
+        <img data-frame-image src="/assets/ui/frame-sequence/frame-01.png" alt="" aria-hidden="true">
+      </div>
+      <?php endif; ?>
     <div class="topbar-title" id="topbarTitle">نظرة عامة</div>
     </div>
     <div class="topbar-actions">
@@ -1459,7 +1479,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
       <span class="quote-rating-label" id="quoteRatingLabel">لم يتم التقييم بعد</span>
     </div>
     <div class="pdf-actions no-print">
-      <button class="btn btn-primary" onclick="window.print()">
+      <button class="btn btn-primary" onclick="downloadQuotePdf()">
         <span class="ui-icon ui-icon-print" aria-hidden="true"></span> طباعة / تحميل PDF
       </button>
       <?php if ($role !== 'client'): ?>
@@ -1541,6 +1561,7 @@ const APP = <?= json_encode([
 <script src="/assets/js/currency.js?v=1"></script>
 <script src="/assets/js/app.js?v=<?= @filemtime(__DIR__.'/../assets/js/app.js') ?: time() ?>"></script>
 <script src="/assets/js/form-enhancements.js?v=<?= @filemtime(__DIR__.'/../assets/js/form-enhancements.js') ?: time() ?>"></script>
+<script src="/assets/js/frame-loader.js?v=<?= @filemtime(__DIR__.'/../assets/js/frame-loader.js') ?: time() ?>"></script>
 </body>
 </html>
 

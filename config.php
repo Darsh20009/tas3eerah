@@ -7,7 +7,7 @@ define('APP_ENV',     $_ENV['APP_ENV']     ?? getenv('APP_ENV')     ?: 'developm
 define('MONGODB_URI', $_ENV['MONGODB_URI'] ?? getenv('MONGODB_URI') ?: '');
 define('DB_PATH',     __DIR__ . '/database/tas3eerah.db');
 
-define('APP_LOGO', '/assets/brand-logo-transparent.png');
+define('APP_LOGO', '/assets/logo.png');
 define('SESSION_LIFETIME', 60 * 60 * 24 * 30);
 // The launch offer is now represented by the published plan limits.
 define('OPEN_ACCESS_MODE', false);
