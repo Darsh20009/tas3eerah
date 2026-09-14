@@ -367,6 +367,20 @@ async function api(endpoint, data = null, method = null, allowCsrfRetry = true) 
   }
 }
 
+let appToastTimer = null;
+function showAppToast(message, isError = false) {
+  const toast = document.getElementById('appToast');
+  if (!toast) return;
+  if (appToastTimer) window.clearTimeout(appToastTimer);
+  toast.textContent = message;
+  toast.classList.toggle('is-error', Boolean(isError));
+  toast.classList.remove('hidden');
+  appToastTimer = window.setTimeout(() => {
+    toast.classList.add('hidden');
+    appToastTimer = null;
+  }, isError ? 5000 : 3500);
+}
+
 function resetWorkspaceScroll() {
   const workspace = document.getElementById('workspace');
   if (workspace) workspace.scrollTo({ top: 0, left: 0, behavior: 'auto' });
@@ -532,9 +546,13 @@ async function loadQuotes() {
   const status = (document.getElementById('qStatusFilter') || {}).value || '';
   const search = (document.getElementById('qSearch') || {}).value || '';
   const r = await api(`quotes?action=list&status=${status}&q=${encodeURIComponent(search)}`);
-  if (!r.success) return;
+  if (!r.success) {
+    showAppToast(r.error || 'تعذر تحميل عروض الأسعار', true);
+    return false;
+  }
   quotes = r.data;
   renderQuotes();
+  return true;
 }
 
 function renderQuotes() {
@@ -579,6 +597,12 @@ async function viewQuote(id) {
   const r = await api(`quotes?action=get&id=${id}`);
   if (!r.success) { alert(r.error); return; }
   const q = r.data;
+  const pdfDoc = document.getElementById('pdfDoc');
+  const overlay = document.getElementById('pdfOverlay');
+  if (!pdfDoc || !overlay) {
+    showAppToast('تعذر فتح تقرير العرض في هذه الصفحة', true);
+    return;
+  }
   activeQuoteId = Number(q.id);
   activeQuote = q;
   const itemsHtml = (q.items || []).map(it => `
@@ -592,7 +616,7 @@ async function viewQuote(id) {
   const subtotal = q.subtotal || 0;
   const discount = q.discount || 0;
   const taxAmt   = (subtotal - discount) * (q.tax_rate / 100);
-  document.getElementById('pdfDoc').innerHTML = `
+  pdfDoc.innerHTML = `
     <div class="pdf-header">
       <div><img src="/assets/logo.png" class="pdf-logo" alt="تسعيرة"></div>
       <div style="text-align:left">
@@ -622,10 +646,16 @@ async function viewQuote(id) {
   `;
   typeQuoteNotes(q.notes || '');
   renderQuoteRating(q);
-  document.getElementById('pdfOverlay').classList.remove('hidden');
+  overlay.classList.remove('hidden');
 }
 
 function downloadQuotePdf() {
+  const overlay = document.getElementById('pdfOverlay');
+  const pdfDoc = document.getElementById('pdfDoc');
+  if (!overlay || !pdfDoc || overlay.classList.contains('hidden')) {
+    showAppToast('افتح عرض السعر أولاً ثم اختر الطباعة', true);
+    return;
+  }
   if (!activeQuote) {
     window.print();
     return;
@@ -644,8 +674,54 @@ function downloadQuotePdf() {
 
   document.title = `Tas3eerah-${safeNumber}`;
   window.addEventListener('afterprint', restoreTitle, { once: true });
-  window.print();
-  window.setTimeout(restoreTitle, 2500);
+  // Let the browser apply the print stylesheet after the overlay is visible.
+  window.setTimeout(() => window.print(), 40);
+  window.setTimeout(restoreTitle, 5000);
+}
+
+async function shareActiveQuote() {
+  if (!activeQuote) {
+    showAppToast('افتح عرض السعر أولاً ثم اختر المشاركة', true);
+    return;
+  }
+
+  const quote = activeQuote;
+  const text = [
+    `عرض سعر: ${quote.title || quote.number || ''}`,
+    `رقم العرض: ${quote.number || quote.id}`,
+    `الإجمالي: ${fmt(quote.total)} ر.س`,
+    quote.status ? `الحالة: ${statusLabel(quote.status)}` : ''
+  ].filter(Boolean).join('\n');
+
+  try {
+    if (navigator.share) {
+      await navigator.share({
+        title: `عرض سعر ${quote.number || ''}`.trim(),
+        text,
+        url: window.location.href
+      });
+      showAppToast('تم فتح خيارات المشاركة');
+      return;
+    }
+
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const helper = document.createElement('textarea');
+      helper.value = text;
+      helper.setAttribute('readonly', '');
+      helper.style.position = 'fixed';
+      helper.style.opacity = '0';
+      document.body.appendChild(helper);
+      helper.select();
+      document.execCommand('copy');
+      helper.remove();
+    }
+    showAppToast('تم نسخ ملخص العرض للمشاركة');
+  } catch (error) {
+    if (error?.name === 'AbortError') return;
+    showAppToast('تعذرت المشاركة حالياً، حاول نسخ ملخص العرض مرة أخرى', true);
+  }
 }
 
 function typeQuoteNotes(text) {
@@ -834,12 +910,30 @@ function calcTotals() {
 }
 
 async function saveQuote() {
-  const editId   = document.getElementById('qEditId').value;
-  const title    = document.getElementById('qTitle').value.trim();
-  const clientId = document.getElementById('qClient').value;
-  const taxRate  = parseFloat(document.getElementById('qTax').value) || 0;
-  const discount = parseFloat(document.getElementById('qDiscount').value) || 0;
-  const notes    = document.getElementById('qNotes').value.trim();
+  const editIdEl = document.getElementById('qEditId');
+  const titleEl = document.getElementById('qTitle');
+  const clientEl = document.getElementById('qClient');
+  const taxEl = document.getElementById('qTax');
+  const discountEl = document.getElementById('qDiscount');
+  const notesEl = document.getElementById('qNotes');
+  const msgEl = document.getElementById('quoteMsg');
+  const saveBtn = document.getElementById('quoteSaveBtn');
+  if (!editIdEl || !titleEl || !clientEl || !taxEl || !discountEl || !notesEl || !msgEl) {
+    showAppToast('تعذر فتح نموذج عرض السعر بشكل كامل', true);
+    return;
+  }
+  if (saveBtn?.dataset.busy === 'true') return;
+  if (saveBtn) {
+    saveBtn.dataset.busy = 'true';
+    saveBtn.disabled = true;
+  }
+
+  const editId   = editIdEl.value;
+  const title    = titleEl.value.trim();
+  const clientId = clientEl.value;
+  const taxRate  = parseFloat(taxEl.value) || 0;
+  const discount = parseFloat(discountEl.value) || 0;
+  const notes    = notesEl.value.trim();
 
   const items = [];
   document.querySelectorAll('#itemsBody tr').forEach(row => {
@@ -851,25 +945,48 @@ async function saveQuote() {
     if (desc) items.push({ description: desc, qty, unit_price: price });
   });
 
-  const msgEl = document.getElementById('quoteMsg');
   const showMsg = (txt, isErr) => {
     msgEl.className = `alert alert-${isErr ? 'danger' : 'success'} mb-8`;
     msgEl.textContent = txt;
   };
 
+  if (!title) {
+    showMsg('عنوان العرض مطلوب', true);
+    if (saveBtn) { saveBtn.dataset.busy = 'false'; saveBtn.disabled = false; }
+    return;
+  }
+  if (!clientId) {
+    showMsg('يرجى اختيار العميل', true);
+    if (saveBtn) { saveBtn.dataset.busy = 'false'; saveBtn.disabled = false; }
+    return;
+  }
+  if (!items.length) {
+    showMsg('يرجى إضافة بند واحد على الأقل', true);
+    if (saveBtn) { saveBtn.dataset.busy = 'false'; saveBtn.disabled = false; }
+    return;
+  }
+
   const action = editId ? 'update' : 'create';
   const payload = { action, title, client_id: clientId, items, tax_rate: taxRate, discount, notes };
   if (editId) payload.id = parseInt(editId);
 
-  const r = await api('quotes', payload);
-  if (r.success) {
-    showMsg(r.message || 'تم الحفظ', false);
-    setTimeout(() => {
+  try {
+    const r = await api('quotes', payload);
+    if (r.success) {
+      showMsg(r.message || 'تم الحفظ', false);
+      showAppToast(r.message || 'تم حفظ عرض السعر بنجاح');
       resetQuoteForm();
       nav(document.querySelector('[data-panel="quotes"]'));
-    }, 1200);
-  } else {
-    showMsg(r.error || 'حدث خطأ', true);
+      await loadQuotes();
+    } else {
+      showMsg(r.error || 'حدث خطأ', true);
+      showAppToast(r.error || 'تعذر حفظ عرض السعر', true);
+    }
+  } finally {
+    if (saveBtn) {
+      saveBtn.dataset.busy = 'false';
+      saveBtn.disabled = false;
+    }
   }
 }
 
@@ -1548,6 +1665,12 @@ async function saveToolQuote() {
     : (document.getElementById('tqmClient')?.value || '');
   const notes    = document.getElementById('tqmNotes').value.trim();
   const msgEl    = document.getElementById('tqmMsg');
+  const saveBtn  = document.getElementById('tqmSaveBtn');
+  if (!msgEl || !saveBtn) {
+    showAppToast('تعذر فتح نموذج حفظ التسعيرة بشكل كامل', true);
+    return;
+  }
+  if (saveBtn.dataset.busy === 'true') return;
 
   const showMsg = (txt, isErr) => {
     msgEl.className = `alert alert-${isErr ? 'danger' : 'success'}`;
@@ -1556,6 +1679,7 @@ async function saveToolQuote() {
 
   if (!title) { showMsg('عنوان العرض مطلوب', true); return; }
   if (APP.role !== 'client' && !clientId) { showMsg('يرجى اختيار العميل', true); return; }
+  if (!amount || !Number.isFinite(amount)) { showMsg('قيمة التسعير غير صالحة', true); return; }
 
   const toolLabel = {
     basic: 'تسعير الخدمات', pkg: 'الباقات والاشتراكات', menu: 'قائمة المطاعم والكافيهات',
@@ -1578,23 +1702,32 @@ async function saveToolQuote() {
     action: 'create', title, items, tax_rate: taxRate, discount, notes,
   };
   if (APP.role !== 'client') payload.client_id = clientId;
-  const r = await api('quotes', payload);
+  saveBtn.dataset.busy = 'true';
+  saveBtn.disabled = true;
+  try {
+    const r = await api('quotes', payload);
 
-  if (r.success) {
-    showMsg('تم حفظ العرض كمسودة بنجاح', false);
-    if (APP.role === 'client' && APP.maxQuotes !== -1) {
-      APP.quotesUsed = Number(APP.quotesUsed || 0) + 1;
-      APP.quotesRemaining = Math.max(0, Number(APP.maxQuotes) - APP.quotesUsed);
-      const quota = document.getElementById('topbarPlanQuota');
-      if (quota) quota.textContent = `متبقي ${APP.quotesRemaining} من ${APP.maxQuotes} هذا الشهر`;
-    }
-    setTimeout(() => {
+    if (r.success) {
+      showMsg('تم حفظ العرض كمسودة بنجاح', false);
+      showAppToast('تم حفظ التسعيرة كمسودة بنجاح');
+      if (APP.role === 'client' && APP.maxQuotes !== -1) {
+        APP.quotesUsed = Number(APP.quotesUsed || 0) + 1;
+        APP.quotesRemaining = Math.max(0, Number(APP.maxQuotes) - APP.quotesUsed);
+        const quota = document.getElementById('topbarPlanQuota');
+        if (quota) quota.textContent = `متبقي ${APP.quotesRemaining} من ${APP.maxQuotes} هذا الشهر`;
+      }
+      const savedId = Number(r.data?.id || 0);
       document.getElementById('toolQuoteModal').classList.add('hidden');
-      // Switch to quotes panel
       nav(document.querySelector('[data-panel="quotes"]'));
-    }, 1500);
-  } else {
-    showMsg(r.error || 'حدث خطأ', true);
+      await loadQuotes();
+      if (savedId) await viewQuote(savedId);
+    } else {
+      showMsg(r.error || 'حدث خطأ', true);
+      showAppToast(r.error || 'تعذر حفظ التسعيرة', true);
+    }
+  } finally {
+    saveBtn.dataset.busy = 'false';
+    saveBtn.disabled = false;
   }
 }
 

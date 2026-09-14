@@ -130,6 +130,27 @@ table { border-collapse: collapse; width: 100%; }
 
 /* ── أدوات مساعدة ── */
 .hidden          { display: none !important; }
+.app-toast {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  z-index: 400;
+  max-width: min(92vw, 440px);
+  padding: 11px 16px;
+  border: 1px solid rgba(46,139,87,.24);
+  border-radius: var(--r);
+  background: #f3fbf5;
+  color: #1a6b3f;
+  box-shadow: 0 8px 24px rgba(13,43,28,.12);
+  font-size: 13px;
+  font-weight: 700;
+  transform: translateX(-50%);
+}
+.app-toast.is-error {
+  border-color: rgba(192,57,43,.24);
+  background: #fff6f4;
+  color: var(--red);
+}
 .flex            { display: flex; }
 .gap-4           { gap: 4px; }
 .gap-8           { gap: 8px; }

@@ -70,6 +70,8 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
 </head>
 <body>
 
+<div id="appToast" class="app-toast hidden" role="status" aria-live="polite"></div>
+
 <!-- ═══ SPLASH SCREEN ═══ -->
 <div id="splash-screen" role="status" aria-label="جارٍ التحميل">
   <div class="splash-icon-wrap">
@@ -521,7 +523,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
         </div>
 
         <div class="flex gap-8 mt-16">
-          <button class="btn btn-primary" onclick="saveQuote()">حفظ العرض</button>
+          <button class="btn btn-primary" id="quoteSaveBtn" onclick="saveQuote()">حفظ العرض</button>
           <button class="btn btn-ghost" onclick="nav(document.querySelector('[data-panel=quotes]'))">إلغاء</button>
         </div>
         <div id="quoteMsg" class="mt-8 hidden"></div>
@@ -1527,6 +1529,9 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
       <button class="btn btn-primary" onclick="downloadQuotePdf()">
         <span class="ui-icon ui-icon-print" aria-hidden="true"></span> طباعة / تحميل PDF
       </button>
+      <button class="btn btn-outline" onclick="shareActiveQuote()">
+        <span class="ui-icon ui-icon-share" aria-hidden="true"></span> مشاركة العرض
+      </button>
       <?php if ($role !== 'client'): ?>
       <button class="btn btn-outline" id="pdfEmailBtn" onclick="sendQuoteByEmail()">
         <span>✉</span> إرسال للعميل بالبريد
@@ -1566,7 +1571,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
     </div>
     <div id="tqmMsg" class="hidden mb-8"></div>
     <div class="flex gap-8">
-      <button class="btn btn-primary flex-1" onclick="saveToolQuote()"><span class="ui-icon ui-icon-save" aria-hidden="true"></span> حفظ كمسودة</button>
+      <button class="btn btn-primary flex-1" id="tqmSaveBtn" onclick="saveToolQuote()"><span class="ui-icon ui-icon-save" aria-hidden="true"></span> حفظ كمسودة</button>
       <button class="btn btn-ghost" onclick="document.getElementById('toolQuoteModal').classList.add('hidden')">إلغاء</button>
     </div>
     <p style="font-size:11px;color:var(--muted);margin-top:10px;text-align:center">يُحفظ كمسودة يمكنك تعديله وإرساله للعميل من قسم عروض الأسعار</p>
