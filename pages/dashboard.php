@@ -241,13 +241,13 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
   <?php endif; ?>
   <?php
     $quickTools = [
-      ['services', '01', 'الخدمات', 'تسعير الخدمات', 'calc_basic', '/assets/landing/sector-services-icon.png'],
-      ['packages', '02', 'الباقات', 'الباقات والاشتراكات', 'calc_pkg', '/assets/landing/empty-box.png'],
-      ['menu', '03', 'القائمة', 'المطاعم والكافيهات', 'calc_menu', '/assets/landing/sector-restaurants-icon.png'],
-      ['retail', '04', 'التجزئة', 'التجزئة والجملة', 'calc_store', '/assets/landing/sector-retail-icon.png'],
-      ['tech', '05', 'التقنية', 'المشاريع التقنية', 'calc_labor', '/assets/landing/sector-technology-icon.png'],
-      ['saas', '06', 'الاشتراكات', 'الخدمات المتكررة', 'calc_custom', '/assets/landing/sector-technology-icon.png'],
-      ['design', '07', 'التصميم', 'التصميم والمعمار', 'calc_office', '/assets/landing/sector-design-icon.png'],
+      ['services', '01', 'الخدمات', 'تسعير الخدمات', 'calc_basic', '/assets/landing/sector-services-icon-transparent.png'],
+      ['packages', '02', 'الباقات', 'الباقات والاشتراكات', 'calc_pkg', '/assets/landing/empty-box-transparent.png'],
+      ['menu', '03', 'القائمة', 'المطاعم والكافيهات', 'calc_menu', '/assets/landing/sector-restaurants-icon-transparent.png'],
+      ['retail', '04', 'التجزئة', 'التجزئة والجملة', 'calc_store', '/assets/landing/sector-retail-icon-transparent.png'],
+      ['tech', '05', 'التقنية', 'المشاريع التقنية', 'calc_labor', '/assets/landing/sector-technology-icon-transparent.png'],
+      ['saas', '06', 'الاشتراكات', 'الخدمات المتكررة', 'calc_custom', '/assets/landing/sector-technology-icon-transparent.png'],
+      ['design', '07', 'التصميم', 'التصميم والمعمار', 'calc_office', '/assets/landing/sector-design-icon-transparent.png'],
     ];
   ?>
   <nav class="quick-tools-bar" id="quickToolsBar" aria-label="الوصول السريع إلى التسعيرات">
@@ -671,13 +671,13 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
       <div id="toolsMenu">
         <?php
         $toolCards = [
-          ['calc_basic',  'تسعير الخدمات',             'خدمات · تدريب · تصوير · هدايا',       'احسب السعر العادل لخدماتك بناءً على التكاليف والهامش المناسب.', '01', 'warm',  '/assets/landing/sector-services-icon.png'],
-          ['calc_pkg',    'تسعير الباقات والاشتراكات', 'خدمات · منصات · عضويات',             'سعّر باقاتك مع توزيع التكاليف والهامش على المشتركين.', '02', 'blue',  '/assets/landing/empty-box.png'],
-          ['calc_menu',   'تسعير قائمة المطاعم والكافيهات','كافيه · مطعم · حلويات · مشروبات', 'ابنِ سعر طبقك بدقة من تكلفة المكونات والهدر والهامش.', '03', 'green', '/assets/landing/sector-restaurants-icon.png'],
-          ['calc_store',  'تسعير التجزئة والجملة',     'ملابس · إلكترونيات · بقالة',          'حدد سعر البيع بناءً على تكلفة المنتج والعمولات والعروض.', '04', 'gold',  '/assets/landing/sector-retail-icon.png'],
-          ['calc_labor',  'تسعير المشاريع التقنية',    'تطبيقات · ERP · مواقع · أجهزة ذكية',  'احسب تكلفة المشروع التقني حسب الساعات والموارد والنطاق.', '05', 'blue',  '/assets/landing/sector-technology-icon.png'],
-          ['calc_custom', 'تسعير الشركات التقنية',     'SaaS · استضافة · صيانة · تراخيص',    'احسب سعر الاشتراك والخدمات المتكررة على أساس تكاليفك الحقيقية.', '06', 'purple', '/assets/landing/sector-technology-icon.png'],
-          ['calc_office', 'تسعير التصميم الداخلي والمعماري','سكني · تجاري · معماري',          'سعّر مشاريع التصميم والتنفيذ وفق المساحة والمراحل والتكاليف.', '07', 'sand',  '/assets/landing/sector-design-icon.png'],
+          ['calc_basic',  'تسعير الخدمات',             'خدمات · تدريب · تصوير · هدايا',       'احسب السعر العادل لخدماتك بناءً على التكاليف والهامش المناسب.', '01', 'warm',  '/assets/landing/sector-services-icon-transparent.png'],
+          ['calc_pkg',    'تسعير الباقات والاشتراكات', 'خدمات · منصات · عضويات',             'سعّر باقاتك مع توزيع التكاليف والهامش على المشتركين.', '02', 'blue',  '/assets/landing/empty-box-transparent.png'],
+          ['calc_menu',   'تسعير قائمة المطاعم والكافيهات','كافيه · مطعم · حلويات · مشروبات', 'ابنِ سعر طبقك بدقة من تكلفة المكونات والهدر والهامش.', '03', 'green', '/assets/landing/sector-restaurants-icon-transparent.png'],
+          ['calc_store',  'تسعير التجزئة والجملة',     'ملابس · إلكترونيات · بقالة',          'حدد سعر البيع بناءً على تكلفة المنتج والعمولات والعروض.', '04', 'gold',  '/assets/landing/sector-retail-icon-transparent.png'],
+          ['calc_labor',  'تسعير المشاريع التقنية',    'تطبيقات · ERP · مواقع · أجهزة ذكية',  'احسب تكلفة المشروع التقني حسب الساعات والموارد والنطاق.', '05', 'blue',  '/assets/landing/sector-technology-icon-transparent.png'],
+          ['calc_custom', 'تسعير الشركات التقنية',     'SaaS · استضافة · صيانة · تراخيص',    'احسب سعر الاشتراك والخدمات المتكررة على أساس تكاليفك الحقيقية.', '06', 'purple', '/assets/landing/sector-technology-icon-transparent.png'],
+          ['calc_office', 'تسعير التصميم الداخلي والمعماري','سكني · تجاري · معماري',          'سعّر مشاريع التصميم والتنفيذ وفق المساحة والمراحل والتكاليف.', '07', 'sand',  '/assets/landing/sector-design-icon-transparent.png'],
         ];
         foreach ($toolCards as [$slug, $name, $sectors, $desc, $icon, $tone, $image]):
           $locked = !in_array($slug, $userTools) && !in_array('all', $userTools);
