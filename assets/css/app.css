@@ -889,6 +889,7 @@ select.form-control { cursor: pointer; }
   font-family: 'BritishCouncil', 'Tajawal', Arial, sans-serif;
 }
 .pdf-doc .pdf-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 26px; border-bottom: 3px solid var(--p-d); padding-bottom: 18px; }
+.pdf-doc .pdf-logo { width: 150px; height: 76px; object-fit: contain; object-position: right center; display: block; }
 .pdf-doc .pdf-logo-wrap { width: 52px; height: 52px; border-radius: 10px; background: var(--p-d); overflow: hidden; }
 .pdf-doc .pdf-logo-wrap img { width: 100%; height: 100%; object-fit: cover; }
 .pdf-doc h1 { font-size: 22px; font-weight: 900; color: var(--p-d); }
@@ -906,6 +907,7 @@ select.form-control { cursor: pointer; }
 .pdf-actions { display: flex; gap: 8px; margin-top: 12px; justify-content: center; }
 @media print {
   @page { size: A4; margin: 12mm; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   body > *:not(#pdfOverlay) { display: none !important; }
   .pdf-overlay { background: none; }
   .pdf-overlay,
