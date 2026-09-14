@@ -323,6 +323,67 @@ select.form-control { cursor: pointer; }
 }
 .card-header h3 { font-size: 15px; font-weight: 700; }
 
+/* ── الحساب والهوية ── */
+.account-panel { max-width: 980px; margin: 0 auto; }
+.account-card { overflow: visible; padding: 24px; }
+.account-hero {
+  display: flex; align-items: center; gap: 14px;
+  padding-bottom: 20px; margin-bottom: 22px;
+  border-bottom: 1px solid var(--line2);
+}
+.account-avatar {
+  width: 58px; height: 58px; flex: 0 0 58px;
+  display: grid; place-items: center; border-radius: 16px;
+  background: var(--p-d); color: var(--gold);
+  font-size: 25px; font-weight: 900;
+}
+.account-identity { min-width: 0; }
+.account-eyebrow { display: block; color: var(--muted); font-size: 11px; margin-bottom: 3px; }
+.account-identity h2 { font-size: 22px; line-height: 1.25; margin-bottom: 8px; }
+.account-role-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.account-admin-status {
+  color: var(--p); font-size: 11px; font-weight: 700;
+  padding-right: 9px; border-right: 1px solid var(--line);
+}
+.account-admin-note {
+  margin-right: auto; min-width: 190px; padding: 11px 13px;
+  border: 1px solid rgba(201,167,65,.32); border-radius: 10px;
+  background: var(--gold-l); color: var(--text); text-align: right;
+}
+.account-admin-note strong { display: block; color: var(--gold-d); font-size: 12px; margin-bottom: 3px; }
+.account-admin-note span { display: block; color: var(--muted); font-size: 10px; line-height: 1.6; }
+.account-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 18px; }
+.account-section { min-width: 0; padding: 18px; border: 1px solid var(--line2); border-radius: 12px; background: var(--card); }
+.account-section-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.account-section-icon {
+  width: 30px; height: 30px; display: grid; place-items: center;
+  border-radius: 9px; background: var(--p-l); color: var(--p); font-size: 16px;
+}
+.account-section-heading h3 { font-size: 14px; margin-bottom: 2px; }
+.account-section-heading p { color: var(--muted); font-size: 10px; }
+.account-section .form-group:last-child { margin-bottom: 0; }
+.account-section .form-control[readonly] { background: var(--surface); color: var(--muted); }
+.account-section label small { color: var(--muted); font-weight: 400; margin-right: 4px; }
+.account-readonly-role {
+  min-height: 40px; display: flex; align-items: center; gap: 8px;
+  padding: 7px 11px; border: 1.5px solid var(--line); border-radius: var(--r);
+  background: var(--surface); color: var(--muted); font-size: 11px;
+}
+.account-plan-card {
+  padding: 13px 14px; margin-bottom: 17px; border-radius: 10px;
+  background: var(--surface); border: 1px solid var(--line2);
+}
+.account-plan-card > div:first-child { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.account-plan-card span, .account-plan-card small { color: var(--muted); font-size: 11px; }
+.account-plan-card strong { color: var(--p); font-size: 20px; }
+.account-plan-meta { display: flex; gap: 7px; margin-top: 5px; color: var(--muted); font-size: 11px; }
+.account-plan-card small { display: block; margin-top: 6px; color: var(--warn); }
+.account-actions {
+  display: flex; align-items: center; justify-content: flex-end; gap: 12px;
+  margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line2);
+}
+.account-actions #accMsg { margin: 0 auto 0 0; flex: 1; }
+
 /* ══════════════════════════════════════════════════
    الجداول
    ══════════════════════════════════════════════════ */
@@ -1941,6 +2002,14 @@ select.form-control { cursor: pointer; }
   .field-grid { grid-template-columns: repeat(auto-fill, minmax(110px,1fr)); }
   .svc-grid-2 { grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); }
   .topbar-actions .btn:not(.btn-primary) { display: none; }
+  .account-card { padding: 16px; }
+  .account-hero { align-items: flex-start; flex-wrap: wrap; }
+  .account-admin-note { width: 100%; margin: 2px 0 0; }
+  .account-grid { grid-template-columns: 1fr; gap: 12px; }
+  .account-section { padding: 15px; }
+  .account-actions { align-items: stretch; flex-direction: column; }
+  .account-actions #accMsg { width: 100%; margin: 0; }
+  .account-actions .btn { width: 100%; justify-content: center; }
 }
 @media (max-width: 480px) {
   #toolsMenu { grid-template-columns: 1fr; }

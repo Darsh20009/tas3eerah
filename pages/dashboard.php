@@ -1179,38 +1179,89 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
     <?php endif; ?>
 
     <!-- ══ ACCOUNT ══ -->
-    <div class="section-panel" id="panel-account">
-      <div class="card" style="max-width:520px">
-        <div class="card-header"><h3>حسابي</h3></div>
-        <div class="form-group">
-          <label>الاسم</label>
-          <input type="text" class="form-control" id="accName" value="<?= htmlspecialchars($user['name']) ?>">
-        </div>
-        <div class="form-group">
-          <label>البريد الإلكتروني</label>
-          <input type="email" class="form-control" value="<?= htmlspecialchars($user['email']) ?>" readonly style="background:var(--surface)">
-        </div>
-        <div class="form-group">
-          <label>الدور</label>
-          <input type="text" class="form-control" value="<?= $roleLabel ?>" readonly style="background:var(--surface)">
-        </div>
-        <div style="background:var(--surface);border-radius:10px;padding:14px;margin-bottom:16px">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">خطة الاشتراك الحالية</div>
-          <div style="font-size:18px;font-weight:900"><?= $plan['name_ar'] ?></div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px">
-            <?= $plan['price'] === 0 ? 'مجاني' : $plan['price'] . ' ر.س/شهر' ?>  
-            <?= $plan['max_quotes'] === -1 ? 'تسعير غير محدود' : $plan['max_quotes'] . ' تسعيرات/شهر' ?>
+    <div class="section-panel account-panel" id="panel-account">
+      <div class="account-card card">
+        <div class="account-hero">
+          <div class="account-avatar" aria-hidden="true"><?= htmlspecialchars(mb_substr($user['name'], 0, 1, 'UTF-8')) ?></div>
+          <div class="account-identity">
+            <span class="account-eyebrow">الملف الشخصي</span>
+            <h2><?= htmlspecialchars($user['name']) ?></h2>
+            <div class="account-role-row">
+              <span class="badge badge-<?= htmlspecialchars($role) ?>">
+                <span class="dot"></span><?= htmlspecialchars($roleLabel) ?>
+              </span>
+              <?php if ($role === 'admin'): ?>
+              <span class="account-admin-status">صلاحيات الإدارة مفعّلة</span>
+              <?php endif; ?>
+            </div>
           </div>
-          <?php if ($user['plan_expires_at']): ?>
-          <div style="font-size:12px;color:var(--warn);margin-top:4px">تنتهي في: <?= $user['plan_expires_at'] ?></div>
+          <?php if ($role === 'admin'): ?>
+          <div class="account-admin-note">
+            <strong>مدير النظام</strong>
+            <span>إدارة المستخدمين والاشتراكات والإعدادات</span>
+          </div>
           <?php endif; ?>
         </div>
-        <div class="form-group">
-          <label>كلمة مرور جديدة <small style="color:var(--muted);font-weight:400">اتركه فارغاً للإبقاء على الحالية</small></label>
-          <input type="password" class="form-control" id="accPass" placeholder="••••••••" autocomplete="new-password">
+
+        <div class="account-grid">
+          <section class="account-section">
+            <div class="account-section-heading">
+              <span class="account-section-icon">◎</span>
+              <div>
+                <h3>المعلومات الأساسية</h3>
+                <p>بيانات الحساب الظاهرة داخل المنصة</p>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="accName">الاسم</label>
+              <input type="text" class="form-control" id="accName" value="<?= htmlspecialchars($user['name']) ?>">
+            </div>
+            <div class="form-group">
+              <label for="accEmail">البريد الإلكتروني</label>
+              <input type="email" class="form-control" id="accEmail" value="<?= htmlspecialchars($user['email']) ?>" readonly>
+            </div>
+            <div class="form-group">
+              <label>الدور في النظام</label>
+              <div class="account-readonly-role">
+                <span class="badge badge-<?= htmlspecialchars($role) ?>"><span class="dot"></span><?= htmlspecialchars($roleLabel) ?></span>
+                <?php if ($role === 'admin'): ?><span>وصول كامل إلى أدوات الإدارة</span><?php endif; ?>
+              </div>
+            </div>
+          </section>
+
+          <section class="account-section">
+            <div class="account-section-heading">
+              <span class="account-section-icon">◈</span>
+              <div>
+                <h3>الخطة والأمان</h3>
+                <p>الخطة الحالية وتحديث كلمة المرور</p>
+              </div>
+            </div>
+            <div class="account-plan-card">
+              <div>
+                <span>الخطة الحالية</span>
+                <strong><?= htmlspecialchars($plan['name_ar']) ?></strong>
+              </div>
+              <div class="account-plan-meta">
+                <?= $plan['price'] === 0 ? 'مجاني' : $plan['price'] . ' ر.س/شهر' ?>
+                <span>•</span>
+                <?= $plan['max_quotes'] === -1 ? 'تسعير غير محدود' : $plan['max_quotes'] . ' تسعيرات/شهر' ?>
+              </div>
+              <?php if ($user['plan_expires_at']): ?>
+              <small>تنتهي في: <?= htmlspecialchars($user['plan_expires_at']) ?></small>
+              <?php endif; ?>
+            </div>
+            <div class="form-group">
+              <label for="accPass">كلمة مرور جديدة <small>اتركه فارغاً للإبقاء على الحالية</small></label>
+              <input type="password" class="form-control" id="accPass" placeholder="••••••••" autocomplete="new-password">
+            </div>
+          </section>
         </div>
-        <div id="accMsg" class="hidden mb-8"></div>
-        <button class="btn btn-primary" onclick="saveAccount()">حفظ التغييرات</button>
+
+        <div class="account-actions">
+          <div id="accMsg" class="hidden"></div>
+          <button class="btn btn-primary" onclick="saveAccount()">حفظ التغييرات</button>
+        </div>
       </div>
     </div>
 
@@ -1542,6 +1593,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
 <script>
 const APP = <?= json_encode([
   'role'          => $role,
+  'isAdmin'       => $role === 'admin',
   'uid'           => (int)$user['id'],
   'plan'          => $user['plan'],
   'effectivePlan' => $effectivePlan,

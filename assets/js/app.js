@@ -2095,7 +2095,7 @@ function statusLabel(s) {
   return labels[s] || s;
 }
 function roleLabel(r) {
-  const labels = L.current === 'en' ? { admin:'Admin', employee:'Employee', client:'Client' } : { admin:'مدير', employee:'موظف', client:'عميل' };
+  const labels = L.current === 'en' ? { admin:'System administrator', employee:'Employee', client:'Client' } : { admin:'مدير النظام', employee:'موظف', client:'عميل' };
   return labels[r] || r;
 }
 function planLabel(p) {
