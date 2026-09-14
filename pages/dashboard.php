@@ -294,10 +294,17 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
           ];
         else:
           $uid = $user['id'];
+          $clientQuotesTotal = DB::count('quotes', ['client_id' => (int)$uid]);
+          $clientQuotesSent = DB::count('quotes', ['client_id' => (int)$uid, 'status' => 'sent']);
+          $clientQuotaValue = $maxQuotesThisMonth === -1 ? 'غير محدود' : $quotesRemaining;
+          $clientQuotaSub = $maxQuotesThisMonth === -1
+            ? 'ضمن خطتك الحالية'
+            : "من {$maxQuotesThisMonth} هذا الشهر";
           $stats = [
-            ['عروضي', DB::count('quotes', ['client_id' => (int)$uid]), 'إجمالي عروضي', 'accent'],
-            ['مرسلة', DB::count('quotes', ['client_id' => (int)$uid, 'status' => 'sent']), 'بانتظار الرد', 'green'],
-            ['قيد الانتظار', DB::count('quotes', ['client_id' => (int)$uid, 'status' => 'sent']), 'بانتظار ردك', 'gold'],
+            ['عروضي', $clientQuotesTotal, 'إجمالي العروض', 'accent'],
+            ['هذا الشهر', $quotesUsedThisMonth, 'تسعيرات منشأة', ''],
+            ['المتبقي', $clientQuotaValue, $clientQuotaSub, 'gold'],
+            ['مرسلة', $clientQuotesSent, 'بانتظار الرد', 'green'],
             ['خطتك', $plan['name_ar'], 'مستوى الاشتراك', ''],
           ];
         endif;
@@ -490,13 +497,22 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
         <div class="upgrade-current" style="margin-bottom:24px">
           <div class="upgrade-usage">
             <span>عروض الأسعار هذا الشهر</span>
-            <span id="subUsageCount">—</span>
+            <strong id="subUsageCount">
+              <?= $quotesUsedThisMonth ?>
+              /
+              <?= $maxQuotesThisMonth === -1 ? '∞' : $maxQuotesThisMonth ?>
+            </strong>
           </div>
           <div class="upgrade-bar-wrap">
-            <div class="upgrade-bar-fill" id="subUsageBar" style="width:0%"></div>
+            <?php $usagePercent = $maxQuotesThisMonth === -1
+              ? 0
+              : min(100, (int)round(($quotesUsedThisMonth / max(1, $maxQuotesThisMonth)) * 100)); ?>
+            <div class="upgrade-bar-fill" id="subUsageBar" style="width:<?= $usagePercent ?>%"></div>
           </div>
           <p style="font-size:11px;color:var(--muted);margin-top:6px">
-            الحد الأقصى: <?= PLANS[$effectivePlan]['max_quotes'] === -1 ? 'غير محدود' : PLANS[$effectivePlan]['max_quotes'] ?> عرض/شهر
+            <?= $maxQuotesThisMonth === -1
+              ? 'التسعير غير محدود ضمن خطتك الحالية'
+              : "المتبقي: {$quotesRemaining} من {$maxQuotesThisMonth} تسعيرة هذا الشهر" ?>
           </p>
         </div>
 

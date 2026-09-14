@@ -205,12 +205,14 @@ select.form-control { cursor: pointer; }
   width: 100%;
 }
 .password-field > .form-control {
-  padding-inline-end: 46px;
+  padding-right: 46px;
+  padding-left: 13px;
 }
 .password-toggle {
   position: absolute;
   top: 50%;
-  inset-inline-end: 8px;
+  right: 8px;
+  left: auto;
   width: 30px;
   height: 30px;
   display: grid;
@@ -556,49 +558,6 @@ select.form-control { cursor: pointer; }
 .feat-icon { font-size: 24px; margin-bottom: 16px; }
 .feat-card h3 { font-size: 15px; font-weight: 800; margin-bottom: 8px; color: var(--text); }
 .feat-card p  { color: var(--muted); font-size: 13px; line-height: 1.85; }
-
-/* ══════════════════════════════════════════════════
-   معرض القطاعات المصوّر
-   ══════════════════════════════════════════════════ */
-.sector-showcase {
-  max-width: 1140px;
-  margin: 0 auto;
-  padding: 0 24px 88px;
-}
-.sector-showcase-grid {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 12px;
-}
-.sector-showcase-card {
-  display: block;
-  overflow: hidden;
-  padding: 0;
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  background: var(--card);
-  color: var(--text);
-  text-align: right;
-  cursor: pointer;
-  transition: border-color .15s, transform .15s;
-}
-.sector-showcase-card:hover {
-  border-color: var(--p);
-  transform: translateY(-2px);
-}
-.sector-showcase-card img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-}
-.sector-showcase-card span {
-  display: block;
-  padding: 12px 13px 14px;
-  font-size: 12px;
-  font-weight: 800;
-}
-
 
 /* ══════════════════════════════════════════════════
    قسم الأسعار
@@ -2182,21 +2141,5 @@ select.form-control { cursor: pointer; }
   }
   .features .feat-card {
     padding: 22px 18px;
-  }
-}
-
-@media (max-width: 768px) {
-  .sector-showcase-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 480px) {
-  .sector-showcase {
-    padding-inline: 20px;
-  }
-  .sector-showcase-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
   }
 }

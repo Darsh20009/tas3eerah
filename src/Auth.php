@@ -63,7 +63,7 @@ class Auth {
         $email = strtolower(trim($email));
         if (strlen($name) < 2)                          return 'الاسم قصير جداً';
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) return 'البريد الإلكتروني غير صحيح';
-        if (strlen($password) < 6)                      return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+        if (strlen($password) < 8)                      return 'كلمة المرور يجب أن تكون 8 أحرف على الأقل';
         if (DB::findOne('users', ['email' => $email]))  return 'البريد مسجل مسبقاً';
 
         $id = DB::insertDoc('users', [
