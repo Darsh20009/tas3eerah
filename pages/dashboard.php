@@ -1468,6 +1468,7 @@ const APP = <?= json_encode([
 </script>
 <script src="/assets/js/currency.js?v=1"></script>
 <script src="/assets/js/app.js?v=<?= @filemtime(__DIR__.'/../assets/js/app.js') ?: time() ?>"></script>
+<script src="/assets/js/form-enhancements.js?v=<?= @filemtime(__DIR__.'/../assets/js/form-enhancements.js') ?: time() ?>"></script>
 </body>
 </html>
 
