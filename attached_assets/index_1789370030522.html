@@ -2380,6 +2380,8 @@ function getRetailMargin(){
 }
 
 function addRetailRow(name='', unit='قطعة', cost=0){
+  const tbody = document.getElementById('ret-rows');
+  if(!tbody) return;
   retailRowCount++;
   const n = retailRowCount;
   const unitOpts = units.map(u => `<option${u===unit?' selected':''}>${u}</option>`).join('');
@@ -2397,7 +2399,7 @@ function addRetailRow(name='', unit='قطعة', cost=0){
     <td class="menu-eval-cell" id="reval-${n}">—</td>
     <td><button class="menu-del-btn" style="background:rgba(63,143,95,0.12);color:var(--green);margin-left:4px" onclick="toggleRetailDetail(${n})" title="تفصيل التكاليف">📊</button><button class="menu-del-btn" style="background:rgba(184,133,58,0.12);color:var(--gold);margin-left:4px" onclick="saveRetailRowToLog(${n})" title="حفظ هذا المنتج بالسجل">💾</button><button class="menu-del-btn" style="background:rgba(184,133,58,0.12);color:var(--gold);margin-left:4px" onclick="printRetailReport(${n})" title="طباعة تقرير التسعير">🖨️</button><button class="menu-del-btn" onclick="delRetailRow(${n})">✕</button></td>
   `;
-  document.getElementById('ret-rows').appendChild(tr);
+  tbody.appendChild(tr);
 
   const detailTr = document.createElement('tr');
   detailTr.id = 'ret-detail-'+n;
@@ -2406,7 +2408,7 @@ function addRetailRow(name='', unit='قطعة', cost=0){
   detailTd.colSpan = 10;
   detailTd.innerHTML = `<div class="ibox go" id="ret-detail-body-${n}" style="margin:6px 0"></div>`;
   detailTr.appendChild(detailTd);
-  document.getElementById('ret-rows').appendChild(detailTr);
+  tbody.appendChild(detailTr);
 
   calcRetailRow(n);
 }
@@ -3153,6 +3155,8 @@ const menuCats = ['قهوة ساخنة','قهوة باردة','مشروبات س
 const ingCounts = {};
 
 function addMenuRowBase(cat='', name='', cost=0, waste='', margin=30, current=0){
+  const tbody = document.getElementById('menu-rows');
+  if(!tbody) return;
   menuRowCount++;
   const n = menuRowCount;
   ingCounts[n] = 0;
@@ -3177,7 +3181,7 @@ function addMenuRowBase(cat='', name='', cost=0, waste='', margin=30, current=0)
     <td class="menu-eval-cell" id="meval-${n}">—</td>
     <td><button class="menu-del-btn" style="background:rgba(63,143,95,0.12);color:var(--green);margin-left:4px" onclick="toggleMenuDetail(${n})" title="التقرير الشامل للتكلفة">📊</button><button class="menu-del-btn" style="background:rgba(184,133,58,0.12);color:var(--gold);margin-left:4px" onclick="saveMenuRowToLog(${n})" title="حفظ هذا الصنف بالسجل">💾</button><button class="menu-del-btn" style="background:rgba(184,133,58,0.12);color:var(--gold);margin-left:4px" onclick="printMenuReport(${n})" title="طباعة تقرير التسعير">🖨️</button><button class="menu-del-btn" onclick="delMenuRow(${n})">✕</button></td>
   `;
-  document.getElementById('menu-rows').appendChild(tr);
+  tbody.appendChild(tr);
 
   // صف التقرير الشامل للتكلفة (يشمل التكاليف الثابتة الموزعة)
   const detailTr = document.createElement('tr');
@@ -3187,7 +3191,7 @@ function addMenuRowBase(cat='', name='', cost=0, waste='', margin=30, current=0)
   detailTd.colSpan = 10;
   detailTd.innerHTML = `<div class="ibox go" id="menu-detail-body-${n}" style="margin:6px 0"></div>`;
   detailTr.appendChild(detailTd);
-  document.getElementById('menu-rows').appendChild(detailTr);
+  tbody.appendChild(detailTr);
 
   // صف لوحة المكونات (يمتد على كل الأعمدة)
   const trIng = document.createElement('tr');
