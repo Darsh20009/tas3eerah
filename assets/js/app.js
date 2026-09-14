@@ -297,6 +297,7 @@ function panelTitle(panel) {
 
 document.addEventListener('DOMContentLoaded', () => {
   applyLanguage();
+  installClassicQuoteBridge();
   languageObserver = new MutationObserver(() => {
     if (!languageObserver) return;
     languageObserver.disconnect();
@@ -796,6 +797,10 @@ async function loadUnreadCount() {
 
 // ─── TOOLS ───────────────────────────────
 function openTool(slug) {
+  if (document.getElementById('integrated-tools') && typeof window.classicOpenTool === 'function') {
+    window.classicOpenTool(slug);
+    return;
+  }
   document.getElementById('toolsMenu').style.display = 'none';
   document.querySelectorAll('.tool-panel').forEach(p => p.classList.remove('active'));
   const panel = document.getElementById('tool-' + slug);
@@ -860,6 +865,110 @@ function updateCicLabel(toolId) {
 
 function showPlanUpgrade() {
   document.getElementById('upgradeModal').classList.remove('hidden');
+}
+
+async function openClassicQuote(slug, title, amount, notes = '') {
+  const value = Number(amount) || 0;
+  if (value <= 0) {
+    alert('أدخل بيانات كافية أولاً حتى تظهر النتيجة المقترحة.');
+    return;
+  }
+  if (APP.maxQuotes !== -1 && APP.quotesRemaining !== null &&
+      Number(APP.quotesRemaining) <= 0) {
+    showPlanUpgrade();
+    return;
+  }
+
+  const titleInput = document.getElementById('tqmQuoteTitle');
+  const amountInput = document.getElementById('tqmAmount');
+  const slugInput = document.getElementById('tqmSlug');
+  const notesInput = document.getElementById('tqmNotes');
+  const modalTitle = document.getElementById('tqmTitle');
+  const message = document.getElementById('tqmMsg');
+  if (!titleInput || !amountInput || !slugInput || !document.getElementById('toolQuoteModal')) {
+    alert('نافذة حفظ التسعيرة غير متاحة حالياً.');
+    return;
+  }
+
+  slugInput.value = slug;
+  amountInput.value = value;
+  titleInput.value = title || 'تسعيرة جديدة';
+  if (notesInput) notesInput.value = notes;
+  if (message) message.className = 'hidden';
+  if (modalTitle) modalTitle.textContent = `حفظ نتيجة ${title || 'الأداة'} كعرض سعر`;
+
+  if (APP.role !== 'client') {
+    await ensureClientsLoaded();
+    const select = document.getElementById('tqmClient');
+    if (select && clientsCache) {
+      select.innerHTML = '<option value="">اختر العميل...</option>' +
+        clientsCache.map(c => `<option value="${c.id}">${esc(c.name)} ${esc(c.email)}</option>`).join('');
+    }
+  } else {
+    const ownClient = document.getElementById('tqmClient');
+    if (ownClient) ownClient.value = String(APP.uid);
+  }
+  document.getElementById('toolQuoteModal').classList.remove('hidden');
+}
+
+/*
+ * The original calculators expose localStorage-based save handlers. Replace
+ * only those handlers with the system quote flow when the calculators are
+ * embedded in the dashboard. Printing and local detail logs remain available.
+ */
+function installClassicQuoteBridge() {
+  if (!document.getElementById('integrated-tools')) return;
+
+  window.saveProject = function () {
+    if (typeof svcLast === 'undefined' || !svcLast || !svcLast.price) {
+      alert('احسب نتيجة الخدمة أولاً قبل حفظها.');
+      return;
+    }
+    openClassicQuote(
+      'services',
+      svcLast.title || 'تسعيرة الخدمات',
+      svcLast.price,
+      `المجال: ${svcLast.subtitle || '—'}\nطريقة التسعير: ${svcLast.pricingMethod || '—'}`
+    );
+  };
+
+  window.saveGenericProject = function (tool) {
+    if (typeof buildGenericProject !== 'function') {
+      alert('احسب النتيجة أولاً قبل حفظها.');
+      return;
+    }
+    const project = buildGenericProject(tool);
+    if (!project || !project.price) {
+      alert('أدخل بيانات كافية أولاً حتى تظهر النتيجة المقترحة.');
+      return;
+    }
+    const notes = (project.lines || [])
+      .map(line => `${line[0]}: ${line[1]}`)
+      .join('\n');
+    openClassicQuote(tool, project.title || 'تسعيرة جديدة', project.price, notes);
+  };
+
+  window.saveRetailRowToLog = function (rowNumber) {
+    const row = document.getElementById('ret-row-' + rowNumber);
+    if (!row || !row.dataset.detail) {
+      alert('احسب سعر المنتج أولاً قبل حفظه.');
+      return;
+    }
+    const detail = JSON.parse(row.dataset.detail);
+    const title = document.getElementById('rname-' + rowNumber)?.value || 'منتج التجزئة';
+    openClassicQuote('retail', title, detail.suggested, `التكلفة الفعلية: ${detail.realCost}`);
+  };
+
+  window.saveMenuRowToLog = function (rowNumber) {
+    const row = document.getElementById('menu-row-' + rowNumber);
+    if (!row || !row.dataset.detail) {
+      alert('احسب سعر الصنف أولاً قبل حفظه.');
+      return;
+    }
+    const detail = JSON.parse(row.dataset.detail);
+    const title = document.getElementById('mname-' + rowNumber)?.value || 'صنف المطعم';
+    openClassicQuote('menu', title, detail.suggested, `التصنيف: ${detail.cat || '—'}\nالتكلفة: ${detail.totalCost || 0}`);
+  };
 }
 
 async function requestUpgrade(planKey, planName) {
@@ -1210,6 +1319,9 @@ async function saveToolQuote() {
     basic: 'تسعير الخدمات', pkg: 'الباقات والاشتراكات', menu: 'قائمة المطاعم والكافيهات',
     labor: 'المشروع التقني', store: 'منتج التجزئة',
     office: 'مشروع التصميم', custom: 'الشركة التقنية',
+    services: 'تسعير الخدمات', packages: 'الباقات والاشتراكات',
+    retail: 'منتج التجزئة', tech: 'المشروع التقني',
+    saas: 'الاشتراكات التقنية', design: 'التصميم الداخلي والمعماري',
   };
 
   // Each specialized calculator already returns its customer-facing total.

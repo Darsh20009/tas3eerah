@@ -483,13 +483,8 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
   $userTools = OPEN_ACCESS_MODE ? ['all'] : $plan['tools'];
       ?>
 
-      <div class="classic-tools-embed">
-        <iframe
-          class="classic-tools-frame"
-          src="/classic-tools?embed=1"
-          title="أدوات التسعير التفصيلية"
-          loading="eager"
-          allow="clipboard-write"></iframe>
+      <div class="integrated-tools-host">
+        <?php require __DIR__ . '/classic-tools-inline.php'; ?>
       </div>
 
       <?php if (false): ?>

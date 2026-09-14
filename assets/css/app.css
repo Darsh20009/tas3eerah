@@ -1038,13 +1038,8 @@ select.form-control { cursor: pointer; }
 .sector-action span { font-size:16px; }.tools-note { margin-top:15px; color:var(--muted); font-size:11px; }.tools-note span { color:var(--gold-d); margin-left:4px; }
 .tool-heading { display:flex; align-items:center; gap:12px; margin-bottom:18px; }.tool-heading h2 { font-size:20px; }.tool-heading-icon { width:44px; height:44px; display:grid; place-items:center; border-radius:12px; font-size:22px; background:#e5f1e9; }
 
-/* Keep the complete reference calculator readable inside the authenticated
-   dashboard without duplicating its large, self-contained document here. */
-.classic-tools-embed { width:100%; min-width:0; }
-.classic-tools-frame {
-  display:block; width:100%; height:min(820px,calc(100vh - 145px)); min-height:620px;
-  border:0; border-radius:0; background:transparent;
-}
+.integrated-tools-host { width:100%; min-width:0; }
+.integrated-tools-host #integrated-tools { width:100%; min-width:0; }
 
 /* بطاقة الأداة */
 .tool-card { position: relative; text-align: right; }
@@ -1083,7 +1078,6 @@ select.form-control { cursor: pointer; }
 .calc-result-row.big span:last-child { color: var(--green); font-size: 18px; }
 
 @media (max-width: 640px) {
-  .classic-tools-frame { height:calc(100vh - 125px); min-height:620px; }
   .topbar-plan-summary { display:none; }
   .tools-intro { align-items: flex-start; padding: 21px 18px; min-height: 0; }
   .tools-intro-mark { width: 58px; height: 58px; }
