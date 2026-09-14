@@ -2255,6 +2255,7 @@ function renderLog(){
   const list=document.getElementById('log-list');
   const empty=document.getElementById('log-empty');
   const sumWrap=document.getElementById('log-summary-wrap');
+  if(!list || !empty || !sumWrap) return;
 
   if(projects.length===0){
     list.innerHTML=''; sumWrap.innerHTML='';
