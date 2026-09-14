@@ -10,6 +10,7 @@ $role          = $user['role'];
 $effectivePlan = Auth::effectivePlan($user);
 $plan          = PLANS[$effectivePlan] ?? PLANS['free'];
 $canSaveQuote  = Auth::canCreateQuote($user);
+$userTools     = OPEN_ACCESS_MODE ? ['all'] : ($plan['tools'] ?? []);
 
 $roleLabel = ['admin' => 'مدير النظام', 'employee' => 'موظف', 'client' => 'عميل'][$role] ?? $role;
 $planName  = $plan['name_ar'];
@@ -46,9 +47,9 @@ if ($user['plan_expires_at'] && $user['plan'] !== 'free') {
 function toolSaveBtn(bool $canSave, string $slug, string $name): string {
   $style = 'margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15)';
   if ($canSave) {
-    return "<div style='$style'><button class='btn btn-success w-full' onclick=\"openToolQuote('$slug','$name')\">💾 حفظ كعرض سعر</button></div>";
+    return "<div style='$style'><button class='btn btn-success w-full' onclick=\"openToolQuote('$slug','$name')\"><span class='ui-icon ui-icon-save' aria-hidden='true'></span> حفظ كعرض سعر</button></div>";
   }
-  return "<div style='$style'><button class='btn btn-ghost w-full' onclick='showPlanUpgrade()'>🔒 حفظ كعرض سعر يتطلب ترقية</button></div>";
+  return "<div style='$style'><button class='btn btn-ghost w-full' onclick='showPlanUpgrade()'><span class='ui-icon ui-icon-lock' aria-hidden='true'></span> حفظ كعرض سعر يتطلب ترقية</button></div>";
 }
 ?>
 <!DOCTYPE html>
@@ -218,9 +219,42 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
 
   <?php if ($showExpiryBanner): ?>
   <div style="background:<?= $expiryExpired ? 'rgba(216,107,114,.15)' : 'rgba(201,167,65,.15)' ?>;border-bottom:1px solid <?= $expiryExpired ? 'rgba(216,107,114,.3)' : 'rgba(201,167,65,.3)' ?>;padding:8px 20px;font-size:13px;color:<?= $expiryExpired ? 'var(--danger)' : '#b8932a' ?>;text-align:center">
-    <?= $expiryExpired ? '🔴' : '⚠️' ?> <?= htmlspecialchars($expiryBannerMsg) ?>
+    <span class="status-mark <?= $expiryExpired ? 'status-mark-danger' : 'status-mark-warn' ?>" aria-hidden="true"></span>
+    <?= htmlspecialchars($expiryBannerMsg) ?>
   </div>
   <?php endif; ?>
+  <?php
+    $quickTools = [
+      ['services', '01', 'الخدمات', 'تسعير الخدمات', 'calc_basic'],
+      ['packages', '02', 'الباقات', 'الباقات والاشتراكات', 'calc_pkg'],
+      ['menu', '03', 'القائمة', 'المطاعم والكافيهات', 'calc_menu'],
+      ['retail', '04', 'التجزئة', 'التجزئة والجملة', 'calc_store'],
+      ['tech', '05', 'التقنية', 'المشاريع التقنية', 'calc_labor'],
+      ['saas', '06', 'الاشتراكات', 'الخدمات المتكررة', 'calc_custom'],
+      ['design', '07', 'التصميم', 'التصميم والمعمار', 'calc_office'],
+    ];
+  ?>
+  <nav class="quick-tools-bar" id="quickToolsBar" aria-label="الوصول السريع إلى أدوات التسعير">
+    <div class="quick-tools-label">
+      <span class="quick-tools-overline">وصول سريع</span>
+      <strong>الحاسبات السبع</strong>
+    </div>
+    <div class="quick-tools-list">
+      <?php foreach ($quickTools as [$slug, $mark, $short, $name, $legacySlug]):
+        $locked = !in_array('all', $userTools, true) && !in_array($legacySlug, $userTools, true);
+      ?>
+      <button class="quick-tool <?= $locked ? 'is-locked' : '' ?>"
+              type="button"
+              data-tool="<?= $slug ?>"
+              aria-label="<?= htmlspecialchars($name) ?>"
+              onclick="<?= $locked ? 'showPlanUpgrade()' : "navToQuickTool('$slug')" ?>">
+        <span class="quick-tool-mark" aria-hidden="true"><?= $mark ?></span>
+        <span class="quick-tool-copy"><b><?= $short ?></b><small><?= $name ?></small></span>
+        <?php if ($locked): ?><span class="quick-tool-lock" aria-label="مقفل بالخطة"></span><?php endif; ?>
+      </button>
+      <?php endforeach; ?>
+    </div>
+  </nav>
   <div class="workspace" id="workspace">
 
     <!-- ══ OVERVIEW ══ -->
@@ -274,7 +308,72 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
         </div>
         <?php endforeach; ?>
       </div>
-
+      <?php
+        $overviewFilter = $role === 'admin'
+          ? []
+          : [($role === 'client' ? 'client_id' : 'employee_id') => (int)$user['id']];
+        $overviewQuotes = DB::findAll('quotes', $overviewFilter);
+        $overviewTotal = array_sum(array_map(static fn($quote) => (float)($quote['total'] ?? 0), $overviewQuotes));
+        $overviewAccepted = count(array_filter($overviewQuotes, static fn($quote) => ($quote['status'] ?? '') === 'accepted'));
+        $overviewSent = count(array_filter($overviewQuotes, static fn($quote) => ($quote['status'] ?? '') === 'sent'));
+        $overviewConversion = count($overviewQuotes) > 0 ? (int)round(($overviewAccepted / count($overviewQuotes)) * 100) : 0;
+        $overviewAverage = count($overviewQuotes) > 0 ? $overviewTotal / count($overviewQuotes) : 0;
+      ?>
+      <div class="overview-lower-grid">
+        <section class="overview-card quick-actions-card">
+          <div class="overview-card-heading">
+            <div>
+              <span class="section-eyebrow">مساحة العمل</span>
+              <h2>اختصاراتك اليومية</h2>
+            </div>
+            <span class="overview-card-mark" aria-hidden="true">↗</span>
+          </div>
+          <div class="quick-actions-grid">
+            <button type="button" class="quick-action" onclick="navToQuickTool('services')">
+              <span class="quick-action-icon ui-icon ui-icon-calculator" aria-hidden="true"></span>
+              <span><b>ابدأ تسعيرة</b><small>اختر الحاسبة المناسبة</small></span>
+            </button>
+            <button type="button" class="quick-action" onclick="navDirect('quotes')">
+              <span class="quick-action-icon ui-icon ui-icon-document" aria-hidden="true"></span>
+              <span><b>مراجعة العروض</b><small>تابع الحالات والردود</small></span>
+            </button>
+            <button type="button" class="quick-action" onclick="navDirect('messages')">
+              <span class="quick-action-icon ui-icon ui-icon-message" aria-hidden="true"></span>
+              <span><b>التواصل</b><small>افتح الرسائل الداخلية</small></span>
+            </button>
+            <?php if ($role === 'client'): ?>
+            <button type="button" class="quick-action" onclick="navDirect('subscription')">
+              <span class="quick-action-icon ui-icon ui-icon-plan" aria-hidden="true"></span>
+              <span><b>خطتك الحالية</b><small>راجع الاستخدام والمزايا</small></span>
+            </button>
+            <?php else: ?>
+            <button type="button" class="quick-action" onclick="navDirect('clients')">
+              <span class="quick-action-icon ui-icon ui-icon-users" aria-hidden="true"></span>
+              <span><b>دليل العملاء</b><small>اختر عميلاً بسرعة</small></span>
+            </button>
+            <?php endif; ?>
+          </div>
+        </section>
+        <section class="overview-card insight-card">
+          <div class="overview-card-heading">
+            <div>
+              <span class="section-eyebrow">مؤشر الأداء</span>
+              <h2>قراءة سريعة لنشاطك</h2>
+            </div>
+            <span class="insight-status"><i></i> محدث الآن</span>
+          </div>
+          <div class="insight-metrics">
+            <div><b><?= number_format($overviewTotal, 0) ?> <small>ر.س</small></b><span>قيمة العروض</span></div>
+            <div><b><?= number_format($overviewAverage, 0) ?> <small>ر.س</small></b><span>متوسط العرض</span></div>
+            <div><b><?= $overviewSent ?></b><span>بانتظار الرد</span></div>
+          </div>
+          <div class="conversion-line">
+            <div class="conversion-label"><span>معدل القبول</span><strong><?= $overviewConversion ?>%</strong></div>
+            <div class="conversion-track"><span style="width:<?= $overviewConversion ?>%"></span></div>
+            <small><?= $overviewAccepted ?> عروض مقبولة من أصل <?= count($overviewQuotes) ?></small>
+          </div>
+        </section>
+      </div>
     </div>
 
     <!-- ══ QUOTES LIST ══ -->
@@ -509,19 +608,19 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
       <div id="toolsMenu">
         <?php
         $toolCards = [
-          ['calc_basic',  'تسعير الخدمات',             'خدمات · تدريب · تصوير · هدايا',       'احسب السعر العادل لخدماتك بناءً على التكاليف والهامش المناسب.', '⚖️', 'warm'],
-          ['calc_pkg',    'تسعير الباقات والاشتراكات', 'خدمات · منصات · عضويات',             'سعّر باقاتك مع توزيع التكاليف والهامش على المشتركين.', '📦', 'blue'],
-          ['calc_menu',   'تسعير قائمة المطاعم والكافيهات','كافيه · مطعم · حلويات · مشروبات', 'ابنِ سعر طبقك بدقة من تكلفة المكونات والهدر والهامش.', '☕', 'green'],
-          ['calc_store',  'تسعير التجزئة والجملة',     'ملابس · إلكترونيات · بقالة',          'حدد سعر البيع بناءً على تكلفة المنتج والعمولات والعروض.', '🏪', 'gold'],
-          ['calc_labor',  'تسعير المشاريع التقنية',    'تطبيقات · ERP · مواقع · أجهزة ذكية',  'احسب تكلفة المشروع التقني حسب الساعات والموارد والنطاق.', '💻', 'blue'],
-          ['calc_custom', 'تسعير الشركات التقنية',     'SaaS · استضافة · صيانة · تراخيص',    'احسب سعر الاشتراك والخدمات المتكررة على أساس تكاليفك الحقيقية.', '↻', 'purple'],
-          ['calc_office', 'تسعير التصميم الداخلي والمعماري','سكني · تجاري · معماري',          'سعّر مشاريع التصميم والتنفيذ وفق المساحة والمراحل والتكاليف.', '⌂', 'sand'],
+          ['calc_basic',  'تسعير الخدمات',             'خدمات · تدريب · تصوير · هدايا',       'احسب السعر العادل لخدماتك بناءً على التكاليف والهامش المناسب.', '01', 'warm'],
+          ['calc_pkg',    'تسعير الباقات والاشتراكات', 'خدمات · منصات · عضويات',             'سعّر باقاتك مع توزيع التكاليف والهامش على المشتركين.', '02', 'blue'],
+          ['calc_menu',   'تسعير قائمة المطاعم والكافيهات','كافيه · مطعم · حلويات · مشروبات', 'ابنِ سعر طبقك بدقة من تكلفة المكونات والهدر والهامش.', '03', 'green'],
+          ['calc_store',  'تسعير التجزئة والجملة',     'ملابس · إلكترونيات · بقالة',          'حدد سعر البيع بناءً على تكلفة المنتج والعمولات والعروض.', '04', 'gold'],
+          ['calc_labor',  'تسعير المشاريع التقنية',    'تطبيقات · ERP · مواقع · أجهزة ذكية',  'احسب تكلفة المشروع التقني حسب الساعات والموارد والنطاق.', '05', 'blue'],
+          ['calc_custom', 'تسعير الشركات التقنية',     'SaaS · استضافة · صيانة · تراخيص',    'احسب سعر الاشتراك والخدمات المتكررة على أساس تكاليفك الحقيقية.', '06', 'purple'],
+          ['calc_office', 'تسعير التصميم الداخلي والمعماري','سكني · تجاري · معماري',          'سعّر مشاريع التصميم والتنفيذ وفق المساحة والمراحل والتكاليف.', '07', 'sand'],
         ];
         foreach ($toolCards as [$slug, $name, $sectors, $desc, $icon, $tone]):
           $locked = !in_array($slug, $userTools) && !in_array('all', $userTools);
         ?>
         <div class="tool-card sector-card tone-<?= $tone ?> <?= $locked ? 'locked' : '' ?>" onclick="<?= $locked ? "showPlanUpgrade()" : "openTool('$slug')" ?>">
-          <?php if ($locked): ?><div class="tool-lock">🔒</div><?php endif; ?>
+          <?php if ($locked): ?><div class="tool-lock ui-icon ui-icon-lock" aria-label="مقفل بالخطة"></div><?php endif; ?>
           <div class="sector-icon"><?= $icon ?></div>
           <div class="tool-tag"><?= $locked ? 'مقفل في باقتك' : $sectors ?></div>
           <h3><?= $name ?></h3>
@@ -535,7 +634,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
       <!-- ═ TOOL: Menu Pricing ═ -->
       <div class="tool-panel" id="tool-calc_menu">
         <button class="btn btn-ghost btn-sm mb-16" onclick="closeTool()">← الأدوات</button>
-        <div class="tool-heading"><div class="tool-heading-icon tone-green">☕</div><div><div class="tools-kicker">تسعير المطاعم والكافيهات</div><h2>حاسبة تكلفة الصنف والقائمة</h2></div></div>
+        <div class="tool-heading"><div class="tool-heading-icon tone-green">03</div><div><div class="tools-kicker">تسعير المطاعم والكافيهات</div><h2>حاسبة تكلفة الصنف والقائمة</h2></div></div>
         <div class="calc-section">
           <h4>بيانات الصنف</h4>
           <div class="form-row">
@@ -573,12 +672,12 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
       <!-- ═ TOOL: Basic Pricing ═ -->
       <div class="tool-panel" id="tool-calc_basic">
         <button class="btn btn-ghost btn-sm mb-16" onclick="closeTool()">← الأدوات</button>
-        <div class="tool-heading"><div class="tool-heading-icon tone-warm">⚖️</div><div><div class="tools-kicker">تسعير الخدمات</div><h2>حاسبة الخدمة والمشروع الخدمي</h2></div></div>
+        <div class="tool-heading"><div class="tool-heading-icon tone-warm">01</div><div><div class="tools-kicker">تسعير الخدمات</div><h2>حاسبة الخدمة والمشروع الخدمي</h2></div></div>
 
         <!-- Client info card -->
         <div class="cic-card">
           <div class="cic-toggle" onclick="this.closest('.cic-card').classList.toggle('open')">
-            <span id="cic_label_basic">👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small></span>
+            <span id="cic_label_basic"><span class="ui-icon ui-icon-user" aria-hidden="true"></span> بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small></span>
             <span class="cic-arrow">▾</span>
           </div>
           <div class="cic-body">
@@ -635,10 +734,10 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
       <!-- ═ TOOL: Package Pricing ═ -->
       <div class="tool-panel" id="tool-calc_pkg">
         <button class="btn btn-ghost btn-sm mb-16" onclick="closeTool()">← الأدوات</button>
-        <div class="tool-heading"><div class="tool-heading-icon tone-blue">📦</div><div><div class="tools-kicker">تسعير الباقات والاشتراكات</div><h2>حاسبة توزيع تكلفة الباقات</h2></div></div>
+        <div class="tool-heading"><div class="tool-heading-icon tone-blue">02</div><div><div class="tools-kicker">تسعير الباقات والاشتراكات</div><h2>حاسبة توزيع تكلفة الباقات</h2></div></div>
         <div class="cic-card">
           <div class="cic-toggle" onclick="this.closest('.cic-card').classList.toggle('open')">
-            <span id="cic_label_pkg">👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small></span>
+            <span id="cic_label_pkg"><span class="ui-icon ui-icon-user" aria-hidden="true"></span> بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small></span>
             <span class="cic-arrow">▾</span>
           </div>
           <div class="cic-body">
@@ -693,10 +792,10 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
       <!-- ═ TOOL: Technical Projects Pricing ═ -->
       <div class="tool-panel" id="tool-calc_labor">
         <button class="btn btn-ghost btn-sm mb-16" onclick="closeTool()">← الأدوات</button>
-        <div class="tool-heading"><div class="tool-heading-icon tone-blue">💻</div><div><div class="tools-kicker">تسعير المشاريع التقنية</div><h2>حاسبة مراحل المشروع التقني</h2></div></div>
+        <div class="tool-heading"><div class="tool-heading-icon tone-blue">05</div><div><div class="tools-kicker">تسعير المشاريع التقنية</div><h2>حاسبة مراحل المشروع التقني</h2></div></div>
         <div class="cic-card">
           <div class="cic-toggle" onclick="this.closest('.cic-card').classList.toggle('open')">
-            <span id="cic_label_labor">👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small></span>
+            <span id="cic_label_labor"><span class="ui-icon ui-icon-user" aria-hidden="true"></span> بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small></span>
             <span class="cic-arrow">▾</span>
           </div>
           <div class="cic-body">
@@ -756,10 +855,10 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
       <!-- ═ TOOL: Retail Pricing ═ -->
       <div class="tool-panel" id="tool-calc_store">
         <button class="btn btn-ghost btn-sm mb-16" onclick="closeTool()">← الأدوات</button>
-        <div class="tool-heading"><div class="tool-heading-icon tone-gold">🏪</div><div><div class="tools-kicker">تسعير التجزئة والجملة</div><h2>حاسبة سعر المنتج بعد التكلفة والعمولة</h2></div></div>
+        <div class="tool-heading"><div class="tool-heading-icon tone-gold">04</div><div><div class="tools-kicker">تسعير التجزئة والجملة</div><h2>حاسبة سعر المنتج بعد التكلفة والعمولة</h2></div></div>
         <div class="cic-card">
           <div class="cic-toggle" onclick="this.closest('.cic-card').classList.toggle('open')">
-            <span id="cic_label_store">👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small></span>
+            <span id="cic_label_store"><span class="ui-icon ui-icon-user" aria-hidden="true"></span> بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small></span>
             <span class="cic-arrow">▾</span>
           </div>
           <div class="cic-body">
@@ -809,7 +908,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
         <div class="tool-heading"><div class="tool-heading-icon tone-sand">⌂</div><div><div class="tools-kicker">تسعير التصميم الداخلي والمعماري</div><h2>حاسبة المشروع حسب المساحة والمراحل</h2></div></div>
         <div class="cic-card">
           <div class="cic-toggle" onclick="this.closest('.cic-card').classList.toggle('open')">
-            <span id="cic_label_office">👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small></span>
+            <span id="cic_label_office"><span class="ui-icon ui-icon-user" aria-hidden="true"></span> بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small></span>
             <span class="cic-arrow">▾</span>
           </div>
           <div class="cic-body">
@@ -862,7 +961,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
         <div class="tool-heading"><div class="tool-heading-icon tone-purple">↻</div><div><div class="tools-kicker">تسعير الشركات التقنية</div><h2>حاسبة الاشتراك والخدمة المتكررة</h2></div></div>
         <div class="cic-card">
           <div class="cic-toggle" onclick="this.closest('.cic-card').classList.toggle('open')">
-            <span id="cic_label_custom">👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small></span>
+            <span id="cic_label_custom"><span class="ui-icon ui-icon-user" aria-hidden="true"></span> بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small></span>
             <span class="cic-arrow">▾</span>
           </div>
           <div class="cic-body">
@@ -1117,7 +1216,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
           </div>
         </div>
         <div id="settingsMsg" class="hidden"></div>
-        <button class="btn btn-primary" onclick="saveSettings()">💾 حفظ الإعدادات</button>
+        <button class="btn btn-primary" onclick="saveSettings()"><span class="ui-icon ui-icon-save" aria-hidden="true"></span> حفظ الإعدادات</button>
       </div>
     </div>
     <?php endif; ?>
@@ -1253,9 +1352,37 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
 <div class="pdf-overlay hidden" id="pdfOverlay">
   <div style="max-width:760px;width:100%">
     <div class="pdf-doc" id="pdfDoc"></div>
+    <div class="quote-tool-rail" aria-label="انتقل إلى حاسبة أخرى">
+      <div class="quote-tool-rail-title">
+        <span class="section-eyebrow">تنقل سريع</span>
+        <strong>ابدأ تسعيرة جديدة من أي قطاع</strong>
+      </div>
+      <div class="quote-tool-rail-list">
+        <?php foreach ($quickTools as [$slug, $mark, $short, $name, $legacySlug]):
+          $locked = !in_array('all', $userTools, true) && !in_array($legacySlug, $userTools, true);
+        ?>
+        <button type="button" class="quote-tool-link <?= $locked ? 'is-locked' : '' ?>"
+                onclick="<?= $locked ? 'showPlanUpgrade()' : "closeQuoteAndOpenTool('$slug')" ?>">
+          <span><?= $mark ?></span><?= $short ?>
+        </button>
+        <?php endforeach; ?>
+      </div>
+    </div>
+    <div class="quote-rating-panel hidden" id="quoteRatingPanel">
+      <div>
+        <span class="section-eyebrow">تفاعل المستخدم</span>
+        <strong>كيف تقيّم وضوح هذه التسعيرة؟</strong>
+      </div>
+      <div class="quote-rating-actions" role="group" aria-label="تقييم التسعيرة">
+        <?php for ($rating = 1; $rating <= 5; $rating++): ?>
+        <button type="button" class="rating-button" data-rating="<?= $rating ?>" onclick="setQuoteRating(<?= $rating ?>)" aria-label="تقييم <?= $rating ?> من 5"><?= $rating ?></button>
+        <?php endfor; ?>
+      </div>
+      <span class="quote-rating-label" id="quoteRatingLabel">لم يتم التقييم بعد</span>
+    </div>
     <div class="pdf-actions no-print">
       <button class="btn btn-primary" onclick="window.print()">
-        <span>🖨</span> طباعة / تحميل PDF
+        <span class="ui-icon ui-icon-print" aria-hidden="true"></span> طباعة / تحميل PDF
       </button>
       <?php if ($role !== 'client'): ?>
       <button class="btn btn-outline" id="pdfEmailBtn" onclick="sendQuoteByEmail()">
@@ -1296,7 +1423,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
     </div>
     <div id="tqmMsg" class="hidden mb-8"></div>
     <div class="flex gap-8">
-      <button class="btn btn-primary flex-1" onclick="saveToolQuote()">💾 حفظ كمسودة</button>
+      <button class="btn btn-primary flex-1" onclick="saveToolQuote()"><span class="ui-icon ui-icon-save" aria-hidden="true"></span> حفظ كمسودة</button>
       <button class="btn btn-ghost" onclick="document.getElementById('toolQuoteModal').classList.add('hidden')">إلغاء</button>
     </div>
     <p style="font-size:11px;color:var(--muted);margin-top:10px;text-align:center">يُحفظ كمسودة يمكنك تعديله وإرساله للعميل من قسم عروض الأسعار</p>
@@ -1306,7 +1433,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
 <!-- Plan upgrade notice -->
 <div class="modal-overlay hidden" id="upgradeModal">
   <div class="modal-box" style="text-align:center">
-    <div style="font-size:40px;margin-bottom:12px">🔒</div>
+    <div class="upgrade-modal-mark ui-icon ui-icon-lock" aria-hidden="true"></div>
     <h3 style="margin-bottom:8px">ترقية الخطة مطلوبة</h3>
     <p style="color:var(--muted);font-size:13px;margin-bottom:20px">هذه الأداة متاحة بعد اختيارها ضمن باقة Plus أو Pro.</p>
     <div class="flex gap-8" style="justify-content:center">
@@ -1334,7 +1461,7 @@ const APP = <?= json_encode([
 ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 </script>
 <script src="/assets/js/currency.js?v=1"></script>
-<script src="/assets/js/app.js?v=mailbox-1"></script>
+<script src="/assets/js/app.js?v=<?= @filemtime(__DIR__.'/../assets/js/app.js') ?: time() ?>"></script>
 </body>
 </html>
 

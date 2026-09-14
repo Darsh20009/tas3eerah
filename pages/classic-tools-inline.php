@@ -44,6 +44,22 @@ $renames = [
 $sourceBody = str_replace(array_keys($renames), array_values($renames), $sourceBody);
 
 /*
+ * The reference page uses decorative emoji heavily. Keep the calculator
+ * labels and instructions, but remove emoji from the embedded version so the
+ * dashboard uses its formal icon language consistently.
+ */
+$sourceBody = preg_replace(
+    '/[\x{1F000}-\x{1FAFF}\x{2300}-\x{23FF}\x{2600}-\x{26FF}\x{2700}-\x{27BF}\x{FE0E}\x{FE0F}\x{200D}]/u',
+    '',
+    $sourceBody
+) ?? $sourceBody;
+$sourceBody = str_replace(
+    ['<span class="ftick"></span>', '<span class="stk"></span>'],
+    ['<span class="ftick">✓</span>', '<span class="stk">✓</span>'],
+    $sourceBody
+);
+
+/*
  * Scope the legacy stylesheet to this component. @scope is supported by the
  * Chromium runtime used by the Replit preview and prevents selectors such as
  * .card, .tabs and .f from changing the rest of the dashboard.
@@ -154,6 +170,22 @@ $scopedCss = preg_replace('/(?<![A-Za-z0-9_-])body\s+/', '#integrated-tools ', $
   color:var(--green)!important;
   border-color:rgba(46,139,87,.25)!important;
 }
+#integrated-tools .tools-section > .tool-card .tool-icon {
+  font-size:0!important;
+  font-weight:800!important;
+  letter-spacing:.02em;
+}
+#integrated-tools .tools-section > .tool-card .tool-icon::before {
+  font-size:14px;
+  content:'';
+}
+#integrated-tools .tools-section > .tool-card:nth-of-type(1) .tool-icon::before { content:'01'; }
+#integrated-tools .tools-section > .tool-card:nth-of-type(2) .tool-icon::before { content:'02'; }
+#integrated-tools .tools-section > .tool-card:nth-of-type(3) .tool-icon::before { content:'03'; }
+#integrated-tools .tools-section > .tool-card:nth-of-type(4) .tool-icon::before { content:'04'; }
+#integrated-tools .tools-section > .tool-card:nth-of-type(5) .tool-icon::before { content:'05'; }
+#integrated-tools .tools-section > .tool-card:nth-of-type(6) .tool-icon::before { content:'06'; }
+#integrated-tools .tools-section > .tool-card:nth-of-type(7) .tool-icon::before { content:'07'; }
 </style>
 
 <div id="integrated-tools" class="integrated-tools">

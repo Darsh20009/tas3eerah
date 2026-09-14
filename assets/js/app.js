@@ -427,6 +427,27 @@ function navDirect(panelId) {
   if (panelId === 'settings')      loadSettings();
 }
 
+function navToQuickTool(slug) {
+  navDirect('tools');
+  const open = () => {
+    if (typeof window.classicOpenTool === 'function') {
+      window.classicOpenTool(slug);
+    } else {
+      openTool(slug);
+    }
+    document.querySelectorAll('.quick-tool').forEach(button => {
+      button.classList.toggle('is-active', button.dataset.tool === slug);
+    });
+  };
+  window.requestAnimationFrame ? requestAnimationFrame(open) : setTimeout(open, 0);
+}
+
+function closeQuoteAndOpenTool(slug) {
+  const overlay = document.getElementById('pdfOverlay');
+  if (overlay) overlay.classList.add('hidden');
+  navToQuickTool(slug);
+}
+
 // ─── AUTH ────────────────────────────────
 async function doLogout() {
   await api('auth', { action: 'logout' });
@@ -435,6 +456,7 @@ async function doLogout() {
 
 // ─── QUOTES ──────────────────────────────
 let quotes = [];
+let activeQuoteId = null;
 async function loadQuotes() {
   const status = (document.getElementById('qStatusFilter') || {}).value || '';
   const search = (document.getElementById('qSearch') || {}).value || '';
@@ -479,6 +501,7 @@ async function viewQuote(id) {
   const r = await api(`quotes?action=get&id=${id}`);
   if (!r.success) { alert(r.error); return; }
   const q = r.data;
+  activeQuoteId = Number(q.id);
   const itemsHtml = (q.items || []).map(it => `
     <tr>
        <td class="user-content">${esc(it.description)}</td>
@@ -515,10 +538,56 @@ async function viewQuote(id) {
       <div class="pdf-total-row"><span>${translateString('ضريبة القيمة المضافة')} (${q.tax_rate}%)</span><span>${fmt(taxAmt)} ${translateString('ر.س')}</span></div>
       <div class="pdf-total-row grand"><span>${translateString('الإجمالي')}</span><span>${fmt(q.total)} ${translateString('ر.س')}</span></div>
     </div>
-    ${q.notes ? `<div style="margin-top:16px;padding:12px;background:var(--paper);border-radius:8px;font-size:13px"><strong>${translateString('ملاحظات')}:</strong> ${esc(q.notes)}</div>` : ''}
+    ${q.notes ? `<div class="quote-notes-box"><strong>${translateString('ملاحظات')}:</strong><div id="quoteNotesTyping" class="quote-notes-typing" aria-live="polite"></div></div>` : ''}
     <div class="pdf-footer">${translateString('تسعيرة منصة التسعير الذكي')}</div>
   `;
+  typeQuoteNotes(q.notes || '');
+  renderQuoteRating(activeQuoteId);
   document.getElementById('pdfOverlay').classList.remove('hidden');
+}
+
+function typeQuoteNotes(text) {
+  const target = document.getElementById('quoteNotesTyping');
+  if (!target) return;
+  target.textContent = '';
+  if (!text) return;
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    target.textContent = text;
+    return;
+  }
+  let index = 0;
+  const write = () => {
+    if (!document.body.contains(target)) return;
+    target.textContent = text.slice(0, index);
+    if (index < text.length) {
+      index += 1;
+      window.setTimeout(write, text[index - 1] === '\n' ? 180 : 24);
+    }
+  };
+  write();
+}
+
+function quoteRatingKey(id) {
+  return `tas3_quote_rating_${APP.uid}_${id}`;
+}
+
+function renderQuoteRating(id) {
+  const panel = document.getElementById('quoteRatingPanel');
+  if (!panel) return;
+  panel.classList.remove('hidden');
+  const value = Number(localStorage.getItem(quoteRatingKey(id)) || 0);
+  document.querySelectorAll('.rating-button').forEach(button => {
+    const rating = Number(button.dataset.rating);
+    button.classList.toggle('is-selected', rating <= value);
+  });
+  const label = document.getElementById('quoteRatingLabel');
+  if (label) label.textContent = value ? `تقييمك الحالي: ${value} من 5` : 'لم يتم التقييم بعد';
+}
+
+function setQuoteRating(value) {
+  if (!activeQuoteId) return;
+  localStorage.setItem(quoteRatingKey(activeQuoteId), String(value));
+  renderQuoteRating(activeQuoteId);
 }
 
 async function editQuote(id) {
@@ -859,8 +928,8 @@ function updateCicLabel(toolId) {
   const lbl  = document.getElementById('cic_label_' + toolId);
   if (!lbl) return;
   lbl.innerHTML = name
-    ? `👤 <strong>${esc(name)}</strong>`
-    : `👤 بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small>`;
+    ? `<span class="ui-icon ui-icon-user" aria-hidden="true"></span> <strong>${esc(name)}</strong>`
+    : `<span class="ui-icon ui-icon-user" aria-hidden="true"></span> بيانات العميل <small style="font-weight:400;color:var(--muted)">اختياري</small>`;
 }
 
 function showPlanUpgrade() {
@@ -1339,7 +1408,7 @@ async function saveToolQuote() {
   const r = await api('quotes', payload);
 
   if (r.success) {
-    showMsg('✅ تم حفظ العرض كمسودة بنجاح', false);
+    showMsg('تم حفظ العرض كمسودة بنجاح', false);
     if (APP.role === 'client' && APP.maxQuotes !== -1) {
       APP.quotesUsed = Number(APP.quotesUsed || 0) + 1;
       APP.quotesRemaining = Math.max(0, Number(APP.maxQuotes) - APP.quotesUsed);
