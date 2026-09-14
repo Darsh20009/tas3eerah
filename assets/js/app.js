@@ -401,6 +401,7 @@ function nav(btn) {
   if (panel === 'settings')        loadSettings();
   if (panel === 'quote-new')       initQuoteForm();
   if (panel === 'project-log')     loadProjectLedger();
+  if (panel === 'tools' && typeof goHome === 'function') goHome();
 }
 
 // ─── DIRECT NAVIGATION (by panel id, no sidebar button required) ─────
@@ -428,6 +429,7 @@ function navDirect(panelId) {
   if (panelId === 'activity')      loadActivity();
   if (panelId === 'settings')      loadSettings();
   if (panelId === 'project-log')   loadProjectLedger();
+  if (panelId === 'tools' && typeof goHome === 'function') goHome();
 }
 
 function readLocalProjects(key) {

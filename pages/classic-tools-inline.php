@@ -103,6 +103,9 @@ $scopedCss = preg_replace('/(?<![A-Za-z0-9_-])body\s+/', '#integrated-tools ', $
 #integrated-tools .ls-cell {
   background:rgba(26,43,32,.06)!important;
 }
+#integrated-tools .back-bar {
+  display:none!important;
+}
 #integrated-tools #services-tabs #log-tab,
 #integrated-tools #page-log,
 #integrated-tools [id$="-log-panel"],
