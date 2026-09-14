@@ -470,7 +470,7 @@ function renderQuotes() {
   const tb = document.getElementById('quotesTbody');
   if (!tb) return;
   if (!quotes.length) {
-    tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--muted)">لا توجد عروض أسعار</td></tr>';
+    tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted)">لا توجد عروض أسعار</td></tr>';
     return;
   }
   tb.innerHTML = quotes.map(q => `
@@ -480,6 +480,7 @@ function renderQuotes() {
       ${APP.role !== 'client'   ? `<td class="user-content">${esc(q.client_name || '-')}</td>` : ''}
       ${APP.role !== 'employee' ? `<td class="user-content">${esc(q.employee_name || '-')}</td>` : ''}
       <td>${fmt(q.total)} ر.س</td>
+      <td>${quoteRatingSummary(q)}</td>
       <td><span class="badge badge-${q.status}">${statusLabel(q.status)}</span></td>
       <td style="font-size:11px;color:var(--muted)">${q.created_at ? q.created_at.slice(0,10) : ''}</td>
       <td>
@@ -497,11 +498,18 @@ function renderQuotes() {
   `).join('');
 }
 
+function quoteRatingSummary(q) {
+  const count = Number(q.rating_count || 0);
+  if (!count) return '<span style="color:var(--muted)">—</span>';
+  return `<span class="quote-rating-inline"><strong>${fmt(q.rating_average)}</strong> / 5 <small>(${count})</small></span>`;
+}
+
 async function viewQuote(id) {
   const r = await api(`quotes?action=get&id=${id}`);
   if (!r.success) { alert(r.error); return; }
   const q = r.data;
   activeQuoteId = Number(q.id);
+  activeQuote = q;
   const itemsHtml = (q.items || []).map(it => `
     <tr>
        <td class="user-content">${esc(it.description)}</td>
@@ -542,7 +550,7 @@ async function viewQuote(id) {
     <div class="pdf-footer">${translateString('تسعيرة منصة التسعير الذكي')}</div>
   `;
   typeQuoteNotes(q.notes || '');
-  renderQuoteRating(activeQuoteId);
+  renderQuoteRating(q);
   document.getElementById('pdfOverlay').classList.remove('hidden');
 }
 
@@ -567,27 +575,45 @@ function typeQuoteNotes(text) {
   write();
 }
 
-function quoteRatingKey(id) {
-  return `tas3_quote_rating_${APP.uid}_${id}`;
-}
+let activeQuote = null;
 
-function renderQuoteRating(id) {
+function renderQuoteRating(quote) {
   const panel = document.getElementById('quoteRatingPanel');
   if (!panel) return;
   panel.classList.remove('hidden');
-  const value = Number(localStorage.getItem(quoteRatingKey(id)) || 0);
+  const value = Number(quote?.my_rating || 0);
   document.querySelectorAll('.rating-button').forEach(button => {
     const rating = Number(button.dataset.rating);
     button.classList.toggle('is-selected', rating <= value);
   });
   const label = document.getElementById('quoteRatingLabel');
   if (label) label.textContent = value ? `تقييمك الحالي: ${value} من 5` : 'لم يتم التقييم بعد';
+  const summary = document.getElementById('quoteRatingSummary');
+  if (summary) {
+    const count = Number(quote?.rating_count || 0);
+    summary.textContent = count
+      ? `متوسط التقييم: ${fmt(quote.rating_average)} من 5 · ${count} مشاركة`
+      : 'لا توجد تقييمات بعد';
+  }
 }
 
-function setQuoteRating(value) {
+async function setQuoteRating(value) {
   if (!activeQuoteId) return;
-  localStorage.setItem(quoteRatingKey(activeQuoteId), String(value));
-  renderQuoteRating(activeQuoteId);
+  const buttons = document.querySelectorAll('.rating-button');
+  buttons.forEach(button => { button.disabled = true; });
+  const r = await api('quotes', { action: 'rate', id: activeQuoteId, rating: value });
+  buttons.forEach(button => { button.disabled = false; });
+  if (!r.success) {
+    alert(r.error || 'تعذر حفظ التقييم');
+    return;
+  }
+  if (activeQuote) {
+    activeQuote.my_rating = r.data.my_rating;
+    activeQuote.rating_average = r.data.rating_average;
+    activeQuote.rating_count = r.data.rating_count;
+  }
+  renderQuoteRating(activeQuote);
+  loadQuotes();
 }
 
 async function editQuote(id) {

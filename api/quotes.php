@@ -18,6 +18,7 @@ match (true) {
     $method === 'POST' && $action === 'update'      => updateQuote($user, $body),
     $method === 'POST' && $action === 'delete'      => deleteQuote($user, $body),
     $method === 'POST' && $action === 'status'      => changeStatus($user, $body),
+    $method === 'POST' && $action === 'rate'        => rateQuote($user, $body),
     $method === 'GET'  && $action === 'clients'     => listClients($user),
     $method === 'POST' && $action === 'email_quote' => emailQuote($user, $body),
     default => Response::err('إجراء غير صحيح', 400),
@@ -42,6 +43,36 @@ function quotePipeline(array $match): array {
         ]],
         ['$project' => ['client' => 0, 'employee' => 0]],
     ];
+}
+
+function withQuoteRatings(array $quotes, array $u): array {
+    if (!$quotes) return $quotes;
+
+    $ids = array_values(array_filter(array_map(
+        static fn($quote) => (int)($quote['id'] ?? 0),
+        $quotes
+    )));
+    $summaries = DB::quoteRatingSummaries($ids);
+    $mine = $ids
+        ? DB::findAll('quote_ratings', [
+            'user_id'  => (int)$u['id'],
+            'quote_id' => ['$in' => $ids],
+        ])
+        : [];
+    $myRatings = [];
+    foreach ($mine as $rating) {
+        $myRatings[(int)$rating['quote_id']] = (int)$rating['rating'];
+    }
+
+    foreach ($quotes as &$quote) {
+        $id = (int)($quote['id'] ?? 0);
+        $summary = $summaries[$id] ?? ['average' => 0, 'count' => 0];
+        $quote['rating_average'] = (float)$summary['average'];
+        $quote['rating_count'] = (int)$summary['count'];
+        $quote['my_rating'] = $myRatings[$id] ?? null;
+    }
+    unset($quote);
+    return $quotes;
 }
 
 function buildItems(array $items): array {
@@ -79,7 +110,7 @@ function listQuotes(array $u): never {
     $pipeline[] = ['$sort'  => ['created_at' => -1]];
     $pipeline[] = ['$limit' => 100];
 
-    Response::ok(DB::aggregate('quotes', $pipeline));
+    Response::ok(withQuoteRatings(DB::aggregate('quotes', $pipeline), $u));
 }
 
 function getQuote(array $u, int $id): never {
@@ -89,6 +120,7 @@ function getQuote(array $u, int $id): never {
     $q = $results[0];
     canAccessQuote($u, $q);
     if (!isset($q['items'])) $q['items'] = [];
+    $q = withQuoteRatings([$q], $u)[0];
     Response::ok($q);
 }
 
@@ -207,6 +239,7 @@ function deleteQuote(array $u, array $b): never {
     if ($u['role'] === 'client') Response::err('العملاء لا يمكنهم حذف العروض', 403);
     if ($u['role'] !== 'admin' && (int)$q['employee_id'] !== (int)$u['id']) Response::err('غير مسموح', 403);
     DB::deleteDoc('quotes', ['id' => $id]);
+    DB::deleteDoc('quote_ratings', ['quote_id' => $id]);
     Response::ok([], 'تم الحذف');
 }
 
@@ -250,6 +283,28 @@ function changeStatus(array $u, array $b): never {
         'details' => "عرض $id: $current → $status",
     ]);
     Response::ok(['status' => $status], 'تم تحديث الحالة');
+}
+
+function rateQuote(array $u, array $b): never {
+    $id = (int)($b['id'] ?? 0);
+    if (!$id) Response::err('معرف العرض مطلوب');
+
+    $rating = filter_var($b['rating'] ?? null, FILTER_VALIDATE_INT);
+    if ($rating === false || $rating < 1 || $rating > 5) {
+        Response::err('التقييم يجب أن يكون رقماً صحيحاً من 1 إلى 5');
+    }
+
+    $quote = DB::findOne('quotes', ['id' => $id]);
+    if (!$quote) Response::err('عرض السعر غير موجود', 404);
+    canAccessQuote($u, $quote);
+
+    DB::upsertQuoteRating($id, (int)$u['id'], (int)$rating);
+    $summary = DB::quoteRatingSummaries([$id])[$id] ?? ['average' => 0, 'count' => 0];
+    Response::ok([
+        'rating_average' => (float)$summary['average'],
+        'rating_count'   => (int)$summary['count'],
+        'my_rating'      => (int)$rating,
+    ], 'تم حفظ تقييمك');
 }
 
 function emailQuote(array $u, array $b): never {

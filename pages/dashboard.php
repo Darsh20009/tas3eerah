@@ -274,11 +274,13 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
         <?php
         $month = date('Y-m');
         if ($role === 'admin'):
+          $ratingStats = DB::quoteRatingStats();
           $stats = [
             ['المستخدمون', DB::count('users'), 'إجمالي المستخدمين', 'accent'],
             ['المستخدمون النشطون', DB::count('users', ['is_active' => 1]), 'حسابات نشطة', 'gold'],
             ['عروض الأسعار', DB::count('quotes'), 'كل العروض', 'green'],
             ['هذا الشهر', DB::count('quotes', ['created_at' => ['$regex' => '^' . $month]]), 'عروض هذا الشهر', ''],
+            ['متوسط التقييمات', $ratingStats['count'] ? number_format($ratingStats['average'], 1) . ' / 5' : '—', $ratingStats['count'] . ' مشاركة', 'gold'],
           ];
         elseif ($role === 'employee'):
           $uid = $user['id'];
@@ -397,9 +399,9 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
             <th>رقم</th><th>العنوان</th>
             <?php if ($role !== 'client'): ?><th data-ar="العميل" data-en="Client">العميل</th><?php endif; ?>
             <?php if ($role !== 'employee'): ?><th data-ar="الموظف" data-en="Employee">الموظف</th><?php endif; ?>
-            <th>الإجمالي</th><th>الحالة</th><th>التاريخ</th><th>إجراء</th>
+            <th>الإجمالي</th><th>التقييم</th><th>الحالة</th><th>التاريخ</th><th>إجراء</th>
           </tr></thead>
-          <tbody id="quotesTbody"><tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">جارٍ التحميل...</td></tr></tbody>
+          <tbody id="quotesTbody"><tr><td colspan="9" style="text-align:center;padding:20px;color:var(--muted)">جارٍ التحميل...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -1372,6 +1374,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
       <div>
         <span class="section-eyebrow">تفاعل المستخدم</span>
         <strong>كيف تقيّم وضوح هذه التسعيرة؟</strong>
+        <span class="quote-rating-summary" id="quoteRatingSummary">لا توجد تقييمات بعد</span>
       </div>
       <div class="quote-rating-actions" role="group" aria-label="تقييم التسعيرة">
         <?php for ($rating = 1; $rating <= 5; $rating++): ?>

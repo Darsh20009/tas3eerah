@@ -53,6 +53,11 @@ class DB {
             self::$mdb->users->createIndex(['email' => 1], ['unique' => true, 'sparse' => false]);
             self::$mdb->users->createIndex(['id'    => 1], ['unique' => true, 'sparse' => false]);
             self::$mdb->quotes->createIndex(['id'   => 1], ['unique' => true, 'sparse' => false]);
+            self::$mdb->quote_ratings->createIndex(
+                ['quote_id' => 1, 'user_id' => 1],
+                ['unique' => true, 'sparse' => false]
+            );
+            self::$mdb->quote_ratings->createIndex(['quote_id' => 1]);
         } catch (\Throwable) {}
         // Preserve legacy enterprise access under the new Pro plan.
         try { self::$mdb->users->updateMany(['plan' => 'enterprise'], ['$set' => ['plan' => 'pro']]); } catch (\Throwable) {}
@@ -203,6 +208,15 @@ class DB {
                 created_at TEXT NOT NULL DEFAULT (datetime('now')),
                 updated_at TEXT NOT NULL DEFAULT (datetime('now'))
             );
+            CREATE TABLE IF NOT EXISTS quote_ratings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                quote_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+                UNIQUE (quote_id, user_id)
+            );
             CREATE TABLE IF NOT EXISTS messages (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 sender_id INTEGER NOT NULL,
@@ -247,6 +261,10 @@ class DB {
         foreach ($addIfMissing as $sql) {
             try { self::$pdo->exec($sql); } catch (\Throwable) {}
         }
+        try {
+            self::$pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS quote_ratings_quote_user ON quote_ratings (quote_id, user_id)');
+            self::$pdo->exec('CREATE INDEX IF NOT EXISTS quote_ratings_quote ON quote_ratings (quote_id)');
+        } catch (\Throwable) {}
         // Preserve legacy enterprise access under the new Pro plan.
         try { self::$pdo->exec("UPDATE users SET plan = 'pro' WHERE plan = 'enterprise'"); } catch (\Throwable) {}
 
@@ -571,6 +589,109 @@ class DB {
         $stmt = self::get()->prepare("SELECT COALESCE(SUM({$field}), 0) FROM {$col} WHERE " . implode(' AND ', $where));
         $stmt->execute($params);
         return (float)$stmt->fetchColumn();
+    }
+
+    /**
+     * Save or replace one user's rating for a quote.
+     * The composite unique key makes repeated submissions an update in both backends.
+     */
+    public static function upsertQuoteRating(int $quoteId, int $userId, int $rating): void {
+        $now = date('Y-m-d H:i:s');
+        if (self::isMongo()) {
+            self::col('quote_ratings')->updateOne(
+                ['quote_id' => $quoteId, 'user_id' => $userId],
+                [
+                    '$set' => ['rating' => $rating, 'updated_at' => $now],
+                    '$setOnInsert' => ['created_at' => $now],
+                ],
+                ['upsert' => true]
+            );
+            return;
+        }
+
+        self::get()->prepare(
+            'INSERT INTO quote_ratings (quote_id, user_id, rating, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?)
+             ON CONFLICT(quote_id, user_id) DO UPDATE SET rating = excluded.rating, updated_at = excluded.updated_at'
+        )->execute([$quoteId, $userId, $rating, $now, $now]);
+    }
+
+    /**
+     * Return rating aggregates keyed by quote id.
+     *
+     * @param int[] $quoteIds
+     * @return array<int,array{average: float, count: int}>
+     */
+    public static function quoteRatingSummaries(array $quoteIds): array {
+        $quoteIds = array_values(array_unique(array_filter(array_map('intval', $quoteIds), fn($id) => $id > 0)));
+        if (!$quoteIds) return [];
+
+        $summaries = [];
+        if (self::isMongo()) {
+            $rows = self::col('quote_ratings')->aggregate([
+                ['$match' => ['quote_id' => ['$in' => $quoteIds]]],
+                ['$group' => [
+                    '_id'     => '$quote_id',
+                    'average' => ['$avg' => '$rating'],
+                    'count'   => ['$sum' => 1],
+                ]],
+            ], self::tm());
+            foreach ($rows as $row) {
+                $id = (int)($row['_id'] ?? 0);
+                if ($id > 0) {
+                    $summaries[$id] = [
+                        'average' => round((float)($row['average'] ?? 0), 2),
+                        'count'   => (int)($row['count'] ?? 0),
+                    ];
+                }
+            }
+            return $summaries;
+        }
+
+        $placeholders = implode(',', array_fill(0, count($quoteIds), '?'));
+        $stmt = self::get()->prepare(
+            "SELECT quote_id, AVG(rating) AS average, COUNT(*) AS count
+             FROM quote_ratings
+             WHERE quote_id IN ({$placeholders})
+             GROUP BY quote_id"
+        );
+        $stmt->execute($quoteIds);
+        foreach ($stmt->fetchAll() as $row) {
+            $id = (int)$row['quote_id'];
+            $summaries[$id] = [
+                'average' => round((float)$row['average'], 2),
+                'count'   => (int)$row['count'],
+            ];
+        }
+        return $summaries;
+    }
+
+    /** Return the overall rating average and number of submitted ratings. */
+    public static function quoteRatingStats(): array {
+        if (self::isMongo()) {
+            $rows = self::col('quote_ratings')->aggregate([
+                ['$group' => [
+                    '_id'     => null,
+                    'average' => ['$avg' => '$rating'],
+                    'count'   => ['$sum' => 1],
+                ]],
+            ], self::tm());
+            $row = [];
+            foreach ($rows as $candidate) {
+                $row = $candidate;
+                break;
+            }
+            return [
+                'average' => round((float)($row['average'] ?? 0), 2),
+                'count'   => (int)($row['count'] ?? 0),
+            ];
+        }
+
+        $row = self::get()->query('SELECT AVG(rating) AS average, COUNT(*) AS count FROM quote_ratings')->fetch();
+        return [
+            'average' => round((float)($row['average'] ?? 0), 2),
+            'count'   => (int)($row['count'] ?? 0),
+        ];
     }
 
     /**

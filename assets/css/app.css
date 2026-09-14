@@ -1248,8 +1248,12 @@ select.form-control { cursor: pointer; }
 .quote-rating-panel strong { display: block; margin-top: 2px; font-size: 12px; }
 .quote-rating-actions { display: flex; gap: 5px; direction: ltr; }
 .rating-button { display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid var(--line); border-radius: 50%; background: var(--card-warm); color: var(--muted); font-size: 11px; font-weight: 800; }
+.rating-button:disabled { cursor: wait; opacity: .65; }
 .rating-button:hover, .rating-button.is-selected { border-color: var(--gold); background: var(--gold-l); color: var(--gold-d); }
 .quote-rating-label { color: var(--muted); font-size: 10px; white-space: nowrap; }
+.quote-rating-summary { display: block; margin-top: 5px; color: var(--muted); font-size: 10px; }
+.quote-rating-inline { white-space: nowrap; font-size: 12px; color: var(--gold-d); }
+.quote-rating-inline small { color: var(--muted); font-size: 10px; }
 
 /* بطاقة الأداة */
 .tool-card { position: relative; text-align: right; }

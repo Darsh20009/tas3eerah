@@ -41,6 +41,7 @@ match ($action) {
 // ── Stats ─────────────────────────────────────────────────────────────
 function stats(): never {
     $month = date('Y-m');
+    $ratingStats = DB::quoteRatingStats();
     Response::ok([
         'users_total'     => DB::count('users'),
         'users_active'    => DB::count('users',  ['is_active' => 1]),
@@ -52,6 +53,8 @@ function stats(): never {
         'plan_free'       => DB::count('users', ['plan' => 'free']),
         'plan_plus'       => DB::count('users', ['plan' => 'plus']),
         'plan_pro'        => DB::count('users', ['plan' => 'pro']),
+        'rating_average'  => $ratingStats['average'],
+        'rating_count'    => $ratingStats['count'],
     ]);
 }
 
@@ -201,6 +204,13 @@ function allQuotes(): never {
         ['$sort'     => ['created_at' => -1]],
         ['$limit'    => 200],
     ]);
+    $summaries = DB::quoteRatingSummaries(array_map(static fn($quote) => (int)($quote['id'] ?? 0), $quotes));
+    foreach ($quotes as &$quote) {
+        $summary = $summaries[(int)($quote['id'] ?? 0)] ?? ['average' => 0, 'count' => 0];
+        $quote['rating_average'] = (float)$summary['average'];
+        $quote['rating_count'] = (int)$summary['count'];
+    }
+    unset($quote);
     Response::ok($quotes);
 }
 
