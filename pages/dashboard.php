@@ -486,7 +486,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
       <div class="classic-tools-embed">
         <iframe
           class="classic-tools-frame"
-          src="/classic-tools"
+          src="/classic-tools?embed=1"
           title="أدوات التسعير التفصيلية"
           loading="eager"
           allow="clipboard-write"></iframe>
