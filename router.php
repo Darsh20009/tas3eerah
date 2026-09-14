@@ -61,6 +61,52 @@ if ($uri === '/legacy-calculator.html') {
     http_response_code(404); exit;
 }
 
+// Each calculator gets its own authenticated route. The calculator document
+// is rendered by the classic source below, but the browser stays on the
+// sector-specific URL instead of keeping all tools inside the dashboard DOM.
+$calculatorRouteMap = [
+    'services' => 'services',
+    'packages' => 'packages',
+    'menu'     => 'menu',
+    'retail'   => 'retail',
+    'tech'     => 'tech',
+    'saas'     => 'saas',
+    'design'   => 'design',
+];
+$calculatorPlanKey = [
+    'services' => 'calc_basic',
+    'packages' => 'calc_pkg',
+    'menu'     => 'calc_menu',
+    'retail'   => 'calc_store',
+    'tech'     => 'calc_labor',
+    'saas'     => 'calc_custom',
+    'design'   => 'calc_office',
+];
+if (preg_match('#^/calculator/([a-z]+)$#', $uri, $routeMatch)) {
+    $routeSlug = $routeMatch[1];
+    if (!isset($calculatorRouteMap[$routeSlug])) {
+        http_response_code(404);
+        echo '404';
+        exit;
+    }
+
+    $calculatorUser = Auth::require();
+    $effectivePlan = $calculatorUser['plan'] ?? 'free';
+    if (!empty($calculatorUser['plan_expires_at']) && $effectivePlan !== 'free'
+        && strtotime($calculatorUser['plan_expires_at']) <= time()) {
+        $effectivePlan = 'free';
+    }
+    $planTools = PLANS[$effectivePlan]['tools'] ?? [];
+    if (!in_array('all', $planTools, true) && !in_array($calculatorPlanKey[$routeSlug], $planTools, true)) {
+        header('Location: /dashboard?tool_locked=1');
+        exit;
+    }
+
+    $_GET['embed'] = '1';
+    $_GET['tool'] = $calculatorRouteMap[$routeSlug];
+    $uri = '/classic-tools';
+}
+
 // The detailed calculator reference is kept as a first-class app route so the
 // authenticated dashboard can show the complete sector tools without
 // duplicating their large, self-contained markup in the PHP page.
@@ -122,6 +168,11 @@ body{padding-bottom:0!important}
 CSS;
             if (is_string($html)) {
                 $html = preg_replace('/<\/head>/i', $identityCss . '</head>', $html, 1) ?? $html;
+                $selectedTool = preg_replace('/[^a-z-]/', '', (string)($_GET['tool'] ?? ''));
+                if ($selectedTool !== '') {
+                    $autoOpen = '<script>window.goHome=function(){window.location.href="/dashboard";};document.addEventListener("DOMContentLoaded",function(){if(window.openTool){window.openTool("' . $selectedTool . '");}});</script>';
+                    $html = preg_replace('/<\/body>/i', $autoOpen . '</body>', $html, 1) ?? $html;
+                }
                 echo $html;
             } else {
                 http_response_code(404);

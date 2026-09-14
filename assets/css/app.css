@@ -1144,6 +1144,10 @@ select.form-control { cursor: pointer; }
 .tool-panel { display: none; }
 .tool-panel.active { display: block; }
 #toolsMenu { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 14px; }
+#panel-tools .integrated-tools-host,
+#panel-tools > .tool-panel {
+  display: none !important;
+}
 
 .tools-intro {
   display: flex; align-items: center; justify-content: space-between; gap: 24px;

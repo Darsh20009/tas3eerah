@@ -638,11 +638,12 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
   $userTools = OPEN_ACCESS_MODE ? ['all'] : $plan['tools'];
       ?>
 
+      <?php if (false): ?>
       <div class="integrated-tools-host">
         <?php require __DIR__ . '/classic-tools-inline.php'; ?>
       </div>
+      <?php endif; ?>
 
-      <?php if (false): ?>
       <!-- ═ TOOLS MENU ═ -->
       <div class="tools-intro">
         <div class="tools-intro-copy">
@@ -690,6 +691,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
       </div>
       <div class="tools-note"><span>ⓘ</span> يمكنك العودة لاحقاً إلى أي أداة ومراجعة حساباتك المحفوظة.</div>
 
+      <?php if (false): ?>
       <!-- ═ TOOL: Menu Pricing ═ -->
       <div class="tool-panel" id="tool-calc_menu">
         <button class="btn btn-ghost btn-sm mb-16" onclick="closeTool()">← الأدوات</button>

@@ -510,18 +510,7 @@ function loadProjectLedger() {
 }
 
 function navToQuickTool(slug) {
-  navDirect('tools');
-  const open = () => {
-    if (typeof window.classicOpenTool === 'function') {
-      window.classicOpenTool(slug);
-    } else {
-      openTool(slug);
-    }
-    document.querySelectorAll('.quick-tool').forEach(button => {
-      button.classList.toggle('is-active', button.dataset.tool === slug);
-    });
-  };
-  window.requestAnimationFrame ? requestAnimationFrame(open) : setTimeout(open, 0);
+  openTool(slug);
 }
 
 function closeQuoteAndOpenTool(slug) {
@@ -1034,24 +1023,31 @@ async function loadUnreadCount() {
 
 // ─── TOOLS ───────────────────────────────
 function openTool(slug) {
-  if (document.getElementById('integrated-tools') && typeof window.classicOpenTool === 'function') {
-    window.classicOpenTool(slug);
-    return;
-  }
-  document.getElementById('toolsMenu').style.display = 'none';
-  document.querySelectorAll('.tool-panel').forEach(p => p.classList.remove('active'));
-  const panel = document.getElementById('tool-' + slug);
-  if (panel) panel.classList.add('active');
-  resetWorkspaceScroll();
-  // Restore sessionStorage state
-  restoreToolState(slug);
-  // Trigger initial calculation
-  if (slug === 'calc_menu')   calcMenu();
-  if (slug === 'calc_pkg')    calcPkg();
-  if (slug === 'calc_labor')  calcLabor();
-  if (slug === 'calc_store')  calcStore();
-  if (slug === 'calc_office') calcOffice();
-  if (slug === 'calc_custom') calcCustom();
+  const routes = {
+    services: 'services',
+    basic: 'services',
+    calc_basic: 'services',
+    packages: 'packages',
+    pkg: 'packages',
+    calc_pkg: 'packages',
+    menu: 'menu',
+    restaurants: 'menu',
+    calc_menu: 'menu',
+    retail: 'retail',
+    store: 'retail',
+    calc_store: 'retail',
+    tech: 'tech',
+    labor: 'tech',
+    calc_labor: 'tech',
+    saas: 'saas',
+    custom: 'saas',
+    calc_custom: 'saas',
+    design: 'design',
+    office: 'design',
+    calc_office: 'design',
+  };
+  const route = routes[String(slug)] || String(slug);
+  if (routes[String(slug)]) window.location.href = `/calculator/${route}`;
 }
 
 function calcMenu() {
