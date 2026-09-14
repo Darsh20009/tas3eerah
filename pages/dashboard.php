@@ -205,11 +205,11 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
         <span id="topbarPlanQuota"><?= htmlspecialchars($quotaLabel) ?></span>
       </div>
       <?php if ($role === 'employee' || $role === 'admin'): ?>
-      <button class="btn btn-primary btn-sm" onclick="navDirect('quote-new')">
+      <button class="btn btn-primary btn-sm" onclick="navDirect('tools')">
         + عرض سعر
       </button>
       <?php elseif ($role === 'client'): ?>
-      <button class="btn btn-primary btn-sm" onclick="navDirect('quote-new')">
+      <button class="btn btn-primary btn-sm" onclick="navDirect('tools')">
         + تسعيرة جديدة
       </button>
       <?php endif; ?>
