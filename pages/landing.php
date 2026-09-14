@@ -833,5 +833,6 @@ function submitContact() {
   document.getElementById('ctMsg').value   = '';
 }
 </script>
+<script src="/assets/js/form-enhancements.js?v=<?= @filemtime(__DIR__.'/../assets/js/form-enhancements.js') ?: time() ?>"></script>
 </body>
 </html>
