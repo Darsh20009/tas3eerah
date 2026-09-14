@@ -103,9 +103,8 @@ if (preg_match('#^/calculator/([a-z]+)$#', $uri, $routeMatch)) {
         exit;
     }
 
-    $_GET['embed'] = '1';
     $_GET['tool'] = $calculatorRouteMap[$routeSlug];
-    $uri = '/classic-tools';
+    $uri = '/calculator';
 }
 
 // The detailed calculator reference is kept as a first-class app route so the
@@ -286,6 +285,7 @@ if ($uri === '/auth/apple/callback') {
 match (true) {
     $uri === '/'          => servePage('landing'),
     $uri === '/dashboard' => servePage('dashboard'),
+    $uri === '/calculator' => servePage('calculator'),
     $uri === '/logout'    => (function(){ Auth::logout(); header('Location: /'); exit; })(),
     default               => (function() use ($uri) {
         // Try page file

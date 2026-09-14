@@ -60,6 +60,34 @@ $sourceBody = str_replace(
 );
 
 /*
+ * Standalone calculator pages render one sector only. Keep the original
+ * calculator scripts so every calculation remains identical, but remove the
+ * other tool screens from the page DOM.
+ */
+$classicToolOnly = isset($classicToolOnly) ? preg_replace('/[^a-z-]/', '', (string)$classicToolOnly) : '';
+if ($classicToolOnly !== '') {
+    $toolId = 'tool-' . $classicToolOnly;
+    $dom = new DOMDocument('1.0', 'UTF-8');
+    $previous = libxml_use_internal_errors(true);
+    $dom->loadHTML(
+        '<!doctype html><html><head><meta charset="UTF-8"></head><body>' . $sourceBody . '</body></html>',
+        LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+    );
+    $toolNode = $dom->getElementById($toolId);
+    $selectedMarkup = '';
+    if ($toolNode instanceof DOMElement) {
+        $classes = trim($toolNode->getAttribute('class') . ' active');
+        $toolNode->setAttribute('class', $classes);
+        $selectedMarkup = $dom->saveHTML($toolNode);
+    }
+    libxml_clear_errors();
+    libxml_use_internal_errors($previous);
+
+    preg_match_all('/<script\b[^>]*>.*?<\/script>/is', $sourceBody, $scriptMatches);
+    $sourceBody = $selectedMarkup . implode("\n", $scriptMatches[0] ?? []);
+}
+
+/*
  * Scope the legacy stylesheet to this component. @scope is supported by the
  * Chromium runtime used by the Replit preview and prevents selectors such as
  * .card, .tabs and .f from changing the rest of the dashboard.

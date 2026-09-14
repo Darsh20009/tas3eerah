@@ -2247,7 +2247,8 @@ function clearLog(){
 }
 
 function updateBadge(){
-  document.getElementById('log-count').textContent=projects.length;
+  const badge = document.getElementById('log-count');
+  if (badge) badge.textContent=projects.length;
 }
 
 function renderLog(){

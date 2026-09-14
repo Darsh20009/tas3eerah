@@ -9,7 +9,7 @@ const L = { current: localStorage.getItem('tas3-lang') || 'ar' };
 
 const UI_TRANSLATIONS = {
   'نظرة عامة':'Overview', 'عروض الأسعار':'Quotes', 'عرض سعر جديد':'New Quote',
-  'العملاء':'Clients', 'الرسائل':'Messages', 'أدوات التسعير':'Pricing Tools',
+  'العملاء':'Clients', 'الرسائل':'Messages', 'أدوات التسعير':'Pricing Tools', 'التسعيرات':'Pricing',
   'إدارة المستخدمين':'User Management', 'الاشتراكات':'Subscriptions',
   'رسائل التواصل':'Contact Messages', 'سجل النشاط':'Activity Log',
   'إعدادات النظام':'System Settings', 'حسابي':'My Account',
@@ -59,8 +59,8 @@ const UI_TRANSLATIONS = {
   'تسعير غير محدود':'Unlimited pricing', 'تسعيرات شهرياً':'quotes per month',
   'كل القطاعات متاحة':'All sectors available', 'أدوات متاحة في باقتك':'tools available in your plan',
   'تقارير PDF غير محدودة':'Unlimited PDF reports', 'اختر المجال':'Choose a sector',
-  '٧ أدوات تسعير متخصصة':'7 specialized pricing tools', 'مقفل في باقتك':'Locked in your plan',
-  'ترقية الخطة':'Upgrade plan', 'فتح الحاسبة الكاملة':'Open calculator',
+  '٧ أدوات تسعير متخصصة':'7 specialized pricing tools', '٧ تسعيرات متخصصة':'7 specialized pricing tools', 'مقفل في باقتك':'Locked in your plan',
+  'ترقية الخطة':'Upgrade plan', 'فتح الحاسبة الكاملة':'Open pricing',
   'يمكنك العودة لاحقاً إلى أي أداة ومراجعة حساباتك المحفوظة.':'You can return to any tool later and review your saved calculations.',
   'تسعير المطاعم والكافيهات':'Restaurant & cafe pricing', 'حاسبة تكلفة الصنف والقائمة':'Item and menu cost calculator',
   'بيانات الصنف':'Item details', 'اسم الصنف':'Item name', 'لاتيه مثلج':'Iced latte',
@@ -283,7 +283,7 @@ function toggleLang() {
 const panelTitles = {
   overview: ['نظرة عامة', 'Overview'], quotes: ['عروض الأسعار', 'Quotes'],
   'quote-new': ['عرض سعر جديد', 'New Quote'], clients: ['العملاء', 'Clients'],
-  messages: ['صندوق البريد', 'Inbox'], tools: ['أدوات التسعير', 'Pricing Tools'],
+  messages: ['صندوق البريد', 'Inbox'], tools: ['التسعيرات', 'Pricing'],
   'project-log': ['سجل المشاريع', 'Project Log'],
   users: ['إدارة المستخدمين', 'User Management'], subscriptions: ['الاشتراكات', 'Subscriptions'],
   mailbox: ['البريد الوارد', 'Mailbox'],

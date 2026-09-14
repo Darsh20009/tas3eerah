@@ -151,9 +151,9 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
       <span class="sb-badge hidden" id="unreadBadge">0</span>
     </button>
 
-    <div class="sb-section">الأدوات</div>
+    <div class="sb-section">التسعيرات</div>
     <button class="sb-item" data-panel="tools" onclick="nav(this)">
-      <span class="sb-icon">◈</span> أدوات التسعير
+      <span class="sb-icon">◈</span> التسعيرات
     </button>
     <button class="sb-item" data-panel="project-log" onclick="nav(this)">
       <span class="sb-icon">▤</span> سجل المشاريع
@@ -241,22 +241,22 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
   <?php endif; ?>
   <?php
     $quickTools = [
-      ['services', '01', 'الخدمات', 'تسعير الخدمات', 'calc_basic'],
-      ['packages', '02', 'الباقات', 'الباقات والاشتراكات', 'calc_pkg'],
-      ['menu', '03', 'القائمة', 'المطاعم والكافيهات', 'calc_menu'],
-      ['retail', '04', 'التجزئة', 'التجزئة والجملة', 'calc_store'],
-      ['tech', '05', 'التقنية', 'المشاريع التقنية', 'calc_labor'],
-      ['saas', '06', 'الاشتراكات', 'الخدمات المتكررة', 'calc_custom'],
-      ['design', '07', 'التصميم', 'التصميم والمعمار', 'calc_office'],
+      ['services', '01', 'الخدمات', 'تسعير الخدمات', 'calc_basic', '/assets/landing/sector-services-icon.png'],
+      ['packages', '02', 'الباقات', 'الباقات والاشتراكات', 'calc_pkg', '/assets/landing/empty-box.png'],
+      ['menu', '03', 'القائمة', 'المطاعم والكافيهات', 'calc_menu', '/assets/landing/sector-restaurants-icon.png'],
+      ['retail', '04', 'التجزئة', 'التجزئة والجملة', 'calc_store', '/assets/landing/sector-retail-icon.png'],
+      ['tech', '05', 'التقنية', 'المشاريع التقنية', 'calc_labor', '/assets/landing/sector-technology-icon.png'],
+      ['saas', '06', 'الاشتراكات', 'الخدمات المتكررة', 'calc_custom', '/assets/landing/sector-technology-icon.png'],
+      ['design', '07', 'التصميم', 'التصميم والمعمار', 'calc_office', '/assets/landing/sector-design-icon.png'],
     ];
   ?>
-  <nav class="quick-tools-bar" id="quickToolsBar" aria-label="الوصول السريع إلى أدوات التسعير">
+  <nav class="quick-tools-bar" id="quickToolsBar" aria-label="الوصول السريع إلى التسعيرات">
     <div class="quick-tools-label">
       <span class="quick-tools-overline">وصول سريع</span>
-      <strong>الحاسبات السبع</strong>
+      <strong>التسعيرات السبع</strong>
     </div>
     <div class="quick-tools-list">
-      <?php foreach ($quickTools as [$slug, $mark, $short, $name, $legacySlug]):
+      <?php foreach ($quickTools as [$slug, $mark, $short, $name, $legacySlug, $image]):
         $locked = !in_array('all', $userTools, true) && !in_array($legacySlug, $userTools, true);
       ?>
       <button class="quick-tool <?= $locked ? 'is-locked' : '' ?>"
@@ -264,7 +264,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
               data-tool="<?= $slug ?>"
               aria-label="<?= htmlspecialchars($name) ?>"
               onclick="<?= $locked ? 'showPlanUpgrade()' : "navToQuickTool('$slug')" ?>">
-        <span class="quick-tool-mark" aria-hidden="true"><?= $mark ?></span>
+        <span class="quick-tool-mark" aria-hidden="true"><img src="<?= htmlspecialchars($image) ?>" alt=""></span>
         <span class="quick-tool-copy"><b><?= $short ?></b><small><?= $name ?></small></span>
         <?php if ($locked): ?><span class="quick-tool-lock" aria-label="مقفل بالخطة"></span><?php endif; ?>
       </button>
@@ -361,7 +361,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
           <div class="quick-actions-grid">
             <button type="button" class="quick-action" onclick="navToQuickTool('services')">
               <span class="quick-action-icon ui-icon ui-icon-calculator" aria-hidden="true"></span>
-              <span><b>ابدأ تسعيرة</b><small>اختر الحاسبة المناسبة</small></span>
+              <span><b>ابدأ تسعيرة</b><small>اختر التسعيرة المناسبة</small></span>
             </button>
             <button type="button" class="quick-action" onclick="navDirect('quotes')">
               <span class="quick-action-icon ui-icon ui-icon-document" aria-hidden="true"></span>
@@ -666,7 +666,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
       </div>
       <div class="tools-section-head">
         <div><span class="step-number">١</span><h2>اختر المجال</h2></div>
-        <span>٧ أدوات تسعير متخصصة</span>
+       <span>٧ تسعيرات متخصصة</span>
       </div>
       <div id="toolsMenu">
         <?php
