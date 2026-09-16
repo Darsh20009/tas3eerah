@@ -2325,7 +2325,7 @@ select.form-control { cursor: pointer; }
   gap: 0;
   grid-template-columns: minmax(0, .88fr) minmax(0, 1.12fr);
   align-items: stretch;
-  direction: ltr;
+  direction: rtl;
   overflow: hidden;
   background: var(--bg);
 }
