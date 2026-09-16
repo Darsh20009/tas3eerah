@@ -219,6 +219,7 @@ $quotaLabel = $plan['max_quotes'] === -1 ? 'تسعير غير محدود' : 'خ�
     </main>
   </div>
 </div>
+<script src="/assets/js/currency.js?v=2"></script>
 <script src="/assets/js/frame-loader.js?v=<?= @filemtime(__DIR__.'/../assets/js/frame-loader.js') ?: time() ?>"></script>
 <script>
   window.goHome = function () { window.location.href = '/dashboard'; };

@@ -168,7 +168,7 @@ body{padding-bottom:0!important}
 CSS;
             if (is_string($html)) {
                 $html = preg_replace('/<\/head>/i', $identityCss . '</head>', $html, 1) ?? $html;
-                $appHead = '<link rel="manifest" href="/assets/manifest.webmanifest"><link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-180.png"><meta name="theme-color" content="#F8F5ED"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default">';
+                $appHead = '<link rel="manifest" href="/assets/manifest.webmanifest"><link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-180.png"><meta name="theme-color" content="#F8F5ED"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><script src="/assets/js/currency.js?v=2"></script>';
                 $html = preg_replace('/<head>/i', '<head>' . $appHead, $html, 1) ?? $html;
                 $selectedTool = preg_replace('/[^a-z-]/', '', (string)($_GET['tool'] ?? ''));
                 if ($selectedTool !== '') {
@@ -181,7 +181,19 @@ CSS;
                 echo '404';
             }
         } else {
-            readfile($f);
+            $html = file_get_contents($f);
+            if (is_string($html)) {
+                $html = preg_replace(
+                    '/<head>/i',
+                    '<head><script src="/assets/js/currency.js?v=2"></script>',
+                    $html,
+                    1
+                ) ?? $html;
+                echo $html;
+            } else {
+                http_response_code(404);
+                echo '404';
+            }
         }
         exit;
     }

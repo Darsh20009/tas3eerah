@@ -2,8 +2,9 @@
  * Replaces written currency labels with the Saudi Riyal symbol artwork.
  */
 (function () {
-  const SYMBOL_SRC = '/assets/riyal-symbol.png?v=1';
-  const TOKEN_RE = /ر\.س|SAR|ريال/g;
+  const SYMBOL_SRC = '/assets/riyal-symbol.png?v=2';
+  const TOKEN_RE = /ر\.س|ر\s*س|SAR|﷼|ريال/g;
+  let currencyObserver = null;
 
   function replace(root) {
     if (!root) return;
@@ -54,5 +55,34 @@
     TOKEN_RE.lastIndex = 0;
   }
 
-  window.Tas3Currency = { replace };
+  function watch(root) {
+    if (!root || currencyObserver) return;
+    currencyObserver = new MutationObserver(mutations => {
+      currencyObserver.disconnect();
+      mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            replace(node);
+          } else if (node.nodeType === Node.TEXT_NODE && node.parentElement) {
+            replace(node.parentElement);
+          }
+        });
+      });
+      currencyObserver.observe(root, { childList: true, subtree: true });
+    });
+    currencyObserver.observe(root, { childList: true, subtree: true });
+  }
+
+  function boot() {
+    if (!document.body) return;
+    replace(document.body);
+    watch(document.body);
+  }
+
+  window.Tas3Currency = { replace, boot };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot, { once: true });
+  } else {
+    boot();
+  }
 })();

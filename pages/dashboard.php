@@ -1609,7 +1609,7 @@ const APP = <?= json_encode([
   'quotesRemaining' => $quotesRemaining,
 ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 </script>
-<script src="/assets/js/currency.js?v=1"></script>
+<script src="/assets/js/currency.js?v=2"></script>
 <script src="/assets/js/app.js?v=<?= @filemtime(__DIR__.'/../assets/js/app.js') ?: time() ?>"></script>
 <script src="/assets/js/form-enhancements.js?v=<?= @filemtime(__DIR__.'/../assets/js/form-enhancements.js') ?: time() ?>"></script>
 <script src="/assets/js/frame-loader.js?v=<?= @filemtime(__DIR__.'/../assets/js/frame-loader.js') ?: time() ?>"></script>

@@ -24,7 +24,7 @@ if ($user) { header('Location: /dashboard'); exit; }
   <title>تسعيرة | منصة التسعير العربية</title>
   <link rel="stylesheet" href="/assets/css/app.css?v=<?= filemtime(__DIR__.'/../assets/css/app.css') ?>">
   <meta name="csrf-token" content="<?= htmlspecialchars(Auth::csrfToken(), ENT_QUOTES) ?>">
-  <script src="/assets/js/currency.js?v=1"></script>
+  <script src="/assets/js/currency.js?v=2"></script>
 </head>
 <body>
 
