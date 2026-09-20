@@ -2420,10 +2420,15 @@ select.form-control { cursor: pointer; }
   .hero-content > * { max-width: none; }
   .hero h1 {
     max-width: 360px;
-    margin-inline-start: auto;
+    align-self: flex-start;
+    margin-inline: 0;
     font-size: clamp(36px, 10vw, 48px);
   }
-  .hero-sub { max-width: 360px; margin-inline-start: auto; }
+  .hero-sub {
+    max-width: 360px;
+    align-self: flex-start;
+    margin-inline: 0;
+  }
   .hero-btns {
     align-self: flex-start;
     flex-direction: row;
@@ -2436,7 +2441,8 @@ select.form-control { cursor: pointer; }
   .hero-trust-stats {
     width: 100%;
     max-width: 360px;
-    margin-inline-start: auto;
+    align-self: flex-start;
+    margin-inline: 0;
     margin-top: 34px;
     justify-content: space-between;
     gap: 12px;
