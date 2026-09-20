@@ -91,8 +91,8 @@ if ($user) { header('Location: /dashboard'); exit; }
 <section>
   <div class="hero">
     <div class="hero-content bg-[#f7f4f0]">
-      <h1 data-ar="<em>سعّرها</em><br><span class='em-gold'>صح.</span>" data-en="<em>Price it</em><br><span class='em-gold'>right.</span>">
-        <em>سعّرها</em><br><span class="em-gold">صح.</span>
+      <h1 data-ar="<em>سعّرها</em><br><span class='em-gold'>صح</span>" data-en="<em>Price it</em><br><span class='em-gold'>right</span>">
+        <em>سعّرها</em><br><span class="em-gold">صح</span>
       </h1>
       <p class="hero-sub" data-ar="أول منصة سعودية متخصصة في أدوات التسعير · قطاعات متعددة · تقارير وسجل مشاريع — كل ما تحتاجه لتنظيم تسعير خدماتك ومنتجاتك في مكان واحد." data-en="Saudi Arabia's first specialized pricing platform for multiple sectors, reports and project records.">
         أول منصة سعودية متخصصة في أدوات التسعير · قطاعات متعددة · تقارير وسجل مشاريع — كل ما تحتاجه لتنظيم تسعير خدماتك ومنتجاتك في مكان واحد.
