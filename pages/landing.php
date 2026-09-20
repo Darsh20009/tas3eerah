@@ -190,28 +190,70 @@ if ($user) { header('Location: /dashboard'); exit; }
     <h2 data-ar="خطط واضحة بدون مفاجآت" data-en="Clear plans, no surprises">خطط واضحة بدون مفاجآت</h2>
     <p data-ar="اختر الباقة التي تناسب طريقة عملك وعدد أفراد فريقك" data-en="Choose the plan that fits your workflow and team size">اختر الباقة التي تناسب طريقة عملك وعدد أفراد فريقك</p>
   </div>
-  <div class="plan-grid">
-    <?php foreach (PLANS as $slug => $plan): ?>
-    <div class="plan-card <?= $slug === 'pro' ? 'featured' : '' ?>">
-      <?php if ($slug === 'pro'): ?>
-        <div class="plan-badge" data-ar="الأكثر طلباً" data-en="Most popular">الأكثر طلباً</div>
-      <?php endif; ?>
-      <div class="plan-name" data-ar="<?= htmlspecialchars($plan['name_ar']) ?>" data-en="<?= htmlspecialchars($plan['name_en']) ?>"><?= htmlspecialchars($plan['name_ar']) ?></div>
-      <div class="plan-price">
-        <?= $plan['price'] === 0 ? '٠' : number_format($plan['price']) ?>
-        <span><?= $plan['price'] === 0 ? 'مجاني' : 'ر.س / شهر' ?></span>
-      </div>
-      <p class="plan-desc"><?= htmlspecialchars($plan['features_ar'][0] ?? '') ?></p>
-      <ul class="plan-features">
-        <?php foreach (array_slice($plan['features_ar'], 1) as $f): ?>
-        <li><span class="plan-check">✓</span><?= htmlspecialchars($f) ?></li>
-        <?php endforeach; ?>
-      </ul>
-      <button class="btn <?= $slug === 'pro' ? 'btn-primary' : 'btn-outline' ?> w-full"
-              onclick="showAuth('register')"
-              data-ar="ابدأ الآن" data-en="Start now">ابدأ الآن</button>
+  <div class="pricing-layout">
+    <div class="pricing-details" aria-live="polite">
+      <?php foreach (PLANS as $slug => $plan): ?>
+      <article class="pricing-detail <?= $slug === 'pro' ? 'active' : '' ?>" data-plan-detail="<?= $slug ?>">
+        <div class="pricing-detail-main">
+          <div class="pricing-detail-copy">
+            <div class="pricing-detail-name-row">
+              <?php if ($slug === 'pro'): ?>
+                <span class="pricing-popular" data-ar="الأكثر طلباً" data-en="Most popular">الأكثر طلباً</span>
+              <?php endif; ?>
+              <span class="pricing-detail-name"
+                    data-ar="<?= htmlspecialchars($plan['name_ar'], ENT_QUOTES) ?>"
+                    data-en="<?= htmlspecialchars($plan['name_en'], ENT_QUOTES) ?>"><?= htmlspecialchars($plan['name_ar']) ?></span>
+            </div>
+            <div class="pricing-detail-price">
+              <span class="pricing-detail-price-number"><?= $plan['price'] === 0 ? '٠' : number_format($plan['price']) ?></span>
+              <span class="pricing-detail-price-meta"
+                    data-ar="<?= $plan['price'] === 0 ? 'مجاني' : 'ر.س / شهر' ?>"
+                    data-en="<?= $plan['price'] === 0 ? 'Free' : 'SAR / month' ?>"><?= $plan['price'] === 0 ? 'مجاني' : 'ر.س / شهر' ?></span>
+            </div>
+            <p class="pricing-detail-description"><?= htmlspecialchars($plan['features_ar'][0] ?? '') ?></p>
+          </div>
+          <div class="pricing-device">
+            <img src="/assets/landing/pricing-device.png"
+                 alt="لوحة تحليلات تسعيرة" data-ar-alt="لوحة تحليلات تسعيرة" data-en-alt="Tas3eerah analytics dashboard">
+          </div>
+        </div>
+        <div class="pricing-detail-side">
+          <ul class="pricing-detail-features">
+            <?php foreach (array_slice($plan['features_ar'], 1) as $f): ?>
+            <li><span class="pricing-feature-check">✓</span><span><?= htmlspecialchars($f) ?></span></li>
+            <?php endforeach; ?>
+          </ul>
+          <button class="btn <?= $slug === 'pro' ? 'btn-primary' : 'btn-outline' ?> pricing-detail-button"
+                  onclick="showAuth('register')"
+                  data-ar="ابدأ الآن" data-en="Start now">ابدأ الآن</button>
+        </div>
+      </article>
+      <?php endforeach; ?>
     </div>
-    <?php endforeach; ?>
+
+    <div class="pricing-plan-switcher" role="tablist" aria-label="اختيار الباقة">
+      <?php foreach (PLANS as $slug => $plan): ?>
+      <button class="pricing-plan-option <?= $slug === 'pro' ? 'active' : '' ?>"
+              type="button" role="tab" aria-selected="<?= $slug === 'pro' ? 'true' : 'false' ?>"
+              data-plan-option="<?= $slug ?>" onclick="selectPricingPlan('<?= $slug ?>')">
+        <span class="pricing-option-radio" aria-hidden="true"></span>
+        <span class="pricing-option-copy">
+          <span class="pricing-option-name"
+                data-ar="<?= htmlspecialchars($plan['name_ar'], ENT_QUOTES) ?>"
+                data-en="<?= htmlspecialchars($plan['name_en'], ENT_QUOTES) ?>"><?= htmlspecialchars($plan['name_ar']) ?></span>
+          <span class="pricing-option-price">
+            <b><?= $plan['price'] === 0 ? '٠' : number_format($plan['price']) ?></b>
+            <small data-ar="<?= $plan['price'] === 0 ? 'مجاني' : 'ر.س / شهر' ?>"
+                   data-en="<?= $plan['price'] === 0 ? 'Free' : 'SAR / month' ?>"><?= $plan['price'] === 0 ? 'مجاني' : 'ر.س / شهر' ?></small>
+          </span>
+          <span class="pricing-option-description"><?= htmlspecialchars($plan['features_ar'][0] ?? '') ?></span>
+        </span>
+        <?php if ($slug === 'pro'): ?>
+          <span class="pricing-option-badge" data-ar="الأكثر طلباً" data-en="Most popular">الأكثر طلباً</span>
+        <?php endif; ?>
+      </button>
+      <?php endforeach; ?>
+    </div>
   </div>
 </section>
 </div><?php endif; ?>
@@ -593,6 +635,7 @@ const LANDING_TRANSLATIONS = {
   'تسعيرة منظمة':'Organized quotes', 'قطاعات متخصصة':'Specialized sectors', 'باقات واضحة':'Clear plans',
   'المملكة العربية السعودية':'Saudi Arabia', 'لوحة منصة تسعيرة':'Tas3eerah workspace',
   'الأكثر طلباً':'Most popular', 'مجاني':'Free', 'ر.س / شهر':'SAR / month',
+   'تسعيرة واحدة للخدمات أو المنتجات شهرياً':'One service or product quote per month',
   '٥ تسعيرات للخدمات أو المنتجات شهرياً':'5 service or product quotes per month',
   'تصدير ٣ تقارير PDF':'Export 3 PDF reports', 'سجل يعرض ٣ خدمات أو منتجات':'Record 3 services or products',
   'مستخدم واحد':'One user', 'دعم عبر البريد خلال ٣ أيام':'Email support within 3 days',
@@ -656,6 +699,29 @@ function closeLandMenu() {
 }
 window.addEventListener('resize', () => { if (window.innerWidth > 768) closeLandMenu(); });
 
+/* ══ اختيار باقة الأسعار ══ */
+let pricingPlanChosen = false;
+function selectPricingPlan(slug, fromUser = true) {
+  const options = document.querySelectorAll('[data-plan-option]');
+  const details = document.querySelectorAll('[data-plan-detail]');
+  if (!options.length || !details.length) return;
+  options.forEach(option => {
+    const active = option.dataset.planOption === slug;
+    option.classList.toggle('active', active);
+    option.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+  details.forEach(detail => {
+    detail.classList.toggle('active', detail.dataset.planDetail === slug);
+  });
+  if (fromUser) pricingPlanChosen = true;
+}
+function initPricingSwitcher() {
+  selectPricingPlan(window.innerWidth <= 768 ? 'plus' : 'pro', false);
+}
+window.addEventListener('resize', () => {
+  if (!pricingPlanChosen) initPricingSwitcher();
+});
+
 /* ══ تبديل اللغة ══ */
 function applyLandingLanguage() {
   const isAr = LANG.current === 'ar';
@@ -690,6 +756,7 @@ function toggleLang() {
 }
 document.addEventListener('DOMContentLoaded', () => {
   applyLandingLanguage();
+  initPricingSwitcher();
 });
 
 /* ══ نافذة المصادقة ══ */
