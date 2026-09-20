@@ -2342,11 +2342,17 @@ select.form-control { cursor: pointer; }
 }
 .hero-content > * { max-width: 440px; }
 .hero h1 {
+  width: min(100%, 440px);
+  align-self: flex-start;
+  text-align: right;
   font-size: clamp(42px, 5vw, 66px);
   line-height: 1.08;
   letter-spacing: -1px;
 }
 .hero-sub {
+  width: min(100%, 440px);
+  align-self: flex-start;
+  text-align: right;
   max-width: 440px;
   margin: 18px 0 27px;
   font-size: 14px;
