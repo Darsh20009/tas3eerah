@@ -691,6 +691,109 @@ select.form-control { cursor: pointer; }
 
 
 /* ══════════════════════════════════════════════════
+   منهجية تسعيرة
+   ══════════════════════════════════════════════════ */
+.methodology-strip {
+  background: var(--bg);
+  border-bottom: 1px solid var(--line2);
+  overflow: hidden;
+}
+.methodology-inner {
+  max-width: 1322px;
+  min-height: 220px;
+  margin: 0 auto;
+  padding: 22px 36px 14px;
+  display: grid;
+  grid-template-columns: 1.08fr 2.92fr;
+  gap: 22px;
+  align-items: stretch;
+  direction: rtl;
+}
+.methodology-intro {
+  min-width: 0;
+  min-height: 184px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-left: 1px solid rgba(107,124,115,.22);
+  text-align: center;
+}
+.methodology-intro-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 260px;
+}
+.methodology-intro h2 {
+  color: var(--text);
+  font-size: clamp(24px, 2.4vw, 34px);
+  font-weight: 900;
+  line-height: 1.25;
+}
+.methodology-intro p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.8;
+  margin-top: 8px;
+}
+.methodology-skyline {
+  position: absolute;
+  z-index: 0;
+  right: -6%;
+  bottom: -1px;
+  width: 112%;
+  max-width: none;
+  height: auto;
+  opacity: .58;
+  pointer-events: none;
+}
+.methodology-points {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  align-items: center;
+  direction: ltr;
+}
+.methodology-point {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  direction: rtl;
+}
+.methodology-point > img {
+  width: 52px;
+  height: 44px;
+  object-fit: contain;
+  margin-bottom: 8px;
+}
+.methodology-point h3 {
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+.methodology-point p {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.55;
+  margin-top: 5px;
+  white-space: nowrap;
+}
+.methodology-divider {
+  width: 46px;
+  height: 18px;
+  justify-self: center;
+  align-self: center;
+  object-fit: contain;
+  opacity: .62;
+}
+
+
+/* ══════════════════════════════════════════════════
    قسم من نحن
    ══════════════════════════════════════════════════ */
 .about-section {
@@ -2448,6 +2551,31 @@ select.form-control { cursor: pointer; }
     gap: 12px;
   }
 
+  .methodology-inner {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    min-height: 0;
+    padding: 30px 18px 22px;
+  }
+  .methodology-intro {
+    min-height: 176px;
+    border-left: 0;
+    border-bottom: 1px solid rgba(107,124,115,.22);
+    padding-bottom: 18px;
+  }
+  .methodology-skyline {
+    right: 0;
+    width: 100%;
+  }
+  .methodology-points {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 8px;
+    direction: rtl;
+  }
+  .methodology-divider { display: none; }
+  .methodology-point h3,
+  .methodology-point p { white-space: normal; }
+
   /* قسم المميزات: لا تسمح للأعمدة الأربعة المرجعية بدفع الصفحة أفقياً */
   .features {
     width: 100%;
@@ -2499,6 +2627,10 @@ select.form-control { cursor: pointer; }
 }
 
 @media (max-width: 480px) {
+  .methodology-points { grid-template-columns: minmax(0, 1fr); }
+  .methodology-intro h2 { font-size: 28px; }
+  .methodology-point > img { width: 48px; height: 40px; }
+
   .features .feat-grid {
     grid-template-columns: minmax(0, 1fr);
   }

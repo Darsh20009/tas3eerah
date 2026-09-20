@@ -230,6 +230,44 @@ if ($user) { header('Location: /dashboard'); exit; }
   </div>
 </div>
 
+<!-- ═══ منهجية تسعيرة ═══ -->
+<section id="methodology" class="methodology-strip" aria-labelledby="methodologyTitle">
+  <div class="methodology-inner">
+    <div class="methodology-intro">
+      <img class="methodology-skyline" src="/assets/landing/methodology-skyline.png" alt="" aria-hidden="true">
+      <div class="methodology-intro-copy">
+        <h2 id="methodologyTitle" data-ar="منهجية تسعيرة" data-en="The Tas3eerah Methodology">منهجية تسعيرة</h2>
+        <p data-ar="سعر مبني على البيانات والمنهجية، وليس على التخمين." data-en="A price built on data and methodology, not guesswork.">سعر مبني على البيانات والمنهجية، وليس على التخمين.</p>
+      </div>
+    </div>
+    <div class="methodology-points">
+      <article class="methodology-point">
+        <img src="/assets/landing/methodology-cost.png" alt="" aria-hidden="true">
+        <h3 data-ar="التكلفة الحقيقية" data-en="True cost">التكلفة الحقيقية</h3>
+        <p data-ar="تحسب تكاليفك الفعلية<br>وتوفر المعلومة بدقة" data-en="Calculate your actual costs<br>with accurate information">تحسب تكاليفك الفعلية<br>وتوفر المعلومة بدقة</p>
+      </article>
+      <img class="methodology-divider" src="/assets/landing/methodology-divider.png" alt="" aria-hidden="true">
+      <article class="methodology-point">
+        <img src="/assets/landing/methodology-margin.png" alt="" aria-hidden="true">
+        <h3 data-ar="الهامش المستهدف" data-en="Target margin">الهامش المستهدف</h3>
+        <p data-ar="حدد هامش الربح الذي<br>تطمح له" data-en="Set the profit margin<br>you aim for">حدد هامش الربح الذي<br>تطمح له</p>
+      </article>
+      <img class="methodology-divider" src="/assets/landing/methodology-divider.png" alt="" aria-hidden="true">
+      <article class="methodology-point">
+        <img src="/assets/landing/methodology-value.png" alt="" aria-hidden="true">
+        <h3 data-ar="مستوى القيمة" data-en="Value level">مستوى القيمة</h3>
+        <p data-ar="قيّم منتجك من حيث القيمة<br>لعملائك" data-en="Value your product<br>for your customers">قيّم منتجك من حيث القيمة<br>لعملائك</p>
+      </article>
+      <img class="methodology-divider" src="/assets/landing/methodology-divider.png" alt="" aria-hidden="true">
+      <article class="methodology-point">
+        <img src="/assets/landing/methodology-smart.png" alt="" aria-hidden="true">
+        <h3 data-ar="التوصية الذكية" data-en="Smart recommendation">التوصية الذكية</h3>
+        <p data-ar="تقدم لك السعر الأنسب<br>ومستوى الثقة" data-en="Get the right price<br>with a confidence level">تقدم لك السعر الأنسب<br>ومستوى الثقة</p>
+      </article>
+    </div>
+  </div>
+</section>
+
 <!-- ═══ من نحن ═══ -->
 <section id="about">
   <div class="about-section">
