@@ -3,7 +3,9 @@
  */
 (function () {
   const SYMBOL_SRC = '/assets/riyal-symbol.png?v=2';
-  const TOKEN_RE = /ر\.س|ر\s*س|SAR|﷼|ريال/g;
+  // Match currency labels only. Do not treat the adjacent letters "ر" and "س"
+  // inside normal Arabic words such as "أرسل" or "الرسالة" as currency.
+  const TOKEN_RE = /ر\.س|(?<![\u0600-\u06ff])ر\s+س(?![\u0600-\u06ff])|(?<![A-Za-z])SAR(?![A-Za-z])|(?<![\u0600-\u06ff])ريال(?![\u0600-\u06ff])|﷼/g;
   let currencyObserver = null;
 
   function replace(root) {

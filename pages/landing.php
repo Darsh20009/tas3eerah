@@ -377,14 +377,16 @@ if ($user) { header('Location: /dashboard'); exit; }
       <div class="contact-info-item">
         <div class="contact-info-icon">✉</div>
         <div>
-          <div style="font-size:11px;color:var(--muted);font-weight:700">البريد الإلكتروني</div>
+          <div style="font-size:11px;color:var(--muted);font-weight:700"
+               data-ar="البريد الإلكتروني" data-en="Email">البريد الإلكتروني</div>
           <div style="font-weight:700;font-size:13px;direction:ltr">info@tas3eerah.com</div>
         </div>
       </div>
       <div class="contact-info-item">
         <div class="contact-info-icon">🌐</div>
         <div>
-          <div style="font-size:11px;color:var(--muted);font-weight:700">الموقع الرسمي</div>
+          <div style="font-size:11px;color:var(--muted);font-weight:700"
+               data-ar="الموقع الرسمي" data-en="Official website">الموقع الرسمي</div>
           <div style="font-weight:700;font-size:13px">
             <a href="#" style="color:var(--p)">tas3eerah.com</a>
           </div>
@@ -393,24 +395,29 @@ if ($user) { header('Location: /dashboard'); exit; }
     </div>
 
     <div class="contact-form">
-      <h3 style="font-size:16px;font-weight:800;margin-bottom:20px">أرسل رسالة</h3>
+      <h3 style="font-size:16px;font-weight:800;margin-bottom:20px"
+          data-ar="أرسل رسالة" data-en="Send a message">أرسل رسالة</h3>
       <div style="display:flex;flex-direction:column;gap:12px">
         <div class="form-group" style="margin:0">
-          <label>الاسم</label>
+          <label data-ar="الاسم" data-en="Name">الاسم</label>
           <input type="text" class="form-control" id="ctName" placeholder="اسمك الكريم">
         </div>
         <div class="form-group" style="margin:0">
-          <label>البريد الإلكتروني</label>
+          <label data-ar="البريد الإلكتروني" data-en="Email">البريد الإلكتروني</label>
           <input type="email" class="form-control" id="ctEmail" placeholder="email@example.com" dir="ltr">
         </div>
         <div class="form-group" style="margin:0">
-          <label>الرسالة</label>
+          <label data-ar="الرسالة" data-en="Message">الرسالة</label>
           <textarea class="form-control" id="ctMsg" placeholder="اكتب رسالتك هنا..."></textarea>
         </div>
         <div id="ctFeedback" style="font-size:13px;display:none"></div>
-        <button class="btn btn-primary" onclick="submitContact()">إرسال الرسالة</button>
+        <button class="btn btn-primary" onclick="submitContact()"
+                data-ar="إرسال الرسالة" data-en="Send message">إرسال الرسالة</button>
       </div>
-      <p style="font-size:11px;color:var(--muted2);margin-top:14px;text-align:center">نلتزم بالخصوصية ولا نشارك بياناتك</p>
+      <p style="font-size:11px;color:var(--muted2);margin-top:14px;text-align:center"
+         data-ar="نلتزم بالخصوصية ولا نشارك بياناتك" data-en="We respect your privacy and do not share your data">
+        نلتزم بالخصوصية ولا نشارك بياناتك
+      </p>
     </div>
   </div>
 </section>
