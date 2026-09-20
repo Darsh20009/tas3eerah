@@ -213,7 +213,7 @@ if ($user) { header('Location: /dashboard'); exit; }
             <p class="pricing-detail-description"><?= htmlspecialchars($plan['features_ar'][0] ?? '') ?></p>
           </div>
           <div class="pricing-device">
-            <img src="/assets/landing/pricing-device.png"
+            <img src="/assets/landing/pricing-device.png?v=<?= filemtime(__DIR__.'/../assets/landing/pricing-device.png') ?>"
                  alt="لوحة تحليلات تسعيرة" data-ar-alt="لوحة تحليلات تسعيرة" data-en-alt="Tas3eerah analytics dashboard">
           </div>
         </div>
