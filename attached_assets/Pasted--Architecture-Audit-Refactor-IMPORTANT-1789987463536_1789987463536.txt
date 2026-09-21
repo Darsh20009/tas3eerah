@@ -1,0 +1,865 @@
+أريد منك تنفيذ Architecture Audit + Refactor شامل لمشروع "تسعيرة" الموجود في هذا المشروع.
+
+IMPORTANT:
+لا تبدأ بتعديل الكود مباشرة.
+أولًا افحص المشروع بالكامل وافهم الـ architecture الحالية، ثم ضع خطة تنفيذ دقيقة، وبعد موافقتي ابدأ التنفيذ.
+
+المشروع حاليًا يعمل، وفيه Features موجودة بالفعل، لذلك الهدف ليس إعادة بناء المشروع من الصفر أو حذف الخصائص الموجودة، وإنما إعادة تنظيم الـ architecture وتقوية النظام مع الحفاظ على الـ existing functionality.
+
+==================================================
+1. المشكلة الأساسية
+==================================================
+
+المشروع حاليًا يعاني من مشاكل Architecture واضحة:
+
+1. الـ Admin يتم التعامل معه تقريبًا كمستخدم عادي مع Role إضافي.
+2. الـ Client / Employee / Admin يستخدمون نفس الـ Dashboard والمنطق الداخلي بدرجات كبيرة.
+3. الـ Role system بسيط جدًا ولا يوجد Permission System حقيقي.
+4. توجد Conditional checks كثيرة مثل:
+   if ($role === 'admin')
+   if ($role === 'client')
+   if ($role === 'employee')
+   في أماكن كثيرة من المشروع.
+5. الـ Admin لا يشعر بأنه System Administrator حقيقي، بل Client/Employee مع صلاحيات إضافية.
+6. الـ Dashboard يحتوي على مسؤوليات كثيرة جدًا.
+7. بعض ملفات الـ frontend/backend ضخمة ومتشابكة.
+8. توجد عمليات Database initialization/index creation/seeding داخل request lifecycle.
+9. توجد استعلامات كثيرة ومتكررة تؤثر على الأداء.
+10. يوجد ضعف في الـ MongoDB indexing مقارنة بالـ queries المستخدمة.
+11. يوجد تداخل بين Client Workspace و Employee Workspace و Admin Management.
+12. النظام يفتقد Organization/Tenant architecture واضحة.
+13. الـ Role والـ Plan والـ Feature Access متداخلون.
+14. إضافة Feature جديدة أصبحت صعبة بسبب الترابط العالي بين الملفات.
+15. توجد لخبطة في الـ navigation والـ UX نتيجة محاولة استخدام نفس النظام لكل الأدوار.
+16. أريد نظامًا قويًا وقابلًا للتوسع وليس مجرد Dashboard شكله أفضل.
+
+==================================================
+2. الهدف النهائي
+==================================================
+
+أريد تحويل المشروع من:
+
+USER
+→ ROLE
+→ PLAN
+→ DASHBOARD
+
+إلى Architecture أكثر احترافية:
+
+IDENTITY
+→ ORGANIZATION
+→ ROLE
+→ PERMISSIONS
+→ SUBSCRIPTION
+→ ENTITLEMENTS
+→ WORKSPACE
+
+ويجب أن يصبح لكل نوع مستخدم تجربة مستقلة منطقيًا:
+
+CLIENT WORKSPACE
+EMPLOYEE WORKSPACE
+ADMIN CONTROL CENTER
+
+مع الحفاظ على الـ existing features وعدم كسر النظام الحالي.
+
+==================================================
+3. أولًا: اعمل Audit كامل
+==================================================
+
+قبل تعديل أي شيء، افحص:
+
+- كل folders
+- كل PHP files
+- كل JS files
+- كل API endpoints
+- Auth
+- Sessions
+- Roles
+- Permissions
+- Database layer
+- MongoDB
+- SQLite
+- Models
+- Quotes
+- Users
+- Clients
+- Employees
+- Plans
+- Subscriptions
+- Messaging
+- Mailbox
+- Activity logs
+- Pricing engines
+- Settings
+- Admin pages
+- Dashboard
+- Frontend state
+- API calls
+- Database indexes
+- Security
+- Error handling
+- Performance bottlenecks
+
+أريد منك إنشاء:
+
+docs/architecture-audit.md
+
+ويجب أن يحتوي على:
+
+1. Current Architecture
+2. Current Authentication Flow
+3. Current Authorization Flow
+4. Current Role System
+5. Current Database Architecture
+6. Current API Architecture
+7. Current Frontend Architecture
+8. Current Admin Architecture
+9. Current Performance Problems
+10. Current Security Problems
+11. Current Technical Debt
+12. Duplicated Logic
+13. High Coupling Areas
+14. Risky Areas
+15. Recommended Architecture
+
+لا تخمن.
+إذا لم تجد شيئًا، اذكر أنه غير موجود.
+
+==================================================
+4. Admin Architecture
+==================================================
+
+أريد فصل الـ Admin عن الـ Client Workspace والـ Employee Workspace.
+
+الـ Admin يجب أن يكون له:
+
+ADMIN CONTROL CENTER
+
+وليس Client Dashboard مع Admin menu.
+
+الـ Admin Control Center يجب أن يكون مصممًا مستقبلًا حول:
+
+Platform
+- Overview
+- Users
+- Organizations
+- Roles & Permissions
+
+Commercial
+- Plans
+- Subscriptions
+- Billing
+- Usage
+
+Operations
+- Quotes
+- Projects
+- Customers
+- Pricing Engines
+
+Communication
+- Internal Messages
+- Email
+- Contact Inbox
+
+System
+- Audit Logs
+- Security
+- Integrations
+- System Settings
+- System Health
+
+لا تنفذ UI نهائيًا قبل التأكد من الـ architecture.
+
+==================================================
+5. Role System
+==================================================
+
+لا تعتمد على:
+
+role === 'admin'
+
+في كل مكان.
+
+أريد Authorization Layer مركزية.
+
+صمم نظامًا مثل:
+
+Platform Roles:
+
+SUPER_ADMIN
+ADMIN
+SUPPORT
+FINANCE
+
+Organization Roles:
+
+OWNER
+MANAGER
+EMPLOYEE
+ACCOUNTANT
+SALES
+VIEWER
+
+Client:
+
+CLIENT
+
+لكن لا تضف Roles غير ضرورية إذا كانت الـ architecture الحالية لا تحتاجها.
+
+الأهم هو فصل:
+
+ROLE
+
+عن:
+
+PERMISSION
+
+عن:
+
+SUBSCRIPTION
+
+عن:
+
+FEATURE ACCESS
+
+مثال:
+
+users.view
+users.create
+users.update
+users.delete
+
+quotes.view
+quotes.create
+quotes.update
+quotes.delete
+
+subscriptions.view
+subscriptions.manage
+
+billing.view
+billing.manage
+
+settings.view
+settings.manage
+
+audit.view
+
+ويجب إنشاء:
+
+AuthorizationService
+
+أو architecture مكافئة مناسبة للمشروع.
+
+أي API حساس يجب أن يمر من خلال authorization مركزي.
+
+==================================================
+6. Organization / Tenant Architecture
+==================================================
+
+افحص هل المشروع يحتاج Organization/Tenant layer.
+
+إذا كان مناسبًا، صمم:
+
+Organization
+→ Members
+→ Roles
+→ Permissions
+→ Quotes
+→ Customers
+→ Projects
+→ Subscription
+→ Settings
+
+بحيث لا يصبح User هو الوحدة الأساسية الوحيدة للنظام.
+
+يجب أن يكون النظام مستعدًا لتعامل شركة واحدة مع عدة موظفين.
+
+لا تنفذ Multi-tenancy بشكل سطحي.
+يجب أن يكون organization isolation واضحًا في database queries وauthorization.
+
+==================================================
+7. Subscription / Entitlements
+==================================================
+
+لا تجعل:
+
+PLAN
+
+هو نفسه:
+
+PERMISSION.
+
+الـ Plan يجب أن يحدد Feature Entitlements / Limits.
+
+مثال:
+
+quotes.max_monthly
+team.max_members
+pdf.unlimited
+advanced_pricing.enabled
+priority_support.enabled
+
+بينما الـ Permission يحدد من يستطيع استخدام الـ feature داخل الـ organization.
+
+مثال:
+
+ROLE:
+employee
+
+PERMISSION:
+quotes.create
+
+PLAN:
+PRO
+
+ENTITLEMENT:
+advanced_pricing = true
+
+القرار النهائي يجب أن يكون:
+
+Permission + Entitlement + Resource Ownership/Organization Scope
+
+==================================================
+8. Database Architecture
+==================================================
+
+افحص DB abstraction الحالية بالكامل.
+
+خصوصًا:
+
+MongoDB
+SQLite
+DB.php
+Mongo initialization
+SQLite compatibility
+Indexes
+Queries
+Aggregation
+Pagination
+
+لا تكسر الـ development environment بدون سبب.
+
+لكن لا توسع الـ abstraction الحالي بشكل عشوائي.
+
+حدد بوضوح:
+
+- ما الذي يجب أن يبقى
+- ما الذي يحتاج refactor
+- ما الذي يحتاج extraction
+- ما الذي يجب التخلص منه
+
+==================================================
+9. Database Initialization
+==================================================
+
+ممنوع أن تكون العمليات الثقيلة التالية جزءًا من request lifecycle:
+
+createIndex
+updateMany
+seed
+migration
+database initialization
+
+إذا كانت حاليًا موجودة داخل connection/request flow:
+
+انقلها إلى:
+
+Database Bootstrap / Migration / Setup process
+
+بحيث يتم تنفيذها عند deployment أو setup وليس عند كل request.
+
+==================================================
+10. MongoDB Performance
+==================================================
+
+حلل جميع queries المستخدمة فعليًا.
+
+أنشئ Index strategy مبنية على queries الحقيقية.
+
+افحص خصوصًا:
+
+users
+quotes
+messages
+activity_log
+subscriptions
+projects
+clients
+
+ولا تضف indexes عشوائية.
+
+لكل index جديد يجب أن تعرف:
+
+- Query التي يحتاجها
+- سبب وجوده
+- تأثيره المتوقع
+- هل يوجد index مكرر
+
+وأضف:
+
+pagination
+
+حيثما توجد قوائم كبيرة.
+
+تجنب:
+
+findAll بدون limit
+
+أو تحميل آلاف records إلى الذاكرة.
+
+==================================================
+11. Dashboard Performance
+==================================================
+
+افحص الصفحة الرئيسية والـ Admin Dashboard.
+
+لا أريد عشرات DB queries المتسلسلة عند فتح Dashboard.
+
+صمم summary endpoints مناسبة.
+
+مثال:
+
+GET /api/admin/overview
+
+ويعيد فقط البيانات المطلوبة للـ Admin Overview.
+
+وكذلك:
+
+GET /api/workspace/overview
+
+حسب الحاجة.
+
+استخدم caching أو aggregation عندما يكون مناسبًا.
+
+لا تضف caching بشكل أعمى.
+
+==================================================
+12. Frontend Architecture
+==================================================
+
+افحص الملفات الضخمة مثل:
+
+app.js
+dashboard.php
+
+وحدد كيف يمكن تقسيم المسؤوليات.
+
+لا تقم بإعادة كتابة frontend بالكامل بدون سبب.
+
+لكن افصل:
+
+Core
+Auth
+API
+Permissions
+State
+Admin
+Workspace
+Quotes
+Clients
+Messages
+Pricing
+Subscriptions
+
+بحيث لا يصبح كل شيء في ملف واحد.
+
+==================================================
+13. API Architecture
+==================================================
+
+راجع كل API endpoint.
+
+لكل endpoint حدد:
+
+- Authentication
+- Authorization
+- Organization scope
+- Input validation
+- Resource ownership
+- Error handling
+- Pagination
+- Response structure
+
+أريد API behavior متوقعًا ومتسقًا.
+
+استخدم status codes صحيحة.
+
+401 = unauthenticated
+
+403 = authenticated but unauthorized
+
+404 = resource not found
+
+422 = validation error
+
+500 = unexpected server error
+
+==================================================
+14. Quote Architecture
+==================================================
+
+راجع Quote system بالكامل.
+
+أريد architecture قابلة للتوسع بحيث يصبح Quote مرتبطًا بشكل واضح بـ:
+
+Organization
+Customer
+Project
+Creator
+Assigned employee
+Pricing calculation
+Items
+Versions
+Status history
+Approval
+Delivery
+
+لا تغير الـ existing behavior بدون سبب.
+
+أريد فقط فصل الـ responsibilities وإزالة الترابط الزائد.
+
+==================================================
+15. Security
+==================================================
+
+راجع:
+
+Authentication
+Authorization
+Session handling
+CSRF
+Input validation
+XSS
+SQL injection
+Mongo injection
+IDOR
+Resource ownership
+Admin access
+Privilege escalation
+File uploads
+Email actions
+OAuth
+Sensitive configuration
+
+ركز بشكل خاص على:
+
+هل يمكن لمستخدم تغيير ID في request والوصول إلى Resource يخص مستخدمًا آخر؟
+
+وهل يمكن لمستخدم تغيير role أو plan أو organization_id من client-side request؟
+
+أي authorization يجب أن يتم server-side.
+
+==================================================
+16. Admin Security
+==================================================
+
+Admin actions يجب أن تكون أكثر صرامة.
+
+أي عملية حساسة مثل:
+
+- تغيير Role
+- تغيير Subscription
+- تغيير Permissions
+- حذف User
+- حذف Organization
+- تعديل System Settings
+- تغيير Billing state
+
+يجب أن:
+
+1. تتحقق من permission
+2. تتحقق من resource scope
+3. تسجل Audit Log
+4. لا تعتمد على client-side state
+
+==================================================
+17. Audit Logging
+==================================================
+
+طوّر Activity/Audit architecture.
+
+أريد distinction بين:
+
+User Activity
+
+و
+
+Security Audit Log
+
+مثال:
+
+USER_LOGIN
+USER_LOGOUT
+PASSWORD_CHANGED
+
+ROLE_CHANGED
+PERMISSION_CHANGED
+SUBSCRIPTION_CHANGED
+USER_DELETED
+ORGANIZATION_UPDATED
+QUOTE_DELETED
+ADMIN_SETTINGS_CHANGED
+
+كل Audit Event يجب أن يحتوي على:
+
+actor
+action
+resource
+resourceId
+organizationId
+timestamp
+metadata
+IP إذا كان مناسبًا
+user agent إذا كان مناسبًا
+
+مع مراعاة الخصوصية والأمان.
+
+==================================================
+18. Error Handling
+==================================================
+
+راجع طريقة الأخطاء.
+
+لا أريد:
+
+silent failures
+
+أو:
+
+catch(Throwable $e) {}
+
+بدون logging مناسب.
+
+يجب أن يكون لدينا:
+
+- User-safe error message
+- Server-side detailed logging
+- Consistent API error format
+
+==================================================
+19. Code Quality
+==================================================
+
+ابحث عن:
+
+- duplicate code
+- dead code
+- unused functions
+- unused imports
+- huge functions
+- global state
+- magic strings
+- magic numbers
+- duplicated authorization
+- duplicated database queries
+- mixed responsibilities
+
+لكن لا تقم بعمل refactor تجميلي فقط.
+
+كل تغيير يجب أن يخدم:
+
+Architecture
+Performance
+Security
+Maintainability
+Scalability
+
+==================================================
+20. أهم قاعدة
+==================================================
+
+لا تكسر الـ existing functionality.
+
+قبل أي migration:
+
+افحص:
+
+- existing routes
+- existing APIs
+- existing database collections
+- existing documents
+- existing users
+- existing plans
+- existing quotes
+
+إذا احتجت Schema migration:
+
+أنشئ migration آمنة وقابلة للـ rollback.
+
+لا تحذف data.
+
+لا تغير production data مباشرة بدون migration واضحة.
+
+==================================================
+21. Testing
+==================================================
+
+قبل أي refactor:
+
+شغّل كل الاختبارات الموجودة وسجل baseline.
+
+بعد كل Phase:
+
+شغّل:
+
+- existing tests
+- authorization tests
+- API tests
+- database tests
+- security tests
+- regression tests
+
+أضف tests خاصة بـ:
+
+Admin isolation
+Client isolation
+Employee permissions
+Organization isolation
+Role changes
+Subscription limits
+IDOR prevention
+Unauthorized API access
+
+==================================================
+22. Execution Strategy
+==================================================
+
+نفذ المشروع على مراحل.
+
+PHASE 0
+Audit + Baseline
+
+PHASE 1
+Identity + Authorization foundation
+
+PHASE 2
+Organization/Tenant foundation
+
+PHASE 3
+Subscription + Entitlements
+
+PHASE 4
+Admin Control Center backend architecture
+
+PHASE 5
+Workspace separation
+
+PHASE 6
+Database/index/performance refactor
+
+PHASE 7
+API cleanup
+
+PHASE 8
+Frontend architecture cleanup
+
+PHASE 9
+Security hardening
+
+PHASE 10
+Testing + regression + production verification
+
+لا تنفذ كل شيء دفعة واحدة.
+
+==================================================
+23. Documentation
+==================================================
+
+أنشئ:
+
+docs/architecture-audit.md
+docs/target-architecture.md
+docs/authorization.md
+docs/organization-model.md
+docs/entitlements.md
+docs/admin-architecture.md
+docs/database-index-strategy.md
+docs/migration-plan.md
+
+يجب أن تكون هذه الوثائق متزامنة مع الكود.
+
+==================================================
+24. Definition of Done
+==================================================
+
+لن أعتبر المشروع انتهى إلا عندما:
+
+[ ] Admin ليس Client مع role إضافي
+[ ] Client Workspace منفصل منطقيًا
+[ ] Employee Workspace منفصل منطقيًا
+[ ] Admin Control Center مستقل
+[ ] Role system واضح
+[ ] Permission system مركزي
+[ ] Subscription منفصل عن Permission
+[ ] Entitlements واضحة
+[ ] Organization scope واضح
+[ ] IDOR protection موجود
+[ ] Admin actions audited
+[ ] Database initialization خارج request lifecycle
+[ ] MongoDB indexes مبنية على queries فعلية
+[ ] Pagination موجودة للقوائم الكبيرة
+[ ] Dashboard requests محسنة
+[ ] Frontend responsibilities مقسمة
+[ ] API authorization موحد
+[ ] Existing functionality تعمل
+[ ] Existing tests لا تنكسر
+[ ] New authorization/security tests موجودة
+[ ] No production data loss
+[ ] Documentation محدثة
+[ ] Build ناجح
+[ ] Tests ناجحة
+[ ] لا توجد أخطاء جديدة غير مبررة
+
+==================================================
+25. مهم جدًا
+==================================================
+
+لا أريد منك أن تفترض أن الحل هو إعادة بناء المشروع بالكامل.
+
+أريد أولًا:
+
+1. فهم النظام الحالي.
+2. رسم architecture الحالية.
+3. تحديد المشاكل.
+4. تحديد dependencies.
+5. تحديد مخاطر التغيير.
+6. تصميم Target Architecture.
+7. وضع Migration Plan.
+8. ثم التنفيذ تدريجيًا.
+
+إذا وجدت أن جزءًا من الـ architecture الحالية جيد، احتفظ به.
+
+إذا وجدت مشكلة، أصلح السبب وليس العرض.
+
+إذا وجدت أكثر من حل، قارن بينها تقنيًا واختر الحل الأقل خطورة والأكثر قابلية للتوسع.
+
+لا تغير UI بشكل كبير في البداية.
+
+الأولوية:
+
+ARCHITECTURE
+→ SECURITY
+→ PERFORMANCE
+→ DATA INTEGRITY
+→ AUTHORIZATION
+→ API
+→ FRONTEND
+→ UI
+
+ابدأ الآن فقط بمرحلة AUDIT.
+
+لا تعدل أي ملف حتى تنتهي من تحليل المشروع وإعطائي تقريرًا واضحًا عن:
+
+CURRENT ARCHITECTURE
+PROBLEMS
+ROOT CAUSES
+TARGET ARCHITECTURE
+MIGRATION PLAN
+FILES THAT WILL CHANGE
+FILES THAT MUST NOT CHANGE
+RISKS
+TEST PLAN
+
+ثم توقف وانتظر موافقتي قبل بدء التنفيذ.
