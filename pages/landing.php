@@ -313,16 +313,16 @@ if ($user) { header('Location: /dashboard'); exit; }
 <!-- ═══ من نحن ═══ -->
 <section id="about">
   <div class="about-section">
-    <div>
-      <div class="eyebrow" style="display:inline-block" data-ar="من نحن" data-en="About">من نحن</div>
-      <h2 style="font-size:clamp(24px,4vw,36px);font-weight:900;line-height:1.2;margin:14px 0 16px"
+    <div class="about-copy">
+      <div class="eyebrow about-eyebrow" data-ar="من نحن" data-en="About">من نحن</div>
+      <h2 class="about-title"
           data-ar="بُنيت لأصحاب المشاريع العربية" data-en="Built for Arabic business owners">
         بُنيت لأصحاب المشاريع العربية
       </h2>
-      <p style="color:var(--muted);font-size:15px;line-height:2;margin-bottom:8px"
+      <p class="about-description"
          data-ar="تسعيرة منصة عربية تساعد أصحاب المشاريع على معرفة التكلفة الحقيقية وتحديد السعر العادل قبل تقديم أي خدمة أو منتج."
          data-en="Tas3eerah helps business owners understand their real costs and set a fair price before offering any service or product.">
-        تسعيرة أول منصة سعودية تساعد أصحاب المشاريع على تنظيم تسعير خدماتهم ومنتجاتهم قبل تقديمها.
+        تسعيرة منصة عربية تساعد أصحاب المشاريع على معرفة التكلفة الحقيقية وتحديد السعر العادل قبل تقديم أي خدمة أو منتج.
       </p>
       <div class="about-stats">
         <div>
@@ -360,6 +360,80 @@ if ($user) { header('Location: /dashboard'); exit; }
         <div>
           <strong data-ar="البساطة" data-en="Simplicity">البساطة</strong>
           <span data-ar="نظام واحد يجمع كل احتياجاتك بدون تعقيد." data-en="One system that brings all your needs together — no complexity.">نظام واحد يجمع كل احتياجاتك بدون تعقيد.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ مختبر السعر ═══ -->
+<section class="price-lab-section" aria-labelledby="priceLabTitle">
+  <div class="price-lab-inner">
+    <div class="price-lab-copy">
+      <h2 id="priceLabTitle" data-ar="جرّب كيف يتغير السعر" data-en="See how the price changes">
+        جرّب كيف يتغير السعر
+      </h2>
+      <p data-ar="حرّك العوامل وشاهد كيف يتغير السعر لحظياً" data-en="Move the factors and see the price change instantly">
+        حرّك العوامل وشاهد كيف يتغير السعر لحظياً
+      </p>
+      <div class="price-lab-ornament" aria-hidden="true"><span></span><i></i><span></span></div>
+      <img
+        class="price-lab-landscape"
+        src="/assets/landing/price-lab-landscape.png?v=<?= filemtime(__DIR__.'/../assets/landing/price-lab-landscape.png') ?>"
+        alt=""
+        aria-hidden="true"
+      >
+    </div>
+
+    <div class="price-lab-controls" aria-label="عوامل السعر">
+      <div class="price-lab-row">
+        <div class="price-lab-row-label" data-ar="الهامش المستهدف" data-en="Target margin">الهامش المستهدف</div>
+        <div class="price-lab-slider">
+          <div class="price-lab-range-line" dir="ltr">
+            <span>10%</span>
+            <div class="price-lab-range-wrap">
+              <output id="priceLabMarginOutput" for="priceLabMargin"
+                      data-ar="25%" data-en="25%">25%</output>
+              <input id="priceLabMargin" type="range" min="10" max="40" value="25"
+                     data-output="priceLabMarginOutput" data-format="percent"
+                     aria-label="الهامش المستهدف">
+            </div>
+            <span>40%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="price-lab-row">
+        <div class="price-lab-row-label" data-ar="مستوى الجودة" data-en="Quality level">مستوى الجودة</div>
+        <div class="price-lab-slider">
+          <div class="price-lab-range-line" dir="ltr">
+            <span data-ar="منخفض" data-en="Low">منخفض</span>
+            <div class="price-lab-range-wrap">
+              <output id="priceLabQualityOutput" for="priceLabQuality"
+                      data-ar="مرتفع" data-en="High">مرتفع</output>
+              <input id="priceLabQuality" type="range" min="1" max="3" value="3"
+                     data-output="priceLabQualityOutput" data-values-ar="منخفض|متوسط|مرتفع"
+                     data-values-en="Low|Medium|High" aria-label="مستوى الجودة">
+            </div>
+            <span data-ar="مرتفع" data-en="High">مرتفع</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="price-lab-row">
+        <div class="price-lab-row-label" data-ar="مدى تميز المنتج" data-en="Product uniqueness">مدى تميز المنتج</div>
+        <div class="price-lab-slider">
+          <div class="price-lab-range-line" dir="ltr">
+            <span data-ar="منخفض" data-en="Low">منخفض</span>
+            <div class="price-lab-range-wrap">
+              <output id="priceLabUniquenessOutput" for="priceLabUniqueness"
+                      data-ar="عالية" data-en="High">عالية</output>
+              <input id="priceLabUniqueness" type="range" min="1" max="3" value="2"
+                     data-output="priceLabUniquenessOutput" data-values-ar="منخفض|متوسطة|عالية"
+                     data-values-en="Low|Medium|High" aria-label="مدى تميز المنتج">
+            </div>
+            <span data-ar="عالية" data-en="High">عالية</span>
+          </div>
         </div>
       </div>
     </div>
@@ -729,6 +803,41 @@ window.addEventListener('resize', () => {
   if (!pricingPlanChosen) initPricingSwitcher();
 });
 
+/* ══ مختبر السعر ══ */
+function initPriceLab() {
+  document.querySelectorAll('.price-lab-range-wrap input').forEach(input => {
+    const update = () => {
+      const output = document.getElementById(input.dataset.output);
+      if (!output) return;
+
+      const min = Number(input.min);
+      const max = Number(input.max);
+      const value = Number(input.value);
+      const percentage = ((value - min) / (max - min)) * 100;
+      input.style.setProperty('--range-value', `${percentage}%`);
+
+      let arValue;
+      let enValue;
+      if (input.dataset.format === 'percent') {
+        arValue = `${value}%`;
+        enValue = `${value}%`;
+      } else {
+        const arValues = input.dataset.valuesAr.split('|');
+        const enValues = input.dataset.valuesEn.split('|');
+        arValue = arValues[value - min] || arValues[arValues.length - 1];
+        enValue = enValues[value - min] || enValues[enValues.length - 1];
+      }
+
+      output.dataset.ar = arValue;
+      output.dataset.en = enValue;
+      output.textContent = LANG.current === 'ar' ? arValue : enValue;
+    };
+
+    input.addEventListener('input', update);
+    update();
+  });
+}
+
 /* ══ تبديل اللغة ══ */
 function applyLandingLanguage() {
   const isAr = LANG.current === 'ar';
@@ -764,6 +873,7 @@ function toggleLang() {
 document.addEventListener('DOMContentLoaded', () => {
   applyLandingLanguage();
   initPricingSwitcher();
+  initPriceLab();
 });
 
 /* ══ نافذة المصادقة ══ */
