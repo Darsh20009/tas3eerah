@@ -496,6 +496,44 @@ if ($user) { header('Location: /dashboard'); exit; }
   </div>
 </section>
 
+<!-- ═══ لماذا تختار تسعيرة؟ ═══ -->
+<section class="why-tas3eerah-section" aria-labelledby="whyTas3eerahTitle">
+  <div class="why-tas3eerah-inner">
+    <h2 id="whyTas3eerahTitle"
+        data-ar="لماذا تختار تسعيرة؟"
+        data-en="Why choose Tas3eerah?">
+      لماذا تختار تسعيرة؟
+    </h2>
+
+    <div class="why-tas3eerah-items">
+      <article class="why-tas3eerah-item">
+        <img src="/assets/landing/why-methodology.png?v=<?= filemtime(__DIR__.'/../assets/landing/why-methodology.png') ?>"
+             alt="" aria-hidden="true">
+        <h3 data-ar="منهجية علمية" data-en="Scientific methodology">منهجية علمية</h3>
+        <p data-ar="قائمة على البيانات" data-en="Data-driven">قائمة على البيانات</p>
+      </article>
+      <article class="why-tas3eerah-item">
+        <img src="/assets/landing/why-reports.png?v=<?= filemtime(__DIR__.'/../assets/landing/why-reports.png') ?>"
+             alt="" aria-hidden="true">
+        <h3 data-ar="تقارير احترافية" data-en="Professional reports">تقارير احترافية</h3>
+        <p data-ar="جاهزة للتصدير" data-en="Ready to export">جاهزة للتصدير</p>
+      </article>
+      <article class="why-tas3eerah-item">
+        <img src="/assets/landing/why-security.png?v=<?= filemtime(__DIR__.'/../assets/landing/why-security.png') ?>"
+             alt="" aria-hidden="true">
+        <h3 data-ar="آمن وموثوق" data-en="Secure and trusted">آمن وموثوق</h3>
+        <p data-ar="حماية بياناتك" data-en="Your data is protected">حماية بياناتك</p>
+      </article>
+      <article class="why-tas3eerah-item">
+        <img src="/assets/landing/why-growth.png?v=<?= filemtime(__DIR__.'/../assets/landing/why-growth.png') ?>"
+             alt="" aria-hidden="true">
+        <h3 data-ar="يدعم نمو منشأتك" data-en="Supports your growth">يدعم نمو منشأتك</h3>
+        <p data-ar="من البداية إلى التوسع" data-en="From starting out to scaling">من البداية إلى التوسع</p>
+      </article>
+    </div>
+  </div>
+</section>
+
 <!-- ═══ الفوتر ═══ -->
 <footer class="land-footer">
   <div class="footer-inner">
