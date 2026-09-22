@@ -6,6 +6,7 @@ require_once __DIR__ . '/../src/Response.php';
 
 Auth::start();
 $user = Auth::require();
+$isAdmin = ($user['role'] ?? '') === 'admin';
 $effectivePlan = Auth::effectivePlan($user);
 $plan = PLANS[$effectivePlan] ?? PLANS['free'];
 
@@ -82,7 +83,7 @@ if (!isset($toolMap[$slug])) {
 }
 $tool = $toolMap[$slug];
 $planTools = $plan['tools'] ?? [];
-if (!in_array('all', $planTools, true) && !in_array($tool['plan'], $planTools, true)) {
+if (!$isAdmin && !in_array('all', $planTools, true) && !in_array($tool['plan'], $planTools, true)) {
     header('Location: /dashboard?tool_locked=1');
     exit;
 }
@@ -163,7 +164,7 @@ $quotaLabel = $plan['max_quotes'] === -1 ? 'تسعير غير محدود' : 'خ�
       <a class="sb-item" href="/dashboard"><span class="sb-icon">◧</span> عروض الأسعار</a>
       <div class="sb-section">التسعيرات</div>
       <?php foreach ($sectorLinks as $linkSlug => $linkTitle): ?>
-        <?php $linkAvailable = in_array('all', $planTools, true) || in_array($toolMap[$linkSlug]['plan'], $planTools, true); ?>
+        <?php $linkAvailable = $isAdmin || in_array('all', $planTools, true) || in_array($toolMap[$linkSlug]['plan'], $planTools, true); ?>
         <a class="sb-item <?= $slug === $linkSlug ? 'active' : '' ?>" href="<?= $linkAvailable ? '/calculator/' . $linkSlug : '/dashboard?tool_locked=1' ?>">
           <span class="sb-icon"><?= $slug === $linkSlug ? '●' : '○' ?></span>
           <?= htmlspecialchars($linkTitle) ?>

@@ -86,7 +86,9 @@ function send(array $u, array $b): never {
 
     // Monthly limit
     $plan    = Auth::effectivePlan($u);
-    $maxMsgs = PLANS[$plan]['max_msgs'] ?? PLANS['free']['max_msgs'];
+    $maxMsgs = ($u['role'] ?? '') === 'admin'
+        ? -1
+        : (PLANS[$plan]['max_msgs'] ?? PLANS['free']['max_msgs']);
     if ($maxMsgs !== -1) {
         $month = date('Y-m');
         $sent  = DB::count('messages', [

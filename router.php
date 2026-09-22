@@ -98,7 +98,9 @@ if (preg_match('#^/calculator/([a-z]+)$#', $uri, $routeMatch)) {
         $effectivePlan = 'free';
     }
     $planTools = PLANS[$effectivePlan]['tools'] ?? [];
-    if (!in_array('all', $planTools, true) && !in_array($calculatorPlanKey[$routeSlug], $planTools, true)) {
+    if (($calculatorUser['role'] ?? '') !== 'admin'
+        && !in_array('all', $planTools, true)
+        && !in_array($calculatorPlanKey[$routeSlug], $planTools, true)) {
         header('Location: /dashboard?tool_locked=1');
         exit;
     }

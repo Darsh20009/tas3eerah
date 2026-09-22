@@ -109,12 +109,14 @@ class Auth {
     }
 
     public static function planAllows(array $user, string $feature): bool {
+        if (($user['role'] ?? '') === 'admin') return true;
         $plan  = self::effectivePlan($user);
         $tools = PLANS[$plan]['tools'] ?? [];
         return in_array($feature, $tools, true) || in_array('all', $tools, true);
     }
 
     public static function canCreateQuote(array $user): bool {
+        if (($user['role'] ?? '') === 'admin') return true;
         $plan = self::effectivePlan($user);
         $max  = PLANS[$plan]['max_quotes'] ?? PLANS['free']['max_quotes'];
         if ($max === -1) return true;

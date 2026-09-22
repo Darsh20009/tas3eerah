@@ -7,10 +7,11 @@ require_once __DIR__ . '/../src/Response.php';
 Auth::start();
 $user          = Auth::require();
 $role          = $user['role'];
+$isAdmin       = $role === 'admin';
 $effectivePlan = Auth::effectivePlan($user);
 $plan          = PLANS[$effectivePlan] ?? PLANS['free'];
 $canSaveQuote  = Auth::canCreateQuote($user);
-$userTools     = OPEN_ACCESS_MODE ? ['all'] : ($plan['tools'] ?? []);
+$userTools     = ($isAdmin || OPEN_ACCESS_MODE) ? ['all'] : ($plan['tools'] ?? []);
 
 $roleLabel = ['admin' => 'مدير النظام', 'employee' => 'موظف', 'client' => 'عميل'][$role] ?? $role;
 $planName  = $plan['name_ar'];
@@ -19,7 +20,7 @@ $quotesUsedThisMonth = DB::count('quotes', [
     $usageField  => (int)$user['id'],
     'created_at' => ['$regex' => '^' . date('Y-m')],
 ]);
-$maxQuotesThisMonth = $plan['max_quotes'];
+$maxQuotesThisMonth = $isAdmin ? -1 : $plan['max_quotes'];
 $quotesRemaining = $maxQuotesThisMonth === -1
     ? null
     : max(0, $maxQuotesThisMonth - $quotesUsedThisMonth);
@@ -643,7 +644,7 @@ function toolSaveBtn(bool $canSave, string $slug, string $name): string {
     <!-- ══ TOOLS ══ -->
     <div class="section-panel" id="panel-tools">
       <?php
-  $userTools = OPEN_ACCESS_MODE ? ['all'] : $plan['tools'];
+  $userTools = ($isAdmin || OPEN_ACCESS_MODE) ? ['all'] : $plan['tools'];
       ?>
 
       <?php if (false): ?>
