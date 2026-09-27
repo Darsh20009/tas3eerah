@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const db = require('../db');
 const config = require('../config');
 const auth = require('../auth');
+const notifications = require('../notification-email');
 const {
   actionOf, methodError, sendOk, sendError, failFromError, text,
 } = require('./_helpers');
@@ -60,7 +61,11 @@ router.all('/', async (req, res) => {
     if (action === 'register') {
       const result = await auth.register(body.name, body.email, body.password, req);
       if (result?.error) return sendError(res, result.error);
-      return sendOk(res, auth.safeUser(result), 'تم إنشاء الحساب بنجاح');
+      const delivery = await notifications.welcome(result);
+      return sendOk(res, { ...auth.safeUser(result), email_sent: delivery.sent },
+        delivery.sent
+          ? 'تم إنشاء الحساب وإرسال رسالة ترحيب إلى بريدك'
+          : 'تم إنشاء الحساب، لكن تعذر إرسال رسالة الترحيب. تحقق من صندوق البريد أو تواصل مع الإدارة.');
     }
 
     if (action === 'logout') {

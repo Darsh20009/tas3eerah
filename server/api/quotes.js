@@ -5,12 +5,14 @@ const db = require('../db');
 const { APP_URL, PLANS } = require('../config');
 const auth = require('../auth');
 const email = require('../email');
+const notifications = require('../notification-email');
 const {
   actionOf, methodError, sendOk, sendError, failFromError, text, number,
   timestamp, escapeHtml,
 } = require('./_helpers');
 
 const router = express.Router();
+const activeDeliveries = new Set();
 router.use(auth.loadUser, auth.requireUser);
 router.use((req, res, next) => req.method === 'POST' ? auth.csrfMiddleware(req, res, next) : next());
 
@@ -219,7 +221,14 @@ async function createQuote(req, res, body) {
     action: 'quote_created',
     details: `رقم العرض: ${quoteNumber} | العنوان: ${title} | العميل: ${client?.name || user.name || clientId} | الإجمالي: ${totals.total.toFixed(2)} ر.س | ${notes ? 'توجد ملاحظات' : 'بدون ملاحظات'}`,
   });
-  return sendOk(res, { id, number: quoteNumber }, 'تم إنشاء عرض السعر');
+  if (user.role === 'client') {
+    const delivery = await notifications.quoteReceipt(user, { title, number: quoteNumber });
+    return sendOk(res, { id, number: quoteNumber, email_sent: delivery.sent },
+      delivery.sent
+        ? 'تم حفظ التسعيرة وإرسال تأكيد إلى بريدك'
+        : 'تم حفظ التسعيرة، لكن تعذر إرسال تأكيد البريد. تحقق من إعدادات البريد أو تواصل مع الإدارة.');
+  }
+  return sendOk(res, { id, number: quoteNumber }, 'تم حفظ العرض كمسودة. اضغط «إرسال» لإرساله للعميل بالبريد.');
 }
 
 async function updateQuote(req, res, body) {
@@ -287,6 +296,14 @@ async function changeStatus(req, res, body) {
   if (!allowed.includes(nextStatus)) {
     return sendError(res, `لا يمكنك تغيير الحالة من «${quote.status}» إلى «${nextStatus}»`, 403);
   }
+  if (nextStatus === 'sent' && quote.status === 'sent') {
+    return sendOk(res, { status: 'sent' }, 'العرض مرسل بالفعل');
+  }
+  if (nextStatus === 'sent') {
+    const delivery = await deliverQuote(req, quote);
+    if (!delivery.sent) return sendError(res, delivery.error, delivery.status || 502);
+    return sendOk(res, { status: 'sent' }, 'تم إرسال عرض السعر إلى بريد العميل وتحديث حالته');
+  }
   await db.updateDoc('quotes', { id }, { status: nextStatus, updated_at: timestamp() });
   await db.insertDoc('activity_log', {
     user_id: Number(req.user.id),
@@ -336,23 +353,56 @@ async function emailQuote(req, res, body) {
   const quote = await db.findOne('quotes', { id });
   if (!quote) return sendError(res, 'عرض السعر غير موجود', 404);
   if (!canAccessQuote(req.user, quote)) return sendError(res, 'غير مسموح', 403);
-  const client = await db.findOne('users', { id: Number(quote.client_id) });
-  if (!client?.email) return sendError(res, 'لا يمكن إيجاد بريد العميل');
-  const employee = Number(quote.employee_id)
-    ? await db.findOne('users', { id: Number(quote.employee_id) })
-    : null;
-  const html = quoteEmailHtml(quote, client, employee, APP_URL);
-  try {
-    await email.sendHtml(client.email, `عرض سعر جديد: ${quote.title} — رقم ${quote.number}`, html, await settingsMap(), req.user.email);
-  } catch {
-    return sendError(res, 'تعذر إرسال البريد. تحقق من إعدادات صندوق البريد وحاول مرة أخرى.', 502);
+  if (quote.status === 'sent') return sendOk(res, { status: 'sent' }, 'العرض مرسل بالفعل');
+  if (quote.status !== 'draft') return sendError(res, 'يمكن إرسال المسودات فقط', 409);
+  const delivery = await deliverQuote(req, quote);
+  if (!delivery.sent) return sendError(res, delivery.error, delivery.status || 502);
+  return sendOk(res, { status: 'sent' }, 'تم إرسال عرض السعر إلى بريد العميل');
+}
+
+async function deliverQuote(req, quote) {
+  const id = Number(quote.id);
+  if (activeDeliveries.has(id)) {
+    return { sent: false, status: 409, error: 'يجري إرسال العرض حالياً. انتظر قبل إعادة المحاولة.' };
   }
-  await db.insertDoc('activity_log', {
-    user_id: Number(req.user.id),
-    action: 'quote_emailed',
-    details: `تم إرسال العرض ${quote.number || id} إلى ${client.email}`,
-  });
-  return sendOk(res, [], `تم إرسال عرض السعر إلى ${client.email}`);
+  activeDeliveries.add(id);
+  try {
+    const client = await db.findOne('users', { id: Number(quote.client_id) });
+    if (!client?.email) return { sent: false, status: 400, error: 'لا يمكن إيجاد بريد العميل' };
+    const employee = Number(quote.employee_id)
+      ? await db.findOne('users', { id: Number(quote.employee_id) })
+      : null;
+    const html = quoteEmailHtml(quote, client, employee, APP_URL);
+    try {
+      await email.sendHtml(client.email, `عرض سعر جديد: ${quote.title} — رقم ${quote.number}`, html, await settingsMap(), req.user.email);
+    } catch (error) {
+      console.error('[quote email failed]', error.code || error.name || 'MAIL_ERROR');
+      return { sent: false, error: 'تعذر إرسال البريد. بقي العرض مسودة؛ تحقق من إعدادات صندوق البريد وأعد المحاولة.' };
+    }
+    try {
+      await db.updateDoc('quotes', { id }, { status: 'sent', updated_at: timestamp() });
+    } catch (error) {
+      console.error('[quote status update failed]', error.code || error.name || 'DB_ERROR');
+      return { sent: false, status: 500, error: 'قُبل البريد، لكن تعذر تحديث حالة العرض. لا تعاود الإرسال قبل مراجعة الإدارة.' };
+    }
+    try {
+      await db.insertDoc('activity_log', {
+        user_id: Number(req.user.id),
+        action: 'quote_emailed',
+        details: `تم إرسال العرض ${quote.number || id} إلى ${client.email}`,
+      });
+      await db.insertDoc('activity_log', {
+        user_id: Number(req.user.id),
+        action: 'quote_status_changed',
+        details: `العرض ${quote.number || id} (${quote.title || 'بدون عنوان'}): ${quote.status} → sent | الإجمالي: ${Number(quote.total || 0).toFixed(2)} ر.س`,
+      });
+    } catch (error) {
+      console.error('[quote activity log failed]', error.code || error.name || 'DB_ERROR');
+    }
+    return { sent: true };
+  } finally {
+    activeDeliveries.delete(id);
+  }
 }
 
 function quoteEmailHtml(quote, client, employee, appUrl) {

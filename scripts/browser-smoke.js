@@ -57,6 +57,14 @@ async function main() {
     const mobileWidth = await policyPage.evaluate(() => document.documentElement.scrollWidth);
     if (mobileWidth > 390) failures.push(`policies: horizontal overflow on mobile (${mobileWidth}px)`);
     console.log(`policies: ${await policySections.count()} sections, mobile width ${mobileWidth}px`);
+    const help = await policyPage.goto(`${baseUrl}/help`, { waitUntil: 'load' });
+    const helpRoles = await policyPage.locator('#roles h3').allTextContents();
+    const helpWidth = await policyPage.evaluate(() => document.documentElement.scrollWidth);
+    if (help.status() !== 200 || await policyPage.locator('.guide-list li').count() !== 7 ||
+        helpRoles.length !== 3 || helpWidth > 390) {
+      failures.push(`help: missing calculators or roles, or mobile overflow (${helpWidth}px)`);
+    }
+    console.log(`help: HTTP ${help.status()}, three roles, mobile width ${helpWidth}px`);
     await policyContext.close();
 
     for (const role of ['admin', 'employee', 'client']) {
@@ -130,6 +138,18 @@ async function main() {
               failures.push('services: Save as Quote did not send a valid calculated amount and client');
             }
             await page.unroute('**/api/quotes?action=create');
+            await page.locator('#calculatorQuoteClose').click();
+            await page.setViewportSize({ width: 390, height: 844 });
+            await page.locator('.calculator-shell button.hamburger').click();
+            const mobileSidebar = await page.evaluate(() => ({
+              open: document.getElementById('calculatorSidebarOverlay').classList.contains('open'),
+              sidebar: document.getElementById('sidebar').classList.contains('open'),
+              tabsHidden: getComputedStyle(document.getElementById('services-tabs')).display === 'none',
+            }));
+            if (!mobileSidebar.open || !mobileSidebar.sidebar || !mobileSidebar.tabsHidden) {
+              failures.push(`services: calculator tab obscures mobile sidebar (${JSON.stringify(mobileSidebar)})`);
+            }
+            await page.setViewportSize({ width: 1280, height: 720 });
           }
         }
       }

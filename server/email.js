@@ -58,20 +58,34 @@ function publicConfig(settings = {}) {
   };
 }
 
-async function sendHtml(to, subject, html, settings = {}, replyTo = null, inlineImages = []) {
-  const recipient = String(to || '').trim();
-  if (!emailLooksValid(recipient)) throw new Error('البريد المستلم غير صحيح');
+function smtpTransport(settings = {}) {
   if (!isSendConfigured(settings)) throw new Error('لم يتم إعداد كلمة مرور صندوق البريد في Secrets');
-  const from = address(settings);
-  const transporter = nodemailer.createTransport({
+  return nodemailer.createTransport({
     host: HOST,
     port: SMTP_PORT,
     secure: SMTP_PORT === 465,
-    auth: { user: from, pass: sendPassword() },
-    connectionTimeout: 25000,
-    greetingTimeout: 25000,
-    socketTimeout: 25000,
+    auth: { user: address(settings), pass: sendPassword() },
+    connectionTimeout: 12000,
+    greetingTimeout: 12000,
+    socketTimeout: 12000,
   });
+}
+
+async function verifySend(settings = {}) {
+  const transporter = smtpTransport(settings);
+  try {
+    await transporter.verify();
+    return true;
+  } finally {
+    transporter.close();
+  }
+}
+
+async function sendHtml(to, subject, html, settings = {}, replyTo = null, inlineImages = []) {
+  const recipient = String(to || '').trim();
+  if (!emailLooksValid(recipient)) throw new Error('البريد المستلم غير صحيح');
+  const from = address(settings);
+  const transporter = smtpTransport(settings);
   const attachments = (Array.isArray(inlineImages) ? inlineImages : [])
     .filter((asset) => asset?.path && asset?.cid)
     .map((asset) => ({
@@ -351,6 +365,7 @@ module.exports = {
   isSendConfigured,
   isReceiveConfigured,
   publicConfig,
+  verifySend,
   sendHtml,
   folderMessages,
   folders,

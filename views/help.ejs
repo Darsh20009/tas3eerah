@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>الشرح | تسعيرة</title>
+  <link rel="stylesheet" href="/assets/css/app.css?v=<%= assetVersion %>">
+  <style>
+    body { background:#f8f6f0; color:var(--text); }
+    .guide { width:min(960px, 100%); margin:auto; padding:24px clamp(16px, 4vw, 40px) 72px; }
+    .guide-head { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    .guide-head img { width:140px; max-width:35vw; height:auto; }
+    .guide a { color:var(--p); text-decoration:none; }
+    .guide a:hover, .guide a:focus-visible { text-decoration:underline; }
+    .guide-title { margin:44px 0 24px; }
+    .guide-title h1 { color:var(--p); font-size:clamp(28px, 5vw, 40px); margin:0 0 8px; }
+    .guide-title p { color:var(--muted); margin:0; }
+    .guide-nav, .guide-section { background:#fffefa; border:1px solid var(--line); border-radius:10px; padding:22px; }
+    .guide-nav { display:flex; flex-wrap:wrap; gap:9px; margin-bottom:18px; }
+    .guide-nav a { border:1px solid var(--line); padding:8px 12px; border-radius:6px; }
+    .guide-section { margin-bottom:18px; scroll-margin-top:18px; line-height:1.95; }
+    .guide-section h2 { color:var(--p); font-size:22px; margin:0 0 14px; }
+    .guide-section h3 { color:var(--text); font-size:17px; margin:18px 0 5px; }
+    .guide-section p { margin:8px 0; }
+    .guide-section ul, .guide-section ol { margin:8px 0; padding-right:24px; }
+    .guide-section li { margin:5px 0; }
+    .guide-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; list-style:none; padding:0!important; }
+    .guide-list li { border:1px solid var(--line); border-radius:7px; padding:12px; margin:0; }
+    .guide-list strong { display:block; color:var(--p); }
+    .guide-note { border-right:3px solid var(--gold); background:#faf6e8; padding:10px 14px; border-radius:3px; }
+    @media (max-width:640px) {
+      .guide { padding-top:18px; }
+      .guide-title { margin-top:32px; }
+      .guide-nav, .guide-section { padding:17px; }
+      .guide-list { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="guide">
+    <header class="guide-head">
+      <a href="<%= signedIn ? '/dashboard' : '/' %>" aria-label="العودة إلى تسعيرة"><img src="/assets/logo.png" alt="تسعيرة"></a>
+      <a href="<%= signedIn ? '/dashboard' : '/' %>">العودة إلى <%= signedIn ? 'لوحة التحكم' : 'الرئيسية' %></a>
+    </header>
+    <div class="guide-title">
+      <h1>الشرح</h1>
+      <p>دليل الصفحات والصلاحيات وخطوات إعداد التسعيرات وعروض الأسعار.</p>
+    </div>
+    <nav class="guide-nav" aria-label="أقسام الشرح">
+      <a href="#start">البدء</a><a href="#pages">الصفحات</a><a href="#calculators">الحاسبات</a>
+      <a href="#quotes">عروض الأسعار</a><a href="#roles">الأدوار</a><a href="#mail">البريد والتواصل</a>
+    </nav>
+
+    <section class="guide-section" id="start">
+      <h2>كيف تبدأ؟</h2>
+      <ol>
+        <li>أنشئ حساباً من الصفحة الرئيسية أو سجّل الدخول. الحساب الجديد يبدأ بدور «عميل»؛ الموظف والمدير يُداران من صلاحيات الإدارة.</li>
+        <li>افتح لوحة التحكم للاطلاع على عروضك واستخدام الحاسبات المتاحة وفق خطتك.</li>
+        <li>أنشئ تسعيرة من النموذج أو احسب سعراً في أحد القطاعات، ثم احفظ النتيجة أو أنشئ عرض سعر.</li>
+      </ol>
+      <p class="guide-note">ظهور أداة مقفلة أو حد للعروض يعني أن استخدامها مرتبط بالخطة الحالية. تغيير الخطة يتم عبر التواصل مع الإدارة، وليس بالدفع الآلي داخل المنصة.</p>
+    </section>
+
+    <section class="guide-section" id="pages">
+      <h2>ما وظيفة كل صفحة؟</h2>
+      <ul>
+        <li><strong>الرئيسية:</strong> تعريف بالمنصة والأدوات والخطط، وتضم التسجيل وتسجيل الدخول ونموذج التواصل.</li>
+        <li><strong>لوحة التحكم / نظرة عامة:</strong> ملخص مناسب لدورك وروابط سريعة للأعمال المتاحة لك.</li>
+        <li><strong>عروض الأسعار:</strong> قائمة عروضك مع البحث والتصفية، التفاصيل، الإجراءات والحالات. يظهر للمدير جميع العروض، وللموظف عروضه، وللعميل عروضه الخاصة.</li>
+        <li><strong>التسعيرات:</strong> بطاقات القطاعات السبعة؛ اضغط أداة متاحة لفتح صفحة الحاسبة الخاصة بها.</li>
+        <li><strong>سجل المشاريع:</strong> نتائج حسابات محفوظة للرجوع إليها داخل الواجهة. ليس هو نفسه قائمة عروض الأسعار المخزنة في الحساب؛ احتفظ بنسخة مما تحتاجه قبل تغيير الجهاز أو بيانات المتصفح.</li>
+        <li><strong>الرسائل الداخلية:</strong> إنشاء محادثات وقراءة الردود بين مستخدمي المنصة بحسب الصلاحية.</li>
+        <li><strong>حسابي:</strong> بيانات حسابك وخطتك وتعديل الاسم وكلمة المرور.</li>
+        <li><strong><a href="/policies">السياسات</a>:</strong> الشروط والخصوصية والاستخدام المقبول والاسترجاع والملكية الفكرية.</li>
+      </ul>
+    </section>
+
+    <section class="guide-section" id="calculators">
+      <h2>الحاسبات السبع</h2>
+      <p>اختر القطاع المناسب، أدخل التكاليف والكميات والعوامل المطلوبة، ثم راجع النتيجة واحفظها أو استخدمها لإنشاء عرض سعر. توافر الأداة يعتمد على الخطة.</p>
+      <ul class="guide-list">
+        <% Object.values(tools).forEach(tool => { %>
+          <li><strong><%= tool.title %></strong><%= tool.description %></li>
+        <% }) %>
+      </ul>
+    </section>
+
+    <section class="guide-section" id="quotes">
+      <h2>دورة عرض السعر</h2>
+      <ol>
+        <li>أدخل العنوان، العميل (إذا كنت موظفاً أو مديراً)، البنود والكميات وأسعار الوحدات والضريبة والخصم والملاحظات. يُحسب الإجمالي من هذه البيانات.</li>
+        <li>يُحفظ العرض أولاً <strong>كمسودة</strong>؛ يمكن للموظف أو المدير مراجعتها وتعديلها قبل الإرسال.</li>
+        <li>اضغط <strong>إرسال</strong> من قائمة العروض بعد المراجعة. عند قبول خادم البريد للرسالة، تتغير الحالة إلى «مرسل». إن فشل الإرسال تبقى المسودة كما هي وتظهر رسالة خطأ لإعادة المحاولة.</li>
+        <li>يمكن للعميل الاطلاع على العرض المرسل، وقبوله أو رفضه وتقييمه. قد تظهر حالات «ملغى» أو «مسودة» بحسب دور المستخدم والإجراء المسموح.</li>
+      </ol>
+      <p>إذا أنشأ العميل تسعيرة بنفسه، تصله رسالة تأكيد بحفظها عند نجاح البريد؛ ليست هذه الرسالة عرض سعر معتمداً أرسله الموظف.</p>
+    </section>
+
+    <section class="guide-section" id="roles">
+      <h2>ماذا يستطيع كل دور أن يفعل؟</h2>
+      <h3>العميل</h3>
+      <p>ينشئ تسعيرة لنفسه، يرى تسعيراته وعروضه الخاصة، يقبل أو يرفض العرض المرسل، يقيّم العروض، ويرى بيانات خطته وحسابه ويراسل مستخدمي المنصة وفق الصلاحيات.</p>
+      <h3>الموظف</h3>
+      <p>ينشئ عروضاً لعملاء مسجلين، يتابع عروضه وعملاءه، يعدّل المسودات ويرسلها بالبريد، ويتواصل عبر الرسائل الداخلية. لا يمكنه إدارة إعدادات النظام.</p>
+      <h3>المدير</h3>
+      <p>يرى العروض والمستخدمين والاشتراكات وسجل النشاط؛ يدير الحسابات والخطط وإعدادات النظام والبريد الرسمي ورسائل التواصل الواردة من الموقع.</p>
+    </section>
+
+    <section class="guide-section" id="mail">
+      <h2>البريد والتواصل</h2>
+      <ul>
+        <li>بعد تسجيل حساب جديد، يحاول النظام إرسال رسالة ترحيب. لا يحول تعذّر البريد دون إنشاء الحساب؛ يُبلغ المستخدم بذلك صراحة.</li>
+        <li>عند حفظ تسعيرة بواسطة عميل، يحاول النظام إرسال تأكيد إلى بريده. عند إرسال عرض نهائي من الموظف أو المدير، تُرسل تفاصيله للعميل تلقائياً عبر زر «إرسال».</li>
+        <li>يعتمد البريد على إعداد صندوق الإرسال واتصال SMTP. نجاح الإرسال يعني قبول خادم البريد للرسالة، وليس ضمان ظهورها في الوارد؛ افحص الرسائل غير المرغوبة أيضاً.</li>
+        <li>الرسائل الداخلية مختلفة عن البريد. نموذج التواصل في الرئيسية يُسجل رسالة ليراها المدير في «رسائل الموقع»؛ وصندوق البريد الرسمي متاح للمدير فقط عندما تكون إعداداته جاهزة.</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

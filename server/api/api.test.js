@@ -14,6 +14,7 @@ process.env.APP_ENV = 'test';
 process.env.DB_PATH = path.join(temporaryDirectory, 'isolated.sqlite');
 
 const db = require('../db');
+const email = require('../email');
 const authRouter = require('./auth');
 const quotesRouter = require('./quotes');
 const adminRouter = require('./admin');
@@ -57,6 +58,8 @@ after(async () => {
 });
 
 test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', async () => {
+  const sentMail = [];
+  email.sendHtml = async (...args) => { sentMail.push(args); };
   await db.init();
   const passwordHash = await bcrypt.hash('TestPassword@123', 10);
   const clientId = await db.insertDoc('users', {
@@ -140,6 +143,10 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
   assert.equal(firstQuote.response.status, 200, JSON.stringify(firstQuote.json));
   assert.equal(firstQuote.json.success, true);
   assert.ok(firstQuote.json.data.number);
+  assert.equal(firstQuote.json.data.email_sent, true);
+  assert.equal(sentMail.length, 1);
+  assert.equal(sentMail[0][0], 'client@example.test');
+  assert.match(sentMail[0][1], /حفظ تسعيرتك/);
 
   const overQuota = await request('/api/quotes', {
     jar: clientJar, method: 'POST', token: csrfToken, body: quotePayload,
@@ -181,6 +188,69 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
   assert.equal(adminStats.json.success, true);
   assert.equal(adminStats.json.data.quotes_total, 1);
   assert.equal(adminStats.json.data.rating_count, 1);
+
+  const registerJar = new Map();
+  const registerCsrf = await request('/api/auth?action=csrf', { jar: registerJar });
+  const registration = await request('/api/auth', {
+    jar: registerJar, method: 'POST', token: registerCsrf.json.data.csrf_token,
+    body: { action: 'register', name: 'عميل جديد', email: 'new@example.test', password: 'TestPassword@123' },
+  });
+  assert.equal(registration.json.success, true);
+  assert.equal(registration.json.data.email_sent, true);
+  assert.equal(sentMail.at(-1)[0], 'new@example.test');
+  assert.match(sentMail.at(-1)[1], /مرحباً بك/);
+
+  const adminQuote = await request('/api/quotes', {
+    jar: adminJar, method: 'POST', token: adminCsrf.json.data.csrf_token,
+    body: { ...quotePayload, title: 'عرض للعميل من الإدارة' },
+  });
+  assert.equal(adminQuote.json.success, true, JSON.stringify(adminQuote.json));
+  const quoteId = adminQuote.json.data.id;
+  const mailCountBeforeSend = sentMail.length;
+  assert.equal((await db.findOne('quotes', { id: quoteId })).status, 'draft');
+  assert.equal(sentMail.length, mailCountBeforeSend, 'saving a draft must not email the client');
+
+  email.sendHtml = async () => { throw Object.assign(new Error('test SMTP failure'), { code: 'ECONNREFUSED' }); };
+  const failedSend = await request('/api/quotes', {
+    jar: adminJar, method: 'POST', token: adminCsrf.json.data.csrf_token,
+    body: { action: 'status', id: quoteId, status: 'sent' },
+  });
+  assert.equal(failedSend.response.status, 502);
+  assert.equal((await db.findOne('quotes', { id: quoteId })).status, 'draft');
+
+  const failedReceipt = await request('/api/quotes', {
+    jar: registerJar, method: 'POST', token: registerCsrf.json.data.csrf_token,
+    body: { ...quotePayload, title: 'تسعيرة بعد فشل البريد' },
+  });
+  assert.equal(failedReceipt.json.success, true);
+  assert.equal(failedReceipt.json.data.email_sent, false);
+  assert.equal((await db.findOne('quotes', { id: failedReceipt.json.data.id })).status, 'draft');
+
+  const failedRegisterJar = new Map();
+  const failedRegisterCsrf = await request('/api/auth?action=csrf', { jar: failedRegisterJar });
+  const failedWelcome = await request('/api/auth', {
+    jar: failedRegisterJar, method: 'POST', token: failedRegisterCsrf.json.data.csrf_token,
+    body: { action: 'register', name: 'عميل بلا بريد', email: 'no-mail@example.test', password: 'TestPassword@123' },
+  });
+  assert.equal(failedWelcome.json.success, true);
+  assert.equal(failedWelcome.json.data.email_sent, false);
+
+  email.sendHtml = async (...args) => { sentMail.push(args); };
+  const successfulSend = await request('/api/quotes', {
+    jar: adminJar, method: 'POST', token: adminCsrf.json.data.csrf_token,
+    body: { action: 'status', id: quoteId, status: 'sent' },
+  });
+  assert.equal(successfulSend.json.success, true, JSON.stringify(successfulSend.json));
+  assert.equal((await db.findOne('quotes', { id: quoteId })).status, 'sent');
+  assert.equal(sentMail.length, mailCountBeforeSend + 1);
+  assert.equal(sentMail.at(-1)[0], 'client@example.test');
+  assert.match(sentMail.at(-1)[2], /عرض للعميل من الإدارة/);
+  const duplicateSend = await request('/api/quotes', {
+    jar: adminJar, method: 'POST', token: adminCsrf.json.data.csrf_token,
+    body: { action: 'status', id: quoteId, status: 'sent' },
+  });
+  assert.equal(duplicateSend.json.success, true);
+  assert.equal(sentMail.length, mailCountBeforeSend + 1);
 
   const message = await request('/api/messages', {
     jar: adminJar,

@@ -845,8 +845,12 @@ async function editQuote(id) {
 
 async function changeStatus(id, status) {
   const r = await api('quotes', { action: 'status', id, status });
-  if (r.success) loadQuotes();
-  else alert(r.error);
+  if (r.success) {
+    showAppToast(r.message || 'تم تحديث الحالة');
+    await loadQuotes();
+  } else {
+    showAppToast(r.error || 'تعذر تحديث الحالة', true);
+  }
 }
 
 // ─── QUOTE BUILDER ───────────────────────
@@ -973,8 +977,9 @@ async function saveQuote() {
   try {
     const r = await api('quotes', payload);
     if (r.success) {
-      showMsg(r.message || 'تم الحفظ', false);
-      showAppToast(r.message || 'تم حفظ عرض السعر بنجاح');
+      const deliveryFailed = r.data?.email_sent === false;
+      showMsg(r.message || 'تم الحفظ', deliveryFailed);
+      showAppToast(r.message || 'تم حفظ عرض السعر بنجاح', deliveryFailed);
       resetQuoteForm();
       nav(document.querySelector('[data-panel="quotes"]'));
       await loadQuotes();
@@ -2267,4 +2272,9 @@ function showInModal(id, msg, isErr) {
 document.addEventListener('DOMContentLoaded', () => {
   loadUnreadCount();
   setInterval(loadUnreadCount, 60000);
+  const mailNotice = sessionStorage.getItem('tas3-mail-notice');
+  if (mailNotice) {
+    sessionStorage.removeItem('tas3-mail-notice');
+    window.setTimeout(() => showAppToast(mailNotice, true), 950);
+  }
 });

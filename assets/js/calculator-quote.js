@@ -148,7 +148,10 @@
       });
       const payload = await response.json();
       if (!response.ok || !payload.success) throw new Error(payload.error || 'تعذر حفظ العرض');
-      notice(`تم حفظ العرض رقم ${payload.data?.number || ''} كمسودة. يمكنك مراجعته من لوحة التحكم.`);
+      notice(payload.data?.email_sent === false
+        ? (payload.message || 'تم حفظ العرض، لكن تعذر إرسال تأكيد البريد.')
+        : `تم حفظ العرض رقم ${payload.data?.number || ''} كمسودة. يمكنك مراجعته من لوحة التحكم.`,
+        payload.data?.email_sent === false);
       saveButton.textContent = 'حُفظ العرض';
       form.reset();
     } catch (error) {

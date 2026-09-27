@@ -83,6 +83,11 @@ app.get('/classic-tools', (req, res) => {
 });
 
 app.use(auth.loadUser);
+app.get('/help', (req, res) => res.render('help', {
+  signedIn: Boolean(req.user),
+  tools,
+  assetVersion: assetVersion(),
+}));
 app.get('/', (req, res) => {
   if (req.user) return res.redirect('/dashboard');
   return res.render('landing', {

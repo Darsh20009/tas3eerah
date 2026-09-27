@@ -54,6 +54,7 @@
     <a href="#features" data-ar="المميزات"  data-en="Features">المميزات</a>
     <a href="#pricing"  data-ar="الأسعار"   data-en="Pricing">الأسعار</a>
     <a href="#about"    data-ar="من نحن"    data-en="About">من نحن</a>
+    <a href="/help"      data-ar="الشرح"     data-en="Guide">الشرح</a>
     <a href="#contact"  data-ar="تواصل"     data-en="Contact">تواصل</a>
   </div>
 
@@ -72,6 +73,7 @@
   <a href="#features" onclick="closeLandMenu()" data-ar="المميزات" data-en="Features">المميزات</a>
   <a href="#pricing"  onclick="closeLandMenu()" data-ar="الأسعار" data-en="Pricing">الأسعار</a>
   <a href="#about"    onclick="closeLandMenu()" data-ar="من نحن" data-en="About">من نحن</a>
+  <a href="/help" data-ar="الشرح" data-en="Guide">الشرح</a>
   <a href="#contact"  onclick="closeLandMenu()" data-ar="تواصل معنا" data-en="Contact us">تواصل معنا</a>
   <div class="lmm-actions">
     <button class="btn btn-ghost"   onclick="closeLandMenu();showAuth('login')" data-ar="تسجيل الدخول" data-en="Sign in">تسجيل الدخول</button>
@@ -546,6 +548,7 @@
           <a href="#features" data-ar="المميزات" data-en="Features">المميزات</a>
           <a href="#pricing" data-ar="الأسعار" data-en="Pricing">الأسعار</a>
           <a href="#about" data-ar="من نحن" data-en="About">من نحن</a>
+          <a href="/help" data-ar="الشرح" data-en="Guide">الشرح</a>
           <a href="#contact" data-ar="تواصل" data-en="Contact">تواصل</a>
         </div>
       </div>
@@ -984,7 +987,10 @@ async function doRegister() {
   if (!name || !email || !pass) { showErr('يرجى تعبئة جميع الحقول'); return; }
   if (pass.length < 8) { showErr('كلمة المرور يجب أن تكون ٨ أحرف على الأقل'); return; }
   const res = await apiPost('/api/auth', { action: 'register', name, email, password: pass });
-  if (res.success) location.href = '/dashboard';
+  if (res.success) {
+    if (res.data?.email_sent === false) sessionStorage.setItem('tas3-mail-notice', res.message);
+    location.href = '/dashboard';
+  }
   else showErr(res.error || 'خطأ في إنشاء الحساب');
 }
 

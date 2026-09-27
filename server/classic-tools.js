@@ -39,6 +39,7 @@ const COMPONENT_OVERRIDES = `
 #integrated-tools .log-empty { color:var(--muted)!important; }
 #integrated-tools .ls-cell { background:rgba(26,43,32,.06)!important; }
 #integrated-tools .back-bar { display:none!important; }
+ #integrated-tools #services-tabs { display:none!important; }
 #integrated-tools #services-tabs #log-tab,
 #integrated-tools #page-log,
 #integrated-tools [id$="-log-panel"],
