@@ -559,10 +559,11 @@
       <div>
         <div class="footer-col-title" data-ar="القانوني" data-en="Legal">القانوني</div>
         <div class="footer-links">
-          <span onclick="showPolicy('privacy')" data-ar="سياسة الخصوصية" data-en="Privacy policy">سياسة الخصوصية</span>
-          <span onclick="showPolicy('terms')" data-ar="شروط الاستخدام" data-en="Terms of use">شروط الاستخدام</span>
-          <span onclick="showPolicy('refund')" data-ar="سياسة الإلغاء" data-en="Cancellation policy">سياسة الإلغاء</span>
-          <span onclick="showPolicy('cookies')" data-ar="الكوكيز" data-en="Cookies">الكوكيز</span>
+          <a href="/policies#terms" data-ar="الشروط والأحكام" data-en="Terms and conditions">الشروط والأحكام</a>
+          <a href="/policies#acceptable-use" data-ar="سياسة الاستخدام المقبول" data-en="Acceptable use policy">سياسة الاستخدام المقبول</a>
+          <a href="/policies#refund" data-ar="سياسة الاسترجاع" data-en="Refund policy">سياسة الاسترجاع</a>
+          <a href="/policies#intellectual-property" data-ar="سياسة الملكية الفكرية" data-en="Intellectual property policy">سياسة الملكية الفكرية</a>
+          <a href="/policies#privacy" data-ar="سياسة البيانات والخصوصية" data-en="Data and privacy policy">سياسة البيانات والخصوصية</a>
         </div>
       </div>
     </div>
@@ -575,14 +576,6 @@
     </div>
   </div>
 </footer>
-
-<!-- ═══ مودال السياسات ═══ -->
-<div class="auth-overlay hidden" id="policyOverlay" onclick="if(event.target===this)hidePolicyModal()">
-  <div style="background:var(--card);border:1px solid var(--line);border-radius:var(--r-xl);width:100%;max-width:680px;max-height:88vh;overflow-y:auto;position:relative;padding:34px;box-shadow:var(--sh-lg)">
-    <button onclick="hidePolicyModal()" style="position:sticky;top:0;float:left;background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;z-index:10;line-height:1">✕</button>
-    <div id="policyContent" style="direction:rtl"></div>
-  </div>
-</div>
 
 <!-- ═══ نافذة المصادقة ═══ -->
 <div class="auth-overlay hidden" id="authOverlay">
@@ -721,23 +714,6 @@
 /* ══ حالة اللغة ══ */
 const LANG = { current: localStorage.getItem('tas3-lang') || 'ar' };
 const LANDING_TRANSLATIONS = {
-  'سياسة الخصوصية':'Privacy policy', 'شروط الاستخدام':'Terms of use',
-  'سياسة الإلغاء والاسترداد':'Cancellation and refund policy', 'سياسة الكوكيز':'Cookie policy',
-  'آخر تحديث:':'Last updated:', 'المعلومات التي نجمعها':'Information we collect',
-  'استخدام المعلومات':'How we use information', 'الأمان':'Security', 'حقوقك':'Your rights',
-  'قبول الشروط':'Acceptance of terms', 'الاستخدام المسموح':'Permitted use',
-  'الملكية الفكرية':'Intellectual property', 'إلغاء الاشتراك':'Subscription cancellation',
-  'الاسترداد':'Refunds', 'الكوكيز التي نستخدمها':'Cookies we use',
-  'نجمع المعلومات التي تقدمها مباشرةً عند إنشاء حساب (الاسم البريد الإلكتروني كلمة المرور المشفرة). لا نجمع بيانات الدفع مباشرةً.':'We collect information you provide when creating an account (name, email and encrypted password). We do not collect payment details directly.',
-  'نستخدم بياناتك لتشغيل الخدمة وتحسين التجربة. لا نبيع بياناتك ولا نشاركها مع أطراف ثالثة لأغراض تسويقية.':'We use your data to operate the service and improve the experience. We do not sell your data or share it with third parties for marketing.',
-  'كلمات المرور مشفرة بخوارزمية bcrypt. نطبق بروتوكولات أمان معيارية لحماية بياناتك.':'Passwords are encrypted with bcrypt. We apply standard security practices to protect your data.',
-  'يحق لك الاطلاع على بياناتك أو طلب حذفها. تواصل معنا على info@tas3eerah.com':'You may review or request deletion of your data. Contact us at info@tas3eerah.com',
-  'باستخدامك للمنصة فأنت توافق على هذه الشروط وتلتزم بها.':'By using the platform, you agree to and will comply with these terms.',
-  'تلتزم بالاستخدام للأغراض المشروعة فقط وفق الأنظمة المعمول بها في المملكة العربية السعودية.':'You agree to use the platform only for lawful purposes under the applicable laws of Saudi Arabia.',
-  'جميع محتويات المنصة محمية بموجب حقوق الملكية الفكرية وتعود لـ تسعيرة.':'All platform content is protected by intellectual property rights and belongs to Tas3eerah.',
-  'يمكنك إلغاء اشتراكك في أي وقت. تبقى مزاياك حتى نهاية الفترة المدفوعة.':'You can cancel your subscription at any time. Your benefits remain available until the end of the paid period.',
-  'نُقدم استرداداً كاملاً خلال ٧ أيام من الاشتراك الأول إذا لم تستخدم الميزات المدفوعة.':'We provide a full refund within 7 days of the first subscription if you have not used paid features.',
-  'كوكي الجلسة الضرورية لتسجيل الدخول. تنتهي تلقائياً خلال ٣٠ يوماً أو عند تسجيل الخروج. لا نستخدم كوكيز تتبعية أو تسويقية.':'The session cookie required for sign-in. It expires automatically after 30 days or when you sign out. We do not use tracking or marketing cookies.',
   'يرجى تعبئة جميع الحقول':'Please fill in all fields',
   'تم استلام رسالتك وسنرد خلال يوم عمل.':'Your message was received. We will reply within one business day.',
   'يرجى إدخال البريد وكلمة المرور':'Please enter your email and password',
@@ -892,7 +868,6 @@ function applyLandingLanguage() {
     if (el.placeholder) el.placeholder = translateLandingText(el.placeholder);
     if (el.getAttribute('aria-label')) el.setAttribute('aria-label', translateLandingText(el.getAttribute('aria-label')));
   });
-  if (ACTIVE_POLICY) showPolicy(ACTIVE_POLICY);
   if (window.Tas3Currency) Tas3Currency.replace(document.body);
   localStorage.setItem('tas3-lang', LANG.current);
 }
@@ -1014,66 +989,11 @@ async function doRegister() {
 }
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { hideAuth(); hidePolicyModal(); return; }
+  if (e.key === 'Escape') { hideAuth(); return; }
   if (e.key !== 'Enter') return;
   if (!document.getElementById('registerForm').classList.contains('hidden')) doRegister();
   else if (!document.getElementById('loginForm').classList.contains('hidden')) doLogin();
 });
-
-/* ══ السياسات ══ */
-let ACTIVE_POLICY = null;
-const POLICIES = {
-  privacy: {
-    title: 'سياسة الخصوصية',
-    body: `<p style="color:var(--muted);font-size:12px;margin-bottom:22px">آخر تحديث: ${new Date().getFullYear()} — تسعيرة</p>
-    <h3 style="font-size:15px;font-weight:800;margin:20px 0 10px;color:var(--p)">١. المعلومات التي نجمعها</h3>
-    <p style="color:var(--muted);font-size:13px;line-height:2">نجمع المعلومات التي تقدمها مباشرةً عند إنشاء حساب (الاسم البريد الإلكتروني كلمة المرور المشفرة). لا نجمع بيانات الدفع مباشرةً.</p>
-    <h3 style="font-size:15px;font-weight:800;margin:20px 0 10px;color:var(--p)">٢. استخدام المعلومات</h3>
-    <p style="color:var(--muted);font-size:13px;line-height:2">نستخدم بياناتك لتشغيل الخدمة وتحسين التجربة. لا نبيع بياناتك ولا نشاركها مع أطراف ثالثة لأغراض تسويقية.</p>
-    <h3 style="font-size:15px;font-weight:800;margin:20px 0 10px;color:var(--p)">٣. الأمان</h3>
-    <p style="color:var(--muted);font-size:13px;line-height:2">كلمات المرور مشفرة بخوارزمية bcrypt. نطبق بروتوكولات أمان معيارية لحماية بياناتك.</p>
-    <h3 style="font-size:15px;font-weight:800;margin:20px 0 10px;color:var(--p)">٤. حقوقك</h3>
-    <p style="color:var(--muted);font-size:13px;line-height:2">يحق لك الاطلاع على بياناتك أو طلب حذفها. تواصل معنا على info@tas3eerah.com</p>`
-  },
-  terms: {
-    title: 'شروط الاستخدام',
-    body: `<p style="color:var(--muted);font-size:12px;margin-bottom:22px">آخر تحديث: ${new Date().getFullYear()}</p>
-    <h3 style="font-size:15px;font-weight:800;margin:20px 0 10px;color:var(--p)">١. قبول الشروط</h3>
-    <p style="color:var(--muted);font-size:13px;line-height:2">باستخدامك للمنصة فأنت توافق على هذه الشروط وتلتزم بها.</p>
-    <h3 style="font-size:15px;font-weight:800;margin:20px 0 10px;color:var(--p)">٢. الاستخدام المسموح</h3>
-    <p style="color:var(--muted);font-size:13px;line-height:2">تلتزم بالاستخدام للأغراض المشروعة فقط وفق الأنظمة المعمول بها في المملكة العربية السعودية.</p>
-    <h3 style="font-size:15px;font-weight:800;margin:20px 0 10px;color:var(--p)">٣. الملكية الفكرية</h3>
-    <p style="color:var(--muted);font-size:13px;line-height:2">جميع محتويات المنصة محمية بموجب حقوق الملكية الفكرية وتعود لـ تسعيرة.</p>`
-  },
-  refund: {
-    title: 'سياسة الإلغاء والاسترداد',
-    body: `<p style="color:var(--muted);font-size:12px;margin-bottom:22px">آخر تحديث: ${new Date().getFullYear()}</p>
-    <h3 style="font-size:15px;font-weight:800;margin:20px 0 10px;color:var(--p)">١. إلغاء الاشتراك</h3>
-    <p style="color:var(--muted);font-size:13px;line-height:2">يمكنك إلغاء اشتراكك في أي وقت. تبقى مزاياك حتى نهاية الفترة المدفوعة.</p>
-    <h3 style="font-size:15px;font-weight:800;margin:20px 0 10px;color:var(--p)">٢. الاسترداد</h3>
-    <p style="color:var(--muted);font-size:13px;line-height:2">نُقدم استرداداً كاملاً خلال ٧ أيام من الاشتراك الأول إذا لم تستخدم الميزات المدفوعة.</p>`
-  },
-  cookies: {
-    title: 'سياسة الكوكيز',
-    body: `<p style="color:var(--muted);font-size:12px;margin-bottom:22px">آخر تحديث: ${new Date().getFullYear()}</p>
-    <h3 style="font-size:15px;font-weight:800;margin:20px 0 10px;color:var(--p)">الكوكيز التي نستخدمها</h3>
-    <p style="color:var(--muted);font-size:13px;line-height:2"><strong style="color:var(--text)">TAS3_SESS</strong>: كوكي الجلسة الضرورية لتسجيل الدخول. تنتهي تلقائياً خلال ٣٠ يوماً أو عند تسجيل الخروج. لا نستخدم كوكيز تتبعية أو تسويقية.</p>`
-  }
-};
-
-function showPolicy(key) {
-  const p = POLICIES[key]; if (!p) return;
-  ACTIVE_POLICY = key;
-  document.getElementById('policyContent').innerHTML =
-    `<h2 style="font-size:22px;font-weight:900;margin-bottom:8px">${translateLandingText(p.title)}</h2>${translateLandingText(p.body)}`;
-  document.getElementById('policyOverlay').classList.remove('hidden');
-  document.body.style.overflow = 'hidden';
-}
-function hidePolicyModal() {
-  ACTIVE_POLICY = null;
-  document.getElementById('policyOverlay').classList.add('hidden');
-  document.body.style.overflow = '';
-}
 
 /* ══ نموذج التواصل ══ */
 function submitContact() {

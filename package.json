@@ -4,7 +4,7 @@
   "description": "منصة تسعيرة العربية للتسعير وعروض الأسعار",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test server/db.test.js server/api/api.test.js"
+    "test": "node --test server/db.test.js server/api/api.test.js server/policies.test.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

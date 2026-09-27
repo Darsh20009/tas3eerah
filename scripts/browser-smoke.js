@@ -38,6 +38,27 @@ async function main() {
   });
   const failures = [];
   try {
+    const policyContext = await browser.newContext({ ignoreHTTPSErrors: true });
+    const policyPage = await policyContext.newPage();
+    policyPage.on('pageerror', error => failures.push(`policies: ${error.message}`));
+    await policyPage.goto(baseUrl, { waitUntil: 'load' });
+    const legalLinks = policyPage.locator('footer a[href^="/policies#"]');
+    if (await legalLinks.count() !== 5) failures.push('landing: expected five policy links');
+    await policyPage.locator('footer a[href="/policies#refund"]').click();
+    await policyPage.waitForURL('**/policies#refund');
+    const policySections = policyPage.locator('.policies-section');
+    const refundCopy = await policyPage.locator('#refund').innerText();
+    if (await policySections.count() !== 5 ||
+        !refundCopy.includes('خلال ساعة واحدة (60 دقيقة)') ||
+        !await policyPage.getByText('آخر تحديث: 20 سبتمبر 2026').count()) {
+      failures.push('policies: missing uploaded sections, refund window, or document date');
+    }
+    await policyPage.setViewportSize({ width: 390, height: 844 });
+    const mobileWidth = await policyPage.evaluate(() => document.documentElement.scrollWidth);
+    if (mobileWidth > 390) failures.push(`policies: horizontal overflow on mobile (${mobileWidth}px)`);
+    console.log(`policies: ${await policySections.count()} sections, mobile width ${mobileWidth}px`);
+    await policyContext.close();
+
     for (const role of ['admin', 'employee', 'client']) {
       const context = await browser.newContext({ ignoreHTTPSErrors: true });
       const page = await context.newPage();

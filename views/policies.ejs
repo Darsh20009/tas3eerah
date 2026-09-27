@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/assets/css/app.css?v=<%= assetVersion %>">
+  <style>
+    body { background: #f8f6f0; }
+    .policies-shell { max-width: 920px; margin: 0 auto; padding: 28px clamp(16px, 4vw, 40px) 72px; }
+    .policies-top { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+    .policies-top img { width: 145px; max-width: 40vw; height: auto; }
+    .policies-top a { color: var(--p); font-weight: 700; text-decoration: none; }
+    .policies-header { margin: 40px 0 24px; }
+    .policies-header h1 { margin: 0 0 10px; font-size: clamp(27px, 4vw, 37px); color: var(--p); }
+    .policies-header p { margin: 5px 0; color: var(--muted); }
+    .policies-nav { background: #fffefa; border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
+    .policies-nav h2 { margin: 0 0 14px; color: var(--p); font-size: 18px; }
+    .policies-nav ul { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; list-style: none; }
+    .policies-nav a { display: inline-block; padding: 9px 12px; border: 1px solid var(--line); border-radius: 7px; color: var(--p); text-decoration: none; font-size: 14px; }
+    .policies-nav a:hover, .policies-nav a:focus-visible { border-color: var(--gold); background: #faf4e2; }
+    .policies-section { margin-top: 18px; padding: 25px; background: #fffefa; border: 1px solid var(--line); border-radius: 12px; scroll-margin-top: 20px; }
+    .policies-section h2 { margin: 0 0 17px; color: var(--p); font-size: 22px; }
+    .policies-body { white-space: pre-wrap; overflow-wrap: anywhere; font-family: inherit; font-size: 15px; line-height: 2.05; color: var(--text); }
+    @media (max-width: 600px) {
+      .policies-shell { padding-top: 20px; }
+      .policies-header { margin-top: 30px; }
+      .policies-section { padding: 18px; }
+      .policies-nav ul { display: grid; }
+    }
+  </style>
+</head>
+<body>
+  <main class="policies-shell">
+    <div class="policies-top">
+      <a href="/" aria-label="العودة إلى تسعيرة"><img src="/assets/logo.png" alt="تسعيرة"></a>
+      <a href="/">العودة إلى الرئيسية</a>
+    </div>
+    <header class="policies-header">
+      <h1><%= title %></h1>
+      <p><%= site %></p>
+      <p><%= updated %></p>
+    </header>
+    <nav class="policies-nav" aria-label="<%= contentsTitle %>">
+      <h2><%= contentsTitle %></h2>
+      <ul>
+        <% for (const section of sections) { %>
+          <li><a href="#<%= section.id %>"><%= section.title.slice(3) %></a></li>
+        <% } %>
+      </ul>
+    </nav>
+    <% for (const section of sections) { %>
+      <section class="policies-section" id="<%= section.id %>" aria-labelledby="<%= section.id %>-title">
+        <h2 id="<%= section.id %>-title"><%= section.title %></h2>
+        <div class="policies-body"><%= section.body %></div>
+      </section>
+    <% } %>
+  </main>
+</body>
+</html>

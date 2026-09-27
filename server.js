@@ -11,6 +11,7 @@ const auth = require('./server/auth');
 const dashboardData = require('./server/dashboard-data');
 const tools = require('./server/tools');
 const classicTools = require('./server/classic-tools');
+const policies = require('./server/policies');
 const DatabaseSessionStore = require('./server/session-store');
 
 const root = __dirname;
@@ -66,6 +67,7 @@ app.all('/api/{*path}', (req, res) => res.status(404).json({
 }));
 
 app.get('/favicon.ico', (req, res) => res.sendFile(path.join(root, 'assets/icons/icon-192.png')));
+app.get('/policies', (req, res) => res.render('policies', { ...policies, assetVersion: assetVersion() }));
 app.get('/legacy-calculator.html', (req, res) =>
   res.sendFile(path.join(root, 'legacy-calculator.html')));
 app.get('/classic-tools', (req, res) => {
