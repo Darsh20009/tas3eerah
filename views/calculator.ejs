@@ -1,0 +1,170 @@
+
+<!doctype html>
+<% if (typeof locals.csrfToken !== 'string') throw new Error('Calculator route must provide csrfToken'); if (!toolMap || typeof toolMap !== 'object') throw new Error('Calculator route must provide toolMap'); if (!tool) throw new Error('Calculator route must provide tool'); const csrfToken = locals.csrfToken; const slug = tool.slug || tool.legacy; const role = user.role; const planTools = Array.isArray(plan.tools)?plan.tools:[]; const roleLabel=({admin:'مدير النظام',employee:'موظف',client:'عميل'})[role]||role; const quotaLabel=plan.max_quotes===-1?'تسعير غير محدود':'خطة '+plan.name_ar; const sectorLinks=Object.fromEntries(Object.entries(toolMap).map(([key,item])=>[key,item.short||item.title])); const openAccessMode=Boolean(locals.openAccessMode); const assetVersion=locals.assetVersion||1; const currentYear=new Date().getFullYear(); const formatNumber=(value,decimals=0)=>Number(value||0).toLocaleString('en-US',{minimumFractionDigits:decimals,maximumFractionDigits:decimals}); const count=value=>Array.isArray(value)?value.length:Object.keys(value||{}).length; const escapeHtml=value=>value; %>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#F8F5ED">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="csrf-token" content="<%= csrfToken %>">
+  <title><%= tool['title'] %> | تسعيرة</title>
+  <link rel="manifest" href="/assets/manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-180.png">
+  <link rel="stylesheet" href="/assets/css/app.css?v=<%= assetVersion %>">
+  <style>
+    .calculator-workspace { padding: 24px 26px 46px; }
+    .calculator-page-head { max-width: 1120px; margin: 0 auto 18px; }
+    .calculator-breadcrumb { display:flex; align-items:center; gap:7px; color:var(--muted); font-size:12px; margin-bottom:14px; }
+    .calculator-breadcrumb a { color:var(--green); text-decoration:none; }
+    .calculator-hero { display:flex; align-items:center; justify-content:space-between; gap:24px; background:var(--card); border:1px solid var(--line); border-radius:var(--r-lg); padding:18px 22px; overflow:hidden; }
+    .calculator-hero-copy { min-width:0; }
+    .calculator-kicker { color:var(--green); font-size:11px; font-weight:800; margin-bottom:5px; }
+    .calculator-hero h1 { margin:0; color:var(--text); font-size:24px; line-height:1.35; }
+    .calculator-hero p { margin:7px 0 0; color:var(--muted); font-size:13px; line-height:1.8; }
+    .calculator-hero-art { width:150px; height:84px; flex:0 0 150px; border-radius:12px; overflow:hidden; background:var(--surface); }
+    .calculator-hero-art img { width:100%; height:100%; object-fit:cover; }
+    .calculator-content { max-width:1120px; margin:0 auto; }
+    .calculator-content #integrated-tools { border-radius:var(--r-lg); margin-top:18px; }
+    .calculator-content #integrated-tools .tool-screen.active { display:block!important; }
+    .calculator-content #integrated-tools .tool-screen:not(.active) { display:none!important; }
+    .calculator-shell .workspace-footer { max-width:1120px; margin:0 auto; }
+    .calculator-shell .sb-item,
+    .calculator-shell .sb-logout { text-decoration:none; }
+    @media (max-width:700px) {
+      .calculator-workspace { padding:16px 13px 34px; }
+      .calculator-hero { padding:16px; }
+      .calculator-hero h1 { font-size:20px; }
+      .calculator-hero-art { width:96px; height:68px; flex-basis:96px; }
+    }
+  </style>
+</head>
+<body class="calculator-view">
+<div class="app-shell calculator-shell">
+  <div class="sb-overlay" id="calculatorSidebarOverlay" onclick="closeCalculatorSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <button class="sb-close-btn" type="button" onclick="closeCalculatorSidebar()" aria-label="إغلاق القائمة">✕</button>
+    <a class="sb-logo" href="/dashboard" aria-label="العودة إلى لوحة التحكم">
+      <img class="sb-logo-img" src="/assets/logo.png" alt="تسعيرة">
+    </a>
+    <div class="sb-gold-stripe"></div>
+    <div class="sb-user">
+      <div class="sb-user-name user-content"><%= user['name'] %></div>
+      <div class="sb-user-role"><%= roleLabel %></div>
+      <div class="sb-plan"><%= plan['name_ar'] %></div>
+      <div class="sb-plan-usage"><%= quotaLabel %></div>
+    </div>
+    <nav class="sb-nav" aria-label="التنقل">
+      <div class="sb-section">الرئيسية</div>
+      <a class="sb-item" href="/dashboard"><span class="sb-icon">◈</span> نظرة عامة</a>
+      <div class="sb-section">عروض الأسعار</div>
+      <a class="sb-item" href="/dashboard"><span class="sb-icon">◧</span> عروض الأسعار</a>
+      <div class="sb-section">التسعيرات</div>
+      <% for (const [linkSlug, linkTitle] of Object.entries(sectorLinks)) { %>
+        <% let linkAvailable = isAdmin || planTools.includes('all') || planTools.includes(toolMap[linkSlug]['plan']); %>
+        <a class="sb-item <%= slug === linkSlug ? 'active' : '' %>" href="<%= linkAvailable ? '/calculator/' + linkSlug : '/dashboard?tool_locked=1' %>">
+          <span class="sb-icon"><%= slug === linkSlug ? '●' : '○' %></span>
+          <%= linkTitle %>
+        </a>
+      <% } %>
+      <div class="sb-section">إدارة العمل</div>
+      <a class="sb-item" href="/dashboard"><span class="sb-icon">▤</span> سجل المشاريع</a>
+      <div class="sb-section">الحساب</div>
+      <a class="sb-item" href="/dashboard"><span class="sb-icon">◉</span> حسابي</a>
+    </nav>
+    <div class="sb-footer">
+      <a class="sb-logout" href="/logout"><span>⊗</span> تسجيل الخروج</a>
+    </div>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" type="button" onclick="openCalculatorSidebar()" aria-label="فتح القائمة">
+          <span></span><span></span><span></span>
+        </button>
+        <a class="btn btn-ghost btn-sm" href="/dashboard">← لوحة التحكم</a>
+        <div class="topbar-title">التسعيرات · <%= tool['short'] %></div>
+      </div>
+      <div class="topbar-actions">
+        <div class="client-header-frame frame-crossfade" data-frame-animation data-frame-speed="85" aria-hidden="true">
+          <img data-frame-image class="is-visible" src="/assets/ui/frame-sequence/frame-01.png" alt="">
+          <img data-frame-image src="/assets/ui/frame-sequence/frame-01.png" alt="" aria-hidden="true">
+        </div>
+        <a class="btn btn-ghost btn-sm" href="/">الرئيسية</a>
+      </div>
+    </header>
+
+    <main class="workspace calculator-workspace">
+      <div class="calculator-page-head">
+        <div class="calculator-breadcrumb"><a href="/dashboard">لوحة التحكم</a><span>›</span><span>التسعيرات</span><span>›</span><strong><%= tool['short'] %></strong></div>
+        <div class="calculator-hero">
+          <div class="calculator-hero-copy">
+            <div class="calculator-kicker">التسعيرات</div>
+            <h1><%= tool['title'] %></h1>
+            <p><%= tool['description'] %></p>
+          </div>
+          <div class="calculator-hero-art"><img src="<%= tool['image'] %>" alt=""></div>
+        </div>
+      </div>
+      <div class="calculator-content">
+        <%- classicTools.renderClassicTools(tool.legacy) %>
+        <section class="calculator-quote-card" aria-labelledby="calculatorQuoteHeading">
+          <div>
+            <h2 id="calculatorQuoteHeading">احفظ النتيجة كعرض سعر</h2>
+            <p>أكمل الحساب في الأعلى، ثم احفظ النتيجة في عروض الأسعار بحسابك.</p>
+          </div>
+          <button class="btn btn-primary" type="button" id="calculatorQuoteOpen">حفظ كعرض سعر</button>
+        </section>
+        <div class="calculator-quote-overlay hidden" id="calculatorQuoteOverlay">
+          <div class="calculator-quote-dialog" role="dialog" aria-modal="true" aria-labelledby="calculatorQuoteTitle">
+            <button type="button" class="calculator-quote-close" id="calculatorQuoteClose" aria-label="إغلاق">×</button>
+            <h2 id="calculatorQuoteTitle">حفظ النتيجة كعرض سعر</h2>
+            <p>اختر النتيجة التي تريد حفظها. سيُحفظ المبلغ المحسوب كما هو دون إضافة ضريبة مرة أخرى.</p>
+            <form id="calculatorQuoteForm">
+              <label for="calculatorQuoteResult">النتيجة المحسوبة</label>
+              <select id="calculatorQuoteResult" required></select>
+              <label for="calculatorQuoteName">عنوان العرض</label>
+              <input id="calculatorQuoteName" type="text" maxlength="240" required>
+              <% if (user.role !== 'client') { %>
+              <label for="calculatorQuoteClient">العميل</label>
+              <select id="calculatorQuoteClient" required><option value="">جارٍ تحميل العملاء...</option></select>
+              <% } %>
+              <label for="calculatorQuoteNotes">ملاحظات (اختياري)</label>
+              <textarea id="calculatorQuoteNotes" maxlength="10000" rows="3"></textarea>
+              <p id="calculatorQuoteMessage" class="calculator-quote-message" role="status" aria-live="polite"></p>
+              <div class="calculator-quote-actions">
+                <button class="btn btn-primary" type="submit" id="calculatorQuoteSave">حفظ العرض</button>
+                <a class="btn btn-ghost" href="/dashboard">عرض عروضي</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <footer class="workspace-footer">
+        <span>© <%= currentYear %> تسعيرة · منصة التسعير العربية</span>
+        <span><a href="/">الرئيسية</a> · <a href="/dashboard">لوحة التحكم</a> · <a href="/logout">تسجيل الخروج</a></span>
+      </footer>
+    </main>
+  </div>
+</div>
+<script src="/assets/js/currency.js?v=2"></script>
+<script src="/assets/js/frame-loader.js?v=<%= assetVersion %>"></script>
+<script>window.CALCULATOR_CONTEXT = <%- JSON.stringify({slug,role:user.role}).replace(/[<>&]/g, c => ({'<':'\\u003c','>':'\\u003e','&':'\\u0026'}[c])) %>;</script>
+<script src="/assets/js/calculator-quote.js?v=<%= assetVersion %>"></script>
+<script>
+  window.goHome = function () { window.location.href = '/dashboard'; };
+  function openCalculatorSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('calculatorSidebarOverlay').classList.add('open');
+  }
+  function closeCalculatorSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('calculatorSidebarOverlay').classList.remove('open');
+  }
+</script>
+</body>
+</html>

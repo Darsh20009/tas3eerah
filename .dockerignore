@@ -3,3 +3,8 @@ database/
 .git/
 *.log
 node_modules/
+.local/
+.agents/
+.env
+.env.*
+screenshots/

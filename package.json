@@ -3,6 +3,19 @@
   "version": "1.0.0",
   "description": "منصة تسعيرة العربية للتسعير وعروض الأسعار",
   "scripts": {
-    "start": "php -S 0.0.0.0:$PORT router.php"
+    "start": "node server.js",
+    "test": "node --test server/db.test.js server/api/api.test.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.11.1",
+    "ejs": "^6.0.1",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "imapflow": "^2.0.8",
+    "jose": "^6.2.12",
+    "mongodb": "^7.6.0",
+    "nodemailer": "^10.0.11",
+    "playwright-core": "^1.63.0"
   }
 }

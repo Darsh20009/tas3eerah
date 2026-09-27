@@ -1,13 +1,4 @@
-- [Dual-mode DB](db-dual-mode.md) — MongoDB في الإنتاج (Docker/Render)، SQLite محلياً (Replit) — نفس الـ interface
-- [System Architecture](system-arch.md) — PHP 8.4 + SQLite3، هيكل ملفات منفصل، router.php كنقطة دخول واحدة
-- [Quote System](quote-system.md) — transactions إلزامية، quote_counter table للأرقام، permission matrix للحالات
-- [Auth & Sessions](auth-sessions.md) — PHP sessions بـ bcrypt، 3 حسابات تجريبية محددة، session name: TAS3_SESS
-- [Subscription System](subscriptions.md) — 3 خطط (free/pro/enterprise) في config.php، المدير يغير خطة أي مستخدم من /api/admin
-- [Tools Integration](tools.md) — 6 أدوات تسعير مدمجة (calc_basic/pkg/store/office/labor/custom)، مقفلة بالخطة، جميعها تعرض نتائج حقيقية
-- [Integrated Classic Tools](integrated-tools.md) — أدوات القطاعات الأصلية تُعرض داخل لوحة النظام عبر partial داخلي مع عزل CSS وربط الحفظ بعروض الأسعار
-- [Brand Identity v3](brand-identity.md) — هوية سعودية كاملة: أخضر داكن + ذهبي + بيج دافئ، خطوط محلية، شعار logo.png
-- [CSRF Protection](csrf.md) — X-CSRF-Token header لكل POST، token في session، meta tag في كل صفحة، validation في router.php
-- [Plan Enforcement](plan-enforcement.md) — effectivePlan() تُحدّد الخطة الفعلية بعد انتهاء الصلاحية، APP_ENV يتحكم في Seed
+- [تخزين الإنتاج](db-dual-mode.md) — لا تسمح بالسقوط إلى SQLite عند تعذر MongoDB في حاوية إنتاج مؤقتة
+- [عقد الجلسات](session-store-contract.md) — Express Session ليس كائناً عادياً؛ طبّع البيانات عند حفظها في واجهة DB
 - [Mobile landing hero](mobile-hero.md) — شبكة العمود الواحد لا تكفي وحدها؛ ثبّت العرض و`min-width:0` للرسم الداخلي
 - [Localization](localization.md) — قاموس اللغة موحّد مع حفظ الاختيار، مع حماية محتوى المستخدم وفصل مراقب DOM أثناء التبديل
-- [Private Email](private-email.md) — صندوق المنصة يعتمد Private Email عبر SMTP للإرسال وIMAP للوارد، وكلمة المرور تبقى في Secrets

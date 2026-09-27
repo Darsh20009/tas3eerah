@@ -27,7 +27,7 @@
   --bg:#F7F1E2;--surface:#EFE3C8;--card:#FFFEFA;--border:#DDCCA0;
   --gold:#B8853A;--gold-light:#8C6325;--gold-dim:#EDDFB8;
   --text:#3B2E1C;--muted:#8C7A57;--soft:#5A4A30;
-  --green:#3F8F5F;--blue:#5b8dee;--red:#d6483f;--purple:#9b72f5;
+  --green:#3F8F5F;--blue:#5b8dee;--red:#d6483f;--purple:#A8882C;
 }
 body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px}
 
@@ -52,7 +52,7 @@ header p{color:var(--muted);font-size:12px;margin-top:3px;position:relative}
 .step-title{font-size:14px;font-weight:800}
 
 .card{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px;margin-bottom:14px}
-.card.purple-card{background:linear-gradient(135deg,#F1E9FB,#FFFEFA);border-color:rgba(155,114,245,0.3)}
+.card.purple-card{background:#FAF3DE;border-color:rgba(201,167,65,0.3)}
 .card.gold-card{background:linear-gradient(135deg,var(--gold-dim),#FFFEFA);border-color:rgba(184,133,58,0.3)}
 
 /* FIELD GRID */
@@ -96,7 +96,7 @@ header p{color:var(--muted);font-size:12px;margin-top:3px;position:relative}
 .f label{font-size:11px;font-weight:700;color:var(--muted)}
 .f input{background:var(--surface);border:1.5px solid var(--border);border-radius:8px;padding:9px 11px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:14px;outline:none;transition:border-color 0.18s;width:100%}
 .f input:focus{border-color:var(--gold)}
-.f input[readonly]{background:rgba(155,114,245,0.06);border-color:rgba(155,114,245,0.2);color:var(--purple);font-weight:700;cursor:default}
+.f input[readonly]{background:rgba(201,167,65,0.06);border-color:rgba(201,167,65,0.2);color:var(--purple);font-weight:700;cursor:default}
 .f .hint{font-size:10px;color:var(--muted)}
 
 .glbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin:13px 0 9px;display:flex;align-items:center;gap:7px;color:var(--muted)}
@@ -110,7 +110,7 @@ header p{color:var(--muted);font-size:12px;margin-top:3px;position:relative}
 .delbtn:hover{background:rgba(224,85,85,0.2)}
 .addbtn{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;background:rgba(91,141,238,0.06);border:1.5px dashed rgba(91,141,238,0.22);border-radius:8px;padding:8px;color:var(--blue);font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700;cursor:pointer;width:100%;transition:all 0.18s}
 .addbtn:hover{background:rgba(91,141,238,0.12)}
-.addbtn.pu{border-color:rgba(155,114,245,0.25);color:var(--purple);background:rgba(155,114,245,0.04)}
+.addbtn.pu{border-color:rgba(201,167,65,0.25);color:var(--purple);background:rgba(201,167,65,0.04)}
 .addbtn.pu:hover{background:rgba(155,114,245,0.09)}
 
 .ibox{border-radius:9px;padding:10px 12px;font-size:12px;line-height:1.6;margin-bottom:12px}
@@ -2764,6 +2764,7 @@ function loadRetailState(){
 
 // عند فتح الأداة: استرجاع آخر حالة محفوظة، وإلا تحميل منتجات نموذجية افتراضية (قطاع مواد بناء خام)
 document.addEventListener('DOMContentLoaded', function(){
+  if(!document.getElementById('ret-rows')) return;
   const loaded = loadRetailState();
   if(!loaded){
     const defaultSector = retailSectors[0];
@@ -2784,6 +2785,7 @@ let MENU_CURR = {label:'ريال', code:'SAR', locale:'ar-SA'};
 
 function setGlobalCurrency(){
   const sel = document.getElementById('global-currency');
+  if(!sel) return;
   const parts = sel.value.split('|');
   const curr = {label:parts[0], code:parts[1], locale:parts[2]};
   // تطبيق على الثلاث أدوات
@@ -2799,9 +2801,10 @@ function setGlobalCurrency(){
     if(el) el.textContent = '🌍 ' + curr.label;
   });
   // إعادة حساب
-  calc();
-  calcPkg();
-  calcMenuAll();
+  if(document.getElementById('tool-services')) calc();
+  if(document.getElementById('pkg-results')) calcPkg();
+  if(document.getElementById('menu-rows')) calcMenuAll();
+  if(document.getElementById('ret-rows')) calcRetail();
 }
 
 function setPkgCurrency(){ /* مدمجة في setGlobalCurrency */ }
@@ -3498,7 +3501,9 @@ function printMenuReport(n){
 }
 
 function calcMenuAll(){
-  const rows = document.getElementById('menu-rows').querySelectorAll('tr');
+  const menuRows = document.getElementById('menu-rows');
+  if(!menuRows) return;
+  const rows = menuRows.querySelectorAll('tr');
   rows.forEach(row=>{
     const id = row.id.replace('menu-row-','');
     if(id) calcMenuRow(parseInt(id));
@@ -3599,6 +3604,7 @@ function saveMenuState(){
 }
 
 function loadMenuState(){
+  if(!document.getElementById('menu-rows')) return false;
   let state;
   try{ state = JSON.parse(localStorage.getItem('menu_state')||'null'); }catch(e){ state = null; }
   if(!state) return false;
@@ -3623,9 +3629,11 @@ function loadMenuState(){
 }
 
 // عند فتح الأداة: استرجاع آخر حالة محفوظة، وإلا تحميل أصناف نموذجية افتراضية
-const menuLoadedFromState = loadMenuState();
-if(!menuLoadedFromState){
-  defaultMenuItems.forEach(item => addMenuRow(item[0],item[1],item[2],item[3]));
+if(document.getElementById('menu-rows')){
+  const menuLoadedFromState = loadMenuState();
+  if(!menuLoadedFromState){
+    defaultMenuItems.forEach(item => addMenuRow(item[0],item[1],item[2],item[3]));
+  }
 }
 
 
