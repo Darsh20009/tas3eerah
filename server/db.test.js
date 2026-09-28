@@ -11,6 +11,7 @@ const tempDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'tas3eerah-db-test-'
 const databasePath = path.join(tempDirectory, 'legacy.db');
 process.env.APP_ENV = 'test';
 process.env.MONGODB_URI = '';
+process.env.DB_TEST_SQLITE = '1';
 process.env.DB_PATH = databasePath;
 
 // Start from a pre-migration database: verify initialization adds columns and
@@ -193,6 +194,21 @@ test('SQLite facade keeps legacy rows, enforces safe filters, aggregates and per
     });
     assert.equal(result.status, 0, result.stderr || result.stdout);
     assert.equal(fs.existsSync(blockedPath), false, 'production must fail before creating a SQLite file');
+  });
+
+  await t.test('development refuses to start without MongoDB instead of opening SQLite', async () => {
+    const { spawnSync } = require('node:child_process');
+    const blockedPath = path.join(tempDirectory, 'development-must-not-be-created.db');
+    const result = spawnSync(process.execPath, [
+      '-e',
+      "require('./server/db').init().then(()=>process.exit(2)).catch((error)=>{if(!error.message.includes('MONGODB_URI'))process.exit(3);});",
+    ], {
+      cwd: path.join(__dirname, '..'),
+      env: { ...process.env, APP_ENV: 'development', MONGODB_URI: '', DB_PATH: blockedPath },
+      encoding: 'utf8',
+    });
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+    assert.equal(fs.existsSync(blockedPath), false, 'development must fail before creating a SQLite file');
   });
 });
 

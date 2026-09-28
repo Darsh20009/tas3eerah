@@ -11,6 +11,8 @@ const bcrypt = require('bcryptjs');
 
 const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'tas3eerah-api-test-'));
 process.env.APP_ENV = 'test';
+process.env.MONGODB_URI = '';
+process.env.DB_TEST_SQLITE = '1';
 process.env.DB_PATH = path.join(temporaryDirectory, 'isolated.sqlite');
 
 const db = require('../db');

@@ -7,6 +7,12 @@ const APP_URL = String(
   process.env.APP_URL || process.env.RENDER_EXTERNAL_URL || 'http://localhost:5000',
 ).replace(/\/+$/, '');
 const MONGODB_URI = String(process.env.MONGODB_URI || '').trim();
+const MONGODB_DB_NAME = String(
+  process.env.MONGODB_DB_NAME || (APP_ENV === 'production' ? 'tas3eerah' : 'tas3eerah_dev'),
+).trim();
+if (!/^[A-Za-z0-9_-]{1,64}$/.test(MONGODB_DB_NAME)) {
+  throw new Error('اسم قاعدة MongoDB غير صالح.');
+}
 const DB_PATH = path.resolve(
   process.env.DB_PATH || path.join(__dirname, '..', 'database', 'tas3eerah.db'),
 );
@@ -80,9 +86,9 @@ function isProduction() {
   return APP_ENV === 'production';
 }
 
-function assertProductionReady() {
-  if (isProduction() && !MONGODB_URI) {
-    throw new Error('لم يتم إعداد MONGODB_URI في بيئة الإنتاج؛ أوقف التطبيق لمنع استخدام تخزين مؤقت.');
+function assertDatabaseReady() {
+  if (!MONGODB_URI && !(APP_ENV === 'test' && process.env.DB_TEST_SQLITE === '1')) {
+    throw new Error('لم يتم إعداد MONGODB_URI؛ يتطلب تشغيل التطبيق MongoDB ولا يستخدم SQLite بديلاً.');
   }
 }
 
@@ -104,9 +110,10 @@ module.exports = Object.freeze({
   APP_URL,
   DB_PATH,
   MONGODB_URI,
+  MONGODB_DB_NAME,
   SESSION_LIFETIME,
   PLANS,
   isProduction,
-  assertProductionReady,
+  assertDatabaseReady,
   getConfiguredAdmin,
 });

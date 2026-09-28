@@ -624,48 +624,17 @@ async function ensureAdmin(admin) {
 }
 
 async function seedIfNeeded() {
-  if (config.APP_ENV !== 'development' && !config.isProduction()) return;
-
-  const configuredAdmin = config.getConfiguredAdmin();
-  if (config.isProduction()) {
-    if ((await count('users', { role: 'admin' })) > 0) return;
-    if (!configuredAdmin) {
-      fail('لم يُعثر على مدير نظام في MongoDB. أعد ضبط INITIAL_ADMIN_EMAIL وINITIAL_ADMIN_PASSWORD (12 حرفاً على الأقل) لتهيئة المدير الأول.');
-    }
-    await ensureAdmin(configuredAdmin);
-    return;
-  }
-
-  if (configuredAdmin) await ensureAdmin(configuredAdmin);
+  if (config.APP_ENV === 'test') return;
   if ((await count('users', { role: 'admin' })) > 0) return;
 
-  await insertDoc('users', {
-    name: 'مدير النظام',
-    email: 'admin@tas3eerah.com',
-    password_hash: await bcrypt.hash('Admin@2025', 10),
-    role: 'admin',
-    plan: 'pro',
-    plan_expires_at: null,
-    is_active: 1,
-  });
-  await insertDoc('users', {
-    name: 'أحمد الموظف',
-    email: 'employee@tas3eerah.com',
-    password_hash: await bcrypt.hash('Demo@2025', 10),
-    role: 'employee',
-    plan: 'pro',
-    plan_expires_at: null,
-    is_active: 1,
-  });
-  await insertDoc('users', {
-    name: 'سارة العميلة',
-    email: 'client@tas3eerah.com',
-    password_hash: await bcrypt.hash('Demo@2025', 10),
-    role: 'client',
-    plan: 'free',
-    plan_expires_at: null,
-    is_active: 1,
-  });
+  const configuredAdmin = config.getConfiguredAdmin();
+  if (!configuredAdmin) {
+    fail('لم يُعثر على مدير نظام في MongoDB. اضبط INITIAL_ADMIN_EMAIL وINITIAL_ADMIN_PASSWORD (12 حرفاً على الأقل) لتهيئة المدير الأول.');
+  }
+  if (await findOne('users', { email: configuredAdmin.email })) {
+    fail('يوجد حساب بهذا البريد دون صلاحية المدير؛ لن تُغيَّر صلاحيته تلقائياً.');
+  }
+  await ensureAdmin(configuredAdmin);
 }
 
 async function initializeMongo() {
@@ -675,7 +644,7 @@ async function initializeMongo() {
   });
   try {
     await mongoClient.connect();
-    mongoDatabase = mongoClient.db('tas3eerah');
+    mongoDatabase = mongoClient.db(config.MONGODB_DB_NAME);
     await mongoDatabase.command({ ping: 1 });
     await Promise.all([
       mongoDatabase.collection('users').createIndex({ email: 1 }, { unique: true }),
@@ -694,7 +663,7 @@ async function initializeMongo() {
     mongoClient = null;
     mongoDatabase = null;
     selectedMode = null;
-    fail('تعذرت تهيئة MongoDB. تحقّق من URI وصلاحيات قاعدة tas3eerah وإمكانية الاتصال؛ لم يتم التحويل إلى SQLite.');
+    fail('تعذرت تهيئة MongoDB. تحقّق من رابط الاتصال وصلاحيات القاعدة وإمكانية الاتصال؛ لن يستخدم التطبيق SQLite.');
   }
   try {
     await seedIfNeeded();
@@ -723,9 +692,9 @@ async function initializeSqlite() {
 async function init() {
   if (initPromise) return initPromise;
   initPromise = (async () => {
-    config.assertProductionReady();
-    if (config.MONGODB_URI) await initializeMongo();
-    else await initializeSqlite();
+    config.assertDatabaseReady();
+    if (config.APP_ENV === 'test' && process.env.DB_TEST_SQLITE === '1') await initializeSqlite();
+    else await initializeMongo();
     return selectedMode;
   })();
   try {
