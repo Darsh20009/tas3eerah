@@ -13,7 +13,7 @@ const COLLECTION_FIELDS = Object.freeze({
   ]),
   quotes: new Set([
     'id', 'number', 'client_id', 'employee_id', 'title', 'status', 'subtotal',
-    'tax_rate', 'discount', 'total', 'notes', 'items', 'created_at', 'updated_at',
+    'tax_rate', 'discount', 'total', 'notes', 'items', 'currency_code', 'created_at', 'updated_at',
   ]),
   quote_ratings: new Set([
     'id', 'quote_id', 'user_id', 'rating', 'created_at', 'updated_at',
@@ -491,7 +491,7 @@ function createSqliteSchema() {
 
   // Add only known, non-destructive compatibility columns to older SQLite files.
   migrateColumns('users', { plan_expires_at: 'TEXT' });
-  migrateColumns('quotes', { items: "TEXT NOT NULL DEFAULT '[]'" });
+  migrateColumns('quotes', { items: "TEXT NOT NULL DEFAULT '[]'", currency_code: "TEXT NOT NULL DEFAULT 'SAR'" });
   migrateColumns('sessions', {
     expires_at: 'INTEGER',
     updated_at: "TEXT NOT NULL DEFAULT (datetime('now'))",

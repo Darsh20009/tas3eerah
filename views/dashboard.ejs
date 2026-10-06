@@ -11,8 +11,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>تسعيرة | لوحة التحكم</title>
   <link rel="manifest" href="/assets/manifest.webmanifest">
-  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png?v=20261006">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-180.png?v=20261006">
   <link rel="stylesheet" href="/assets/css/app.css?v=<%= assetVersion %>">
   <meta name="csrf-token" content="<%= csrfToken %>">
 </head>
@@ -23,7 +23,7 @@
 <!-- ═══ SPLASH SCREEN ═══ -->
 <div id="splash-screen" role="status" aria-label="جارٍ التحميل">
   <div class="splash-icon-wrap">
-    <img src="/assets/icon.png" alt="تسعيرة" class="splash-icon" id="splashIcon">
+    <img src="/assets/icons/icon-192.png?v=20261006" alt="تسعيرة" class="splash-icon" id="splashIcon">
     <div class="splash-spinner" id="splashSpinner"></div>
   </div>
   <div class="splash-brand" id="splashBrand">
@@ -41,7 +41,7 @@
 <aside class="sidebar" id="sidebar">
   <button class="sb-close-btn" onclick="closeSidebar()" aria-label="إغلاق القائمة">✕</button>
   <a class="sb-logo" href="/" aria-label="الصفحة الرئيسية">
-    <img class="sb-logo-img" src="/assets/logo.png" alt="تسعيرة">
+    <img class="sb-logo-img" src="/assets/logo.png?v=20261006" alt="تسعيرة">
   </a>
   <div class="sb-gold-stripe"></div>
   <div class="sb-user">
@@ -158,9 +158,8 @@
         <span></span><span></span><span></span>
       </button>
       <% if (role === 'client') { %>
-      <div class="client-header-frame frame-crossfade" data-frame-animation data-frame-speed="85" aria-hidden="true">
-        <img data-frame-image class="is-visible" src="/assets/ui/frame-sequence/frame-01.png" alt="">
-        <img data-frame-image src="/assets/ui/frame-sequence/frame-01.png" alt="" aria-hidden="true">
+      <div class="client-header-frame" aria-label="تسعيرة">
+        <img src="/assets/logo.png?v=20261006" alt="تسعيرة">
       </div>
       <% } %>
     <div class="topbar-title" id="topbarTitle">نظرة عامة</div>
@@ -222,7 +221,7 @@
           <p>كل ما تحتاجه لتسعير مشاريعك بوضوح، في مساحة واحدة هادئة ومنظمة.</p>
         </div>
         <div class="dashboard-welcome-mark">
-          <img src="/assets/icon.png" alt="">
+          <img src="/assets/icons/icon-192.png?v=20261006" alt="تسعيرة">
           <span>PRICE<br>WITH<br>CLARITY</span>
         </div>
       </div>
@@ -281,8 +280,8 @@
             <span class="insight-status"><i></i> محدث الآن</span>
           </div>
           <div class="insight-metrics">
-            <div><b><%= formatNumber(overview.total, 0) %> <small>ر.س</small></b><span>قيمة العروض</span></div>
-            <div><b><%= formatNumber(overview.average, 0) %> <small>ر.س</small></b><span>متوسط العرض</span></div>
+            <div><b><% Object.entries(overview.currencyTotals).forEach(([code, group]) => { %><span><%= formatNumber(group.total, 0) %> <small><%= code %></small></span><% }); %></b><span>قيمة العروض حسب العملة</span></div>
+            <div><b><% Object.entries(overview.currencyTotals).forEach(([code, group]) => { %><span><%= formatNumber(group.total / group.count, 0) %> <small><%= code %></small></span><% }); %></b><span>متوسط العرض حسب العملة</span></div>
             <div><b><%= overview.sent %></b><span>بانتظار الرد</span></div>
           </div>
           <div class="conversion-line">
@@ -306,7 +305,7 @@
           <div><b><%= formatNumber(overview.statusCounts['sent'], 0) %></b><span>مرسلة</span></div>
           <div><b><%= formatNumber(overview.statusCounts['accepted'], 0) %></b><span>مقبولة</span></div>
           <div><b><%= formatNumber(overview.statusCounts['rejected'], 0) %></b><span>مرفوضة</span></div>
-          <div><b><%= formatNumber(overview.total, 0) %> <small>ر.س</small></b><span>القيمة الإجمالية</span></div>
+          <div><b><% Object.entries(overview.currencyTotals).forEach(([code, group]) => { %><span><%= formatNumber(group.total, 0) %> <small><%= code %></small></span><% }); %></b><span>القيمة الإجمالية حسب العملة</span></div>
         </div>
         <div class="admin-control-actions">
           <button type="button" class="btn btn-ghost btn-sm" onclick="navDirect('quotes')">تفاصيل كل العروض</button>
@@ -374,11 +373,19 @@
         </div>
         <div class="form-row">
           <div class="form-group">
+            <label for="qCurrency">عملة العرض</label>
+            <select class="form-control" id="qCurrency" onchange="calcTotals()">
+              <% currencies.forEach(currency => { %>
+              <option value="<%= currency.code %>"><%= currency.country %> - <%= currency.label %> (<%= currency.code %>)</option>
+              <% }); %>
+            </select>
+          </div>
+          <div class="form-group">
             <label>ضريبة القيمة المضافة %</label>
             <input type="number" class="form-control" id="qTax" value="15" min="0" max="100" onchange="calcTotals()">
           </div>
           <div class="form-group">
-            <label>خصم (ر.س)</label>
+            <label>خصم بعملة العرض</label>
             <input type="number" class="form-control" id="qDiscount" value="0" min="0" onchange="calcTotals()">
           </div>
         </div>
@@ -461,7 +468,7 @@
             </div>
             <div class="sub-plan-price">
               <%= pVal['price'] === 0 ? 'مجاني' : formatNumber(pVal['price'], 0) %>
-              <% if (pVal['price'] > 0) { %><small>ر.س / شهر</small><% } %>
+              <% if (pVal['price'] > 0) { %><small>ر.س / شهر، شامل الضريبة</small><% } %>
             </div>
             <div class="sub-plan-feat">
               <% for (const feat of pVal['features_ar']) { %>
@@ -544,7 +551,7 @@
             <span><%= plan['max_pdf_reports'] === -1 ? 'تقارير PDF غير محدودة' : plan['max_pdf_reports'] + ' تقارير PDF' %></span>
           </div>
         </div>
-        <div class="tools-intro-mark"><img src="/assets/icon.png" alt=""></div>
+        <div class="tools-intro-mark"><img src="/assets/icons/icon-192.png?v=20261006" alt="تسعيرة"></div>
       </div>
       <div class="tools-section-head">
         <div><span class="step-number">١</span><h2>اختر المجال</h2></div>
@@ -645,7 +652,7 @@
         <% for (const [slug, p] of Object.entries(plans)) { %>
         <div class="sub-plan">
           <div class="sub-plan-name"><%= p['name_ar'] %> <span class="badge badge-<%= slug %>"><%= p['name_en'] %></span></div>
-          <div class="sub-plan-price"><%= p['price'] === 0 ? 'مجاني' : p['price'] + ' ر.س' %><small>/شهر</small></div>
+          <div class="sub-plan-price"><%= p['price'] === 0 ? 'مجاني' : p['price'] + ' ر.س' %><small>/شهر<%= p.price > 0 ? '، شامل الضريبة' : '' %></small></div>
           <div class="sub-plan-feat"><%= p['features_ar'].join(' ') %></div>
           <div style="margin-top:10px;font-size:12px;color:var(--muted)">
             مستخدمو هذه الخطة: <strong id="planCount_<%= slug %>">...</strong>

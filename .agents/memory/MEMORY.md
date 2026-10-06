@@ -5,3 +5,4 @@
 - [بريد العروض](quote-mail-lifecycle.md) — حفظ مسودة الموظف منفصل عن إرسال العرض للعميل، وتأكيد حفظ العميل ليس عرضاً معتمداً
 - [فصل قواعد MongoDB](mongo-environment-separation.md) — لا تخلط بيانات المعاينة المنقولة من SQLite مع سجلات Atlas الحالية للإنتاج
 - [حزم البناء الخارجي](external-npm-lock.md) — عناوين حزم Replit الداخلية في ملف القفل تحتاج تحويلها لسجل npm العام عند البناء خارج Replit
+- [Imported calculator lifecycle](imported-calculator-lifecycle.md) — shared standalone scripts must skip initialization for unmounted panels without aborting global declarations.

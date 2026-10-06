@@ -2,8 +2,9 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const { CURRENCIES } = require('./currencies');
 
-const SOURCE_PATH = path.resolve(__dirname, '..', 'attached_assets', 'index_1789370030522.html');
+const SOURCE_PATH = path.resolve(__dirname, '..', 'attached_assets', 'index_1791309163811.html');
 const TOOL_ALIASES = {
   calc_basic: 'services',
   calc_pkg: 'packages',
@@ -123,10 +124,29 @@ const COMPONENT_OVERRIDES = `
 let sourceCache;
 let sourceMtime = 0;
 
+function currencyOptions() {
+  return CURRENCIES.map((currency) =>
+    `<option value="${currency.label}|${currency.code}|${currency.locale}">${currency.country} — ${currency.label} (${currency.code})</option>`
+  ).join('');
+}
+
+function currencyControl() {
+  return `<div class="tool-currency-control" style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:16px">
+    <label for="global-currency">العملة</label>
+    <select id="global-currency" onchange="setGlobalCurrency()" style="max-width:100%;padding:8px;background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:8px">${currencyOptions()}</select>
+    <small>تغيير وحدة العملة لا يحوّل المبالغ بسعر صرف.</small>
+  </div>`;
+}
+
 function readSource() {
   const stat = fs.statSync(SOURCE_PATH);
   if (!sourceCache || stat.mtimeMs !== sourceMtime) {
-    sourceCache = fs.readFileSync(SOURCE_PATH, 'utf8');
+    sourceCache = fs.readFileSync(SOURCE_PATH, 'utf8')
+      .replace(/(<div class="platform-header">\s*)<svg\b[\s\S]*?<\/svg>/i,
+        '$1<img src="/assets/logo.png?v=20261006" alt="تسعيرة" style="display:block;width:180px;height:auto;margin:0 auto">')
+      .replace(/(<select id="global-currency"[^>]*>)[\s\S]*?<\/select>/i,
+        `$1${currencyOptions()}</select>`)
+      .replace('</body>', `<script>window.TAS3EERAH_CURRENCIES=${JSON.stringify(CURRENCIES)};</script><script src="/assets/js/tool-currencies.js?v=20261006"></script></body>`);
     sourceMtime = stat.mtimeMs;
   }
   return sourceCache;
@@ -170,10 +190,22 @@ function findElementById(markup, id) {
 
 function renameLegacyGlobals(markup) {
   return markup
+    // The uploaded document initializes every tool together. Per-tool pages
+    // must skip setup for panels that are not mounted, without aborting globals.
+    .replace('function updateBadge(){', "function updateBadge(){ if(!document.getElementById('log-count')) return;")
+    .replace('function renderLog(){', "function renderLog(){ if(!document.getElementById('log-list')) return;")
+    .replace('function initPkgTiers(){', "function initPkgTiers(){ if(!document.getElementById('tool-packages')) return;")
+    .replace("function addRetailRow(name='', unit='قطعة', cost=0){", "function addRetailRow(name='', unit='قطعة', cost=0){ if(!document.getElementById('tool-retail')) return;")
+    .replace('function addMenuRowBase(cat=\'\', name=\'\', cost=0, waste=\'\', margin=30, current=0){', "function addMenuRowBase(cat='', name='', cost=0, waste='', margin=30, current=0){ if(!document.getElementById('tool-menu')) return;")
+    .replace('function loadMenuState(){', "function loadMenuState(){ if(!document.getElementById('tool-menu')) return false;")
+    .replace("function addMenuRow(cat='', name='', cost=0, waste=10, margin=null, current=0){", "function addMenuRow(cat='', name='', cost=0, waste=10, margin=null, current=0){ if(!document.getElementById('tool-menu')) return;")
+    .replace('function loadRetailState(){', "function loadRetailState(){ if(!document.getElementById('tool-retail')) return false;")
     .replace(/\bopenTool\s*\(/g, 'classicOpenTool(')
     .replace(/\bselectField\s*\(/g, 'classicSelectField(')
     .replace(/\bcalcPkg\s*\(/g, 'classicCalcPkg(')
-    .replace(/\bfmt\s*\(/g, 'classicFmt(');
+    .replace(/\bfmt\s*\(/g, 'classicFmt(')
+    .replace(/currency:\s*'ريال'/g, 'currency: GLOBAL_CURR.label, currency_code: GLOBAL_CURR.code')
+    .replace(/currency:\s*(CURR|MENU_CURR|PKG_CURR)\.label/g, 'currency: $1.label, currency_code: $1.code');
 }
 
 function removeDecorativeEmoji(markup) {
@@ -220,13 +252,14 @@ function renderClassicTools(toolSlug = null) {
       /class=(["'])([^"']*\btool-screen\b[^"']*)\1/i,
       (_match, quote, className) => `class=${quote}${className} active${quote}`
     );
-    content = `${activeSelected}\n${scripts}`;
+    content = `${currencyControl()}\n${activeSelected}\n${scripts}`;
   }
 
   return `<style id="integrated-tools-source-style">\n@scope (#integrated-tools) {\n${css}\n}\n${COMPONENT_OVERRIDES}\n</style>\n<div id="integrated-tools" class="integrated-tools">${content}</div>`;
 }
 
 module.exports = {
+  readSource,
   TOOL_SLUGS,
   renderClassicTools,
 };

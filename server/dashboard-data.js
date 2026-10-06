@@ -63,18 +63,25 @@ async function dashboardData(user) {
   }
 
   const allQuotes = await db.findAll('quotes', isAdmin ? {} : owner, {
-    projection: { total: 1, status: 1 },
+    projection: { total: 1, status: 1, currency_code: 1 },
   });
   const statusCounts = { draft: 0, sent: 0, accepted: 0, rejected: 0 };
   let total = 0;
+  const currencyTotals = {};
   for (const quote of allQuotes) {
-    total += Number(quote.total) || 0;
+    const amount = Number(quote.total) || 0;
+    const code = quote.currency_code || 'SAR';
+    const group = currencyTotals[code] ||= { total: 0, count: 0 };
+    group.total += amount;
+    group.count += 1;
+    if (code === 'SAR') total += amount;
     if (Object.hasOwn(statusCounts, quote.status)) statusCounts[quote.status] += 1;
   }
   const quoteCount = allQuotes.length;
   const accepted = statusCounts.accepted;
   const overview = {
-    total, average: quoteCount ? total / quoteCount : 0, accepted,
+    total, average: currencyTotals.SAR?.count ? total / currencyTotals.SAR.count : 0, accepted,
+    currencyTotals,
     sent: statusCounts.sent, quoteCount,
     conversion: quoteCount ? Math.round(accepted / quoteCount * 100) : 0,
     statusCounts,

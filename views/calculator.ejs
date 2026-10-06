@@ -12,8 +12,8 @@
   <meta name="csrf-token" content="<%= csrfToken %>">
   <title><%= tool['title'] %> | تسعيرة</title>
   <link rel="manifest" href="/assets/manifest.webmanifest">
-  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png?v=20261006">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-180.png?v=20261006">
   <link rel="stylesheet" href="/assets/css/app.css?v=<%= assetVersion %>">
   <style>
     .calculator-workspace { padding: 24px 26px 46px; }
@@ -48,7 +48,7 @@
   <aside class="sidebar" id="sidebar">
     <button class="sb-close-btn" type="button" onclick="closeCalculatorSidebar()" aria-label="إغلاق القائمة">✕</button>
     <a class="sb-logo" href="/dashboard" aria-label="العودة إلى لوحة التحكم">
-      <img class="sb-logo-img" src="/assets/logo.png" alt="تسعيرة">
+      <img class="sb-logo-img" src="/assets/logo.png?v=20261006" alt="تسعيرة">
     </a>
     <div class="sb-gold-stripe"></div>
     <div class="sb-user">
@@ -91,9 +91,8 @@
         <div class="topbar-title">التسعيرات · <%= tool['short'] %></div>
       </div>
       <div class="topbar-actions">
-        <div class="client-header-frame frame-crossfade" data-frame-animation data-frame-speed="85" aria-hidden="true">
-          <img data-frame-image class="is-visible" src="/assets/ui/frame-sequence/frame-01.png" alt="">
-          <img data-frame-image src="/assets/ui/frame-sequence/frame-01.png" alt="" aria-hidden="true">
+        <div class="client-header-frame" aria-label="تسعيرة">
+          <img src="/assets/logo.png?v=20261006" alt="تسعيرة">
         </div>
         <a class="btn btn-ghost btn-sm" href="/">الرئيسية</a>
       </div>

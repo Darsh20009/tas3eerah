@@ -354,7 +354,7 @@ function simpleMessage(message, title = 'رسالة جديدة') {
   const safe = (value) => String(value || '').replace(/[&<>"']/g, (char) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
   })[char]);
-  const logo = `${String(APP_URL || '').replace(/\/$/, '')}/assets/logo.png`;
+  const logo = `${String(APP_URL || '').replace(/\/$/, '')}/assets/logo.png?v=20261006`;
   return `<!doctype html><html lang="ar" dir="rtl"><meta charset="UTF-8"><body style="margin:0;padding:24px;background:#f8f5ed;color:#17352a;font-family:Arial,Tahoma,sans-serif"><main style="max-width:640px;margin:auto;padding:24px;background:white;border-radius:12px"><img src="${logo}" width="140" alt="تسعيرة"><h1>${safe(title)}</h1><div style="line-height:2">${safe(message).replace(/\n/g, '<br>')}</div></main></body></html>`;
 }
 

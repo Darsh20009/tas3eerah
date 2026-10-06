@@ -138,6 +138,7 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
     items: [{ description: 'بند الاختبار', qty: 1, unit_price: 100 }],
     tax_rate: 15,
     discount: 0,
+    currency_code: 'USD',
   };
   const firstQuote = await request('/api/quotes', {
     jar: clientJar, method: 'POST', token: csrfToken, body: quotePayload,
@@ -145,6 +146,7 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
   assert.equal(firstQuote.response.status, 200, JSON.stringify(firstQuote.json));
   assert.equal(firstQuote.json.success, true);
   assert.ok(firstQuote.json.data.number);
+  assert.equal((await db.findOne('quotes', { id: firstQuote.json.data.id })).currency_code, 'USD');
   assert.equal(firstQuote.json.data.email_sent, true);
   assert.equal(sentMail.length, 1);
   assert.equal(sentMail[0][0], 'client@example.test');
@@ -211,6 +213,18 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
   const mailCountBeforeSend = sentMail.length;
   assert.equal((await db.findOne('quotes', { id: quoteId })).status, 'draft');
   assert.equal(sentMail.length, mailCountBeforeSend, 'saving a draft must not email the client');
+  const updatedCurrency = await request('/api/quotes', {
+    jar: adminJar, method: 'POST', token: adminCsrf.json.data.csrf_token,
+    body: { action: 'update', id: quoteId, currency_code: 'EUR' },
+  });
+  assert.equal(updatedCurrency.json.success, true);
+  assert.equal((await db.findOne('quotes', { id: quoteId })).currency_code, 'EUR');
+  const invalidCurrency = await request('/api/quotes', {
+    jar: adminJar, method: 'POST', token: adminCsrf.json.data.csrf_token,
+    body: { action: 'update', id: quoteId, currency_code: 'INVALID' },
+  });
+  assert.equal(invalidCurrency.json.success, false);
+  assert.equal((await db.findOne('quotes', { id: quoteId })).currency_code, 'EUR');
 
   email.sendHtml = async () => { throw Object.assign(new Error('test SMTP failure'), { code: 'ECONNREFUSED' }); };
   const failedSend = await request('/api/quotes', {

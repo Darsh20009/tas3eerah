@@ -95,15 +95,30 @@ async function main() {
           await page.waitForTimeout(350);
           const calculator = page.locator('#integrated-tools .tool-screen.active');
           const count = await calculator.count();
+          if (slug !== 'services' && await page.evaluate(() => window.ToolCurrency?.current?.code) !== 'USD') {
+            failures.push(`${slug}: currency choice not retained between tools`);
+          }
           if (slug === 'services' && count) {
             await page.locator('[onclick*="classicSelectField(this,\'art\')"]').first().click();
             await page.locator('[onclick*="selectSvc(this,\'art\',\'بورتريه شخصي\')"]').first().click();
-            await page.locator('#art-hours').fill('1');
-            await page.locator('#art-rate').fill('100');
+            await page.locator('#art-units').fill('1');
+            await page.locator('#art-unit-price').fill('100');
             await page.locator('[onclick*="selectLevel(this,30"]').first().click();
             if (!await page.locator('#res-wrap.show #r-price').count()) {
               failures.push('services: no calculated final price after completing a service');
             }
+          }
+          if (slug === 'tech') {
+            await page.locator('#tech-type-web').click();
+            await page.locator('#tech-lvl-2').click();
+            await page.locator('#tech-design-rate').fill('100');
+            await page.locator('#tech-design-rate').dispatchEvent('input');
+          }
+          if (slug === 'saas') {
+            await page.locator('#saas-type-saas').click();
+            await page.locator('#saas-lvl-2').click();
+            await page.locator('#saas-clients').fill('10');
+            await page.locator('#saas-clients').dispatchEvent('input');
           }
           const numberInput = page.locator('#integrated-tools .tool-screen.active input[type="number"]:visible').first();
           const before = count ? await calculator.innerText() : '';
@@ -119,6 +134,18 @@ async function main() {
           console.log(`${slug}: HTTP ${response.status()}, active screens ${count}, output changed ${recalculated}, title ${await page.title()}`);
           if (response.status() !== 200 || count !== 1) failures.push(`${slug}: calculator not visible`);
           if (recalculated === false) failures.push(`${slug}: calculation output did not change after editing an input`);
+          const currencySelect = page.locator('#integrated-tools #global-currency');
+          if (await currencySelect.locator('option').count() !== 24) failures.push(`${slug}: missing currencies`);
+          await currencySelect.selectOption({ value: 'دولار أمريكي|USD|en-US' });
+          await page.waitForTimeout(150);
+          const chosenCurrency = await page.evaluate(() => window.ToolCurrency?.current?.code);
+          if (chosenCurrency !== 'USD') failures.push(`${slug}: selected currency not applied`);
+          const labels = await page.locator('[data-tool-currency]').allTextContents();
+          if (labels.some(label => label !== 'دولار أمريكي')) failures.push(`${slug}: currency labels inconsistent`);
+          await currencySelect.selectOption({ value: 'ريال قطري|QAR|ar-QA' });
+          await page.waitForTimeout(100);
+          if ((await calculator.innerText()).includes('ريال قطري قطري')) failures.push(`${slug}: repeated currency label`);
+          await currencySelect.selectOption({ value: 'دولار أمريكي|USD|en-US' });
           if (slug === 'services') {
             let posted;
             await page.route('**/api/quotes?action=create', async route => {
@@ -134,7 +161,7 @@ async function main() {
             await page.locator('#calculatorQuoteClient').selectOption({ index: 1 });
             await page.locator('#calculatorQuoteSave').click();
             await page.getByText('تم حفظ العرض رقم TEST-999', { exact: false }).waitFor();
-            if (!posted || !posted.items?.[0]?.unit_price || posted.tax_rate !== 0 || !posted.client_id) {
+            if (!posted || !posted.items?.[0]?.unit_price || posted.tax_rate !== 0 || !posted.client_id || posted.currency_code !== 'USD') {
               failures.push('services: Save as Quote did not send a valid calculated amount and client');
             }
             await page.unroute('**/api/quotes?action=create');

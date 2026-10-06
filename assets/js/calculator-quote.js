@@ -18,7 +18,7 @@
     const label = String(title || '').trim();
     return label && !['—', 'undefined', 'null'].includes(label.toLowerCase()) &&
       Number.isFinite(amount) && amount > 0
-      ? { title: label, price: amount }
+      ? { title: label, price: amount, currency_code: window.ToolCurrency?.current?.code || 'SAR' }
       : null;
   }
 
@@ -97,7 +97,7 @@
       }
       resultSelect.replaceChildren();
       results.forEach((result, index) => resultSelect.add(
-        new Option(`${result.title} — ${result.price.toLocaleString('ar-SA', { maximumFractionDigits: 2 })} ر.س`, String(index))
+        new Option(`${result.title} - ${result.price.toLocaleString('ar-SA', { maximumFractionDigits: 2 })} ${result.currency_code}`, String(index))
       ));
       updateTitle();
       notice('');
@@ -142,6 +142,7 @@
           client_id: clientSelect?.value,
           notes: document.getElementById('calculatorQuoteNotes').value.trim(),
           items: [{ description: selected.title, qty: 1, unit_price: selected.price }],
+          currency_code: selected.currency_code,
           tax_rate: 0,
           discount: 0,
         }),

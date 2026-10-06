@@ -19,4 +19,6 @@ test('published policy sections retain the uploaded Arabic text and its date', (
     assert.equal(`${section.title}\n${section.body}`, original);
   });
   assert.ok(policies.sections.find(section => section.id === 'refund').body.includes('خلال ساعة واحدة (60 دقيقة)'));
+  assert.ok(policies.sections.some(section => section.body.includes('أسعار الباقات المعروضة شاملة لضريبة القيمة المضافة')));
+  assert.ok(!source.includes('الأسعار غير شاملة'));
 });

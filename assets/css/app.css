@@ -507,13 +507,11 @@ select.form-control { cursor: pointer; }
 }
 .land-brand { display: flex; align-items: center; flex-shrink: 0; text-decoration: none; }
 .land-brand-logo {
-  /* عرض الشعار بحجم حقيقي — object-fit:cover يقص الحواف السوداء الزائدة */
-  width: 160px;
-  height: 52px;
-  object-fit: cover;
-  object-position: center 38%;
+  width: auto;
+  max-width: 160px;
+  height: 54px;
+  object-fit: contain;
   display: block;
-  border-radius: 9px;
   flex-shrink: 0;
 }
 
@@ -600,7 +598,7 @@ select.form-control { cursor: pointer; }
 }
 .hero-card-logo-wrap img {
   width: 100%; height: 100%;
-  object-fit: cover; object-position: center 38%;
+  object-fit: contain; object-position: center;
 }
 .hero-card-title { font-size: 13px; font-weight: 700; color: var(--text); }
 .hero-card-sub { font-size: 11px; color: var(--muted); }
@@ -1131,11 +1129,12 @@ select.form-control { cursor: pointer; }
 .footer-grid { display: grid; grid-template-columns: 1.8fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 44px; }
 .footer-brand { display: flex; align-items: center; margin-bottom: 16px; }
 .footer-brand-logo {
-  width: 180px; height: 58px; border-radius: 9px; overflow: hidden;
+  width: 104px; height: 92px; display: flex; align-items: center; justify-content: flex-start;
 }
 .footer-brand-logo img {
-  width: 100%; height: 100%;
-  object-fit: cover; object-position: center 38%;
+  width: auto; max-width: 100%; height: 100%;
+  object-fit: contain; object-position: right center;
+  background: #F8F5ED; padding: 8px; border-radius: 4px;
 }
 .footer-col-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: rgba(255,255,255,.5); margin-bottom: 16px; }
 .footer-links { display: flex; flex-direction: column; gap: 10px; }
@@ -1166,8 +1165,8 @@ select.form-control { cursor: pointer; }
 }
 .auth-logo { display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
 .auth-logo-img {
-  width: 180px; height: 58px; display: block; border-radius: 10px;
-  object-fit: cover; object-position: center 38%;
+  width: auto; max-width: 100%; height: 104px; display: block;
+  object-fit: contain;
 }
 .auth-tabs { display: flex; margin-bottom: 22px; border-bottom: 2px solid var(--line); }
 .auth-tab {
@@ -1220,8 +1219,8 @@ select.form-control { cursor: pointer; }
   text-decoration: none;
 }
 .sb-logo-img {
-  width: 174px; height: 56px; display: block; border-radius: 8px;
-  object-fit: cover; object-position: center 38%;
+  width: auto; max-width: 100%; height: 72px; display: block;
+  object-fit: contain;
 }
 
 .sb-close-btn {
@@ -1294,20 +1293,20 @@ select.form-control { cursor: pointer; }
 }
 .topbar-plan-summary strong { color:var(--text); font-size:11px; }
 .client-header-frame {
-  width: 42px;
-  height: 27px;
-  flex: 0 0 42px;
+  width: 34px;
+  height: 38px;
+  flex: 0 0 34px;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: .9;
-  overflow: hidden;
+  overflow: visible;
   border-inline-end: 1px solid var(--line);
   padding-inline-end: 8px;
 }
 .client-header-frame img {
-  width: 100%;
-  height: 100%;
+  width: auto;
+  max-width: 100%;
+  height: 34px;
   object-fit: contain;
 }
 .client-self-note {
@@ -1362,9 +1361,9 @@ select.form-control { cursor: pointer; }
   font-family: 'BritishCouncil', 'Tajawal', Arial, sans-serif;
 }
 .pdf-doc .pdf-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 26px; border-bottom: 3px solid var(--p-d); padding-bottom: 18px; }
-.pdf-doc .pdf-logo { width: 150px; height: 76px; object-fit: contain; object-position: right center; display: block; }
-.pdf-doc .pdf-logo-wrap { width: 52px; height: 52px; border-radius: 10px; background: var(--p-d); overflow: hidden; }
-.pdf-doc .pdf-logo-wrap img { width: 100%; height: 100%; object-fit: cover; }
+.pdf-doc .pdf-logo { width: 96px; height: 112px; object-fit: contain; object-position: right center; display: block; }
+.pdf-doc .pdf-logo-wrap { width: 52px; height: 52px; border-radius: 10px; background: transparent; }
+.pdf-doc .pdf-logo-wrap img { width: 100%; height: 100%; object-fit: contain; }
 .pdf-doc h1 { font-size: 22px; font-weight: 900; color: var(--p-d); }
 .pdf-doc .pdf-meta { font-size: 11px; color: #6b7c73; margin-top: 4px; }
 .pdf-doc .pdf-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 18px 0; }
@@ -1675,14 +1674,6 @@ select.form-control { cursor: pointer; }
 .frame-crossfade img.is-visible {
   opacity: 1;
 }
-.footer-frame-logo {
-  width: 112px;
-  height: 48px;
-  border-radius: 7px;
-  background: transparent;
-  overflow: hidden;
-}
-
 /* ══════════════════════════════════════════════════
    لوحات الأدوات
    ══════════════════════════════════════════════════ */
@@ -2654,8 +2645,8 @@ select.form-control { cursor: pointer; }
   width: 224px; background: var(--sb); border-left: 1px solid rgba(255,255,255,.06);
   box-shadow: -10px 0 34px rgba(13,43,28,.08);
 }
-.sb-logo { height: 65px; padding: 10px 18px; justify-content: flex-start; }
-.sb-logo-img { width: 143px; height: 42px; object-fit: cover; object-position: center 38%; }
+.sb-logo { height: 92px; padding: 8px 18px; justify-content: flex-start; }
+.sb-logo-img { width: auto; max-width: 100%; height: 76px; object-fit: contain; background: #F8F5ED; padding: 6px; border-radius: 4px; }
 .sb-gold-stripe { height: 2px; margin: 0 18px; background: var(--gold); opacity: .8; }
 .sb-user { margin: 18px 14px 12px; padding: 12px; background: rgba(255,255,255,.055); border: 1px solid rgba(255,255,255,.07); border-radius: 9px; }
 .sb-user-name { color: #fff; font-size: 13px; font-weight: 800; }
@@ -3296,7 +3287,7 @@ button, input, textarea, select { letter-spacing: normal; }
 }
 @media (max-width: 480px) {
   .land-nav { height: 58px; padding-inline: 12px; }
-  .land-brand-logo { width: 132px; height: 44px; }
+  .land-brand-logo { max-width: 132px; height: 46px; }
   .hero-content { padding: 38px 17px 34px; }
   .hero-btns { width: 100%; }
   .hero-btns .btn { flex: 1; padding-inline: 10px; }

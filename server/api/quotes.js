@@ -6,6 +6,7 @@ const { APP_URL, PLANS } = require('../config');
 const auth = require('../auth');
 const email = require('../email');
 const notifications = require('../notification-email');
+const { currencyFor, formatMoney } = require('../currencies');
 const {
   actionOf, methodError, sendOk, sendError, failFromError, text, number,
   timestamp, escapeHtml,
@@ -189,6 +190,8 @@ async function createQuote(req, res, body) {
   const title = text(body.title, 240);
   const clientId = user.role === 'client' ? Number(user.id) : number(body.client_id);
   const notes = text(body.notes, 10000);
+  const currencyCode = body.currency_code ?? 'SAR';
+  if (!currencyFor(currencyCode)) return sendError(res, 'العملة غير مدعومة');
   if (!title) return sendError(res, 'عنوان العرض مطلوب');
   if (!clientId) return sendError(res, 'يرجى اختيار العميل');
   if (!Array.isArray(body.items) || !body.items.length) return sendError(res, 'يرجى إضافة بند واحد على الأقل');
@@ -207,6 +210,7 @@ async function createQuote(req, res, body) {
     client_id: clientId,
     employee_id: user.role === 'client' ? 0 : Number(user.id),
     title,
+    currency_code: currencyCode,
     status: 'draft',
     subtotal: totals.subtotal,
     tax_rate: totals.taxRate,
@@ -219,7 +223,7 @@ async function createQuote(req, res, body) {
   await db.insertDoc('activity_log', {
     user_id: Number(user.id),
     action: 'quote_created',
-    details: `رقم العرض: ${quoteNumber} | العنوان: ${title} | العميل: ${client?.name || user.name || clientId} | الإجمالي: ${totals.total.toFixed(2)} ر.س | ${notes ? 'توجد ملاحظات' : 'بدون ملاحظات'}`,
+    details: `رقم العرض: ${quoteNumber} | العنوان: ${title} | العميل: ${client?.name || user.name || clientId} | الإجمالي: ${formatMoney(totals.total, currencyCode)} | ${notes ? 'توجد ملاحظات' : 'بدون ملاحظات'}`,
   });
   if (user.role === 'client') {
     const delivery = await notifications.quoteReceipt(user, { title, number: quoteNumber });
@@ -240,6 +244,8 @@ async function updateQuote(req, res, body) {
   if (quote.status !== 'draft') return sendError(res, 'لا يمكن تعديل عرض تم إرساله');
 
   const title = text(body.title ?? quote.title, 240);
+  const currencyCode = body.currency_code ?? quote.currency_code ?? 'SAR';
+  if (!currencyFor(currencyCode)) return sendError(res, 'العملة غير مدعومة');
   if (!title) return sendError(res, 'عنوان العرض مطلوب');
   const items = body.items ?? quote.items;
   const totals = quoteTotals(
@@ -251,6 +257,7 @@ async function updateQuote(req, res, body) {
   if (totals.error) return sendError(res, totals.error);
   await db.updateDoc('quotes', { id }, {
     title,
+    currency_code: currencyCode,
     subtotal: totals.subtotal,
     tax_rate: totals.taxRate,
     discount: totals.discount,
@@ -308,7 +315,7 @@ async function changeStatus(req, res, body) {
   await db.insertDoc('activity_log', {
     user_id: Number(req.user.id),
     action: 'quote_status_changed',
-    details: `العرض ${quote.number || id} (${quote.title || 'بدون عنوان'}): ${quote.status} → ${nextStatus} | الإجمالي: ${Number(quote.total || 0).toFixed(2)} ر.س`,
+    details: `العرض ${quote.number || id} (${quote.title || 'بدون عنوان'}): ${quote.status} → ${nextStatus} | الإجمالي: ${formatMoney(quote.total, quote.currency_code || 'SAR')}`,
   });
   return sendOk(res, { status: nextStatus }, 'تم تحديث الحالة');
 }
@@ -394,7 +401,7 @@ async function deliverQuote(req, quote) {
       await db.insertDoc('activity_log', {
         user_id: Number(req.user.id),
         action: 'quote_status_changed',
-        details: `العرض ${quote.number || id} (${quote.title || 'بدون عنوان'}): ${quote.status} → sent | الإجمالي: ${Number(quote.total || 0).toFixed(2)} ر.س`,
+        details: `العرض ${quote.number || id} (${quote.title || 'بدون عنوان'}): ${quote.status} → sent | الإجمالي: ${formatMoney(quote.total, quote.currency_code || 'SAR')}`,
       });
     } catch (error) {
       console.error('[quote activity log failed]', error.code || error.name || 'DB_ERROR');
@@ -406,13 +413,13 @@ async function deliverQuote(req, quote) {
 }
 
 function quoteEmailHtml(quote, client, employee, appUrl) {
-  const money = (value) => Number(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
+  const money = (value) => formatMoney(value, quote.currency_code || 'SAR');
   const rows = (Array.isArray(quote.items) ? quote.items : []).map((item) => `
     <tr>
       <td style="padding:8px 12px;border-bottom:1px solid #eee">${escapeHtml(item.description)}</td>
       <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:center">${escapeHtml(item.qty)}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:left">${money(item.unit_price)} ر.س</td>
-      <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:left">${money(item.total)} ر.س</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:left">${money(item.unit_price)}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:left">${money(item.total)}</td>
     </tr>`).join('');
   const subtotal = Number(quote.subtotal || 0);
   const discount = Number(quote.discount || 0);
@@ -420,16 +427,16 @@ function quoteEmailHtml(quote, client, employee, appUrl) {
   return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"></head>
     <body style="margin:0;padding:24px;background:#f8f5ed;color:#17352a;font-family:Arial,Tahoma,sans-serif">
       <main style="max-width:640px;margin:auto;padding:24px;background:#fff;border-radius:12px">
-      <img src="${escapeHtml(`${String(appUrl || '').replace(/\/$/, '')}/assets/logo.png`)}" width="140" alt="تسعيرة">
+      <img src="${escapeHtml(`${String(appUrl || '').replace(/\/$/, '')}/assets/logo.png?v=20261006`)}" width="140" alt="تسعيرة">
       <h2>عرض سعر جديد</h2>
       <p>مرحباً ${escapeHtml(client.name || 'العميل')}، أُعدّ لك عرض السعر التالي${employee?.name ? ` من ${escapeHtml(employee.name)}` : ''}.</p>
       <p><strong>رقم العرض:</strong> ${escapeHtml(quote.number)}<br><strong>العنوان:</strong> ${escapeHtml(quote.title)}</p>
       <table style="width:100%;border-collapse:collapse"><thead><tr style="background:#1a4b33;color:#fff">
       <th style="padding:10px;text-align:right">الوصف</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr></thead>
       <tbody>${rows}</tbody></table>
-      <p>المجموع الفرعي: ${money(subtotal)} ر.س<br>الخصم: ${money(discount)} ر.س<br>
-      الضريبة (${Number(quote.tax_rate || 0)}%): ${money(tax)} ر.س<br>
-      <strong>الإجمالي: ${money(quote.total)} ر.س</strong></p>
+      <p>المجموع الفرعي: ${money(subtotal)}<br>الخصم: ${money(discount)}<br>
+      الضريبة (${Number(quote.tax_rate || 0)}%): ${money(tax)}<br>
+      <strong>الإجمالي: ${money(quote.total)}</strong></p>
       <p>يمكنك تسجيل الدخول إلى المنصة لقبول العرض أو رفضه.</p></main></body></html>`;
 }
 

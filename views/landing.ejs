@@ -11,8 +11,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="description" content="تسعيرة أول منصة سعودية متخصصة في أدوات التسعير وإدارة الخدمات والمنتجات">
   <link rel="manifest" href="/assets/manifest.webmanifest">
-  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png?v=20261006">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-180.png?v=20261006">
   <title>تسعيرة | منصة التسعير العربية</title>
   <link rel="stylesheet" href="/assets/css/app.css?v=<%= assetVersion %>">
   <meta name="csrf-token" content="<%= csrfToken %>">
@@ -23,7 +23,7 @@
 <!-- ═══ SPLASH SCREEN ═══ -->
 <div id="splash-screen" role="status" aria-label="جارٍ التحميل">
   <div class="splash-icon-wrap">
-    <img src="/assets/icon.png" alt="تسعيرة" class="splash-icon" id="splashIcon">
+    <img src="/assets/icons/icon-192.png?v=20261006" alt="تسعيرة" class="splash-icon" id="splashIcon">
     <div class="splash-spinner" id="splashSpinner"></div>
   </div>
   <div class="splash-brand" id="splashBrand">
@@ -47,7 +47,7 @@
 <!-- ═══ شريط التنقل ═══ -->
 <nav class="land-nav">
   <a class="land-brand" href="/">
-    <img class="land-brand-logo" src="/assets/logo.png" alt="تسعيرة">
+    <img class="land-brand-logo" src="/assets/logo.png?v=20261006" alt="تسعيرة">
   </a>
 
   <div class="land-nav-links">
@@ -109,7 +109,7 @@
     <div class="hero-visual">
       <img
         class="hero-reference-image"
-        src="/assets/hero-reference-art.png?v=2"
+        src="/assets/hero-reference-branded.png?v=20261006"
         alt="لوحة منصة تسعيرة"
       >
     </div>
@@ -167,7 +167,7 @@
 <section class="market-strip" aria-label="نظرة سريعة على المنصة">
   <div class="market-strip-inner">
     <div class="market-strip-brand">
-      <img src="/assets/icon.png" alt="تسعيرة">
+      <img src="/assets/icons/icon-192.png?v=20261006" alt="تسعيرة">
     </div>
     <div class="market-strip-stat"><strong>98%</strong><span data-ar="رضا العملاء" data-en="Customer satisfaction">رضا العملاء</span></div>
     <div class="market-strip-stat"><strong>+5,000</strong><span data-ar="مشاريع منظمة" data-en="Organized projects">مشاريع منظمة</span></div>
@@ -204,6 +204,9 @@
                     data-ar="<%= plan['price'] === 0 ? 'مجاني' : 'ر.س / شهر' %>"
                     data-en="<%= plan['price'] === 0 ? 'Free' : 'SAR / month' %>"><%= plan['price'] === 0 ? 'مجاني' : 'ر.س / شهر' %></span>
             </div>
+            <% if (plan.price > 0) { %>
+            <p data-ar="شامل ضريبة القيمة المضافة" data-en="VAT included">شامل ضريبة القيمة المضافة</p>
+            <% } %>
             <p class="pricing-detail-description"><%= plan['features_ar'][0] ?? '' %></p>
           </div>
           <div class="pricing-device">
@@ -314,10 +317,12 @@
         بُنيت لأصحاب المشاريع العربية
       </h2>
       <p class="about-description"
-         data-ar="تسعيرة منصة عربية تساعد أصحاب المشاريع على معرفة التكلفة الحقيقية وتحديد السعر العادل قبل تقديم أي خدمة أو منتج."
-         data-en="Tas3eerah helps business owners understand their real costs and set a fair price before offering any service or product.">
-        تسعيرة منصة عربية تساعد أصحاب المشاريع على معرفة التكلفة الحقيقية وتحديد السعر العادل قبل تقديم أي خدمة أو منتج.
+         data-ar="تسعيرة منصة سعودية تهدف إلى ترسيخ مبدأ عدالة التسعير لدى أصحاب المشاريع الصغيرة والمتوسطة في السعودية والخليج، عبر أدوات تسعير ذكية وبسيطة بالعربية، تُحوّل الأرقام المتناثرة إلى قرار سعر واضح وعادل."
+         data-en="Tas3eerah is a Saudi platform promoting fair pricing for small and medium businesses in Saudi Arabia and the Gulf, with smart, simple Arabic tools that turn scattered figures into clear, fair pricing decisions.">
+        تسعيرة منصة سعودية تهدف إلى ترسيخ مبدأ عدالة التسعير لدى أصحاب المشاريع الصغيرة والمتوسطة في السعودية والخليج، عبر أدوات تسعير ذكية وبسيطة بالعربية، تُحوّل الأرقام المتناثرة إلى قرار سعر واضح وعادل.
       </p>
+      <p class="about-description" data-ar="نؤمن أن التسعير العشوائي، سواء بالنقص أو بالمبالغة، لا يضر التاجر وحده، بل يضر السوق بأكمله. لذلك بنينا تسعيرة على أربعة مبادئ." data-en="Random pricing, whether too low or too high, harms not only the merchant but the entire market. We built Tas3eerah on four principles.">نؤمن أن التسعير العشوائي، سواء بالنقص أو بالمبالغة، لا يضر التاجر وحده، بل يضر السوق بأكمله. لذلك بنينا تسعيرة على أربعة مبادئ.</p>
+      <p class="about-description" data-ar="رؤيتنا: أن تصبح تسعيرة المرجع الأول لتسعير المنشآت الصغيرة والمتوسطة في المنطقة، مساحة يلتقي فيها التاجر والمستهلك على أرضية سعرية عادلة ومستدامة للطرفين." data-en="Our vision: to become the region’s leading pricing reference for small and medium businesses, where merchants and consumers meet on fair, sustainable terms.">رؤيتنا: أن تصبح تسعيرة المرجع الأول لتسعير المنشآت الصغيرة والمتوسطة في المنطقة، مساحة يلتقي فيها التاجر والمستهلك على أرضية سعرية عادلة ومستدامة للطرفين.</p>
       <div class="about-stats">
         <div>
           <div class="about-stat-num">سعودية</div>
@@ -338,22 +343,29 @@
       <div class="about-value-item">
         <div class="about-value-dot"></div>
         <div>
-          <strong data-ar="الشفافية" data-en="Transparency">الشفافية</strong>
-          <span data-ar="أدوات تسعير مبنية على منهجية واضحة — لا أرقام عشوائية." data-en="Pricing tools built on a clear methodology — no random numbers.">أدوات تسعير مبنية على منهجية واضحة — لا أرقام عشوائية.</span>
+          <strong data-ar="المساهمة في تنظيم السوق ورفع كفاءته" data-en="A more efficient, organized market">المساهمة في تنظيم السوق ورفع كفاءته</strong>
+          <span data-ar="عندما يسعّر التجار بمنهجية موحدة وشفافة، يقل التشوّه السعري ويصبح السوق أكثر قابلية للمقارنة والثقة." data-en="A consistent, transparent pricing method reduces price distortions and makes the market easier to compare and trust.">عندما يسعّر التجار بمنهجية موحدة وشفافة، يقل التشوّه السعري ويصبح السوق أكثر قابلية للمقارنة والثقة.</span>
         </div>
       </div>
       <div class="about-value-item">
         <div class="about-value-dot"></div>
         <div>
-          <strong data-ar="الاحترافية" data-en="Professionalism">الاحترافية</strong>
-          <span data-ar="واجهة عربية تعكس هوية عملك أمام عملائك." data-en="An Arabic interface that reflects your brand identity to your clients.">واجهة عربية تعكس هوية عملك أمام عملائك.</span>
+          <strong data-ar="دعم استدامة المشاريع" data-en="Supporting sustainable businesses">دعم استدامة المشاريع</strong>
+          <span data-ar="سعر لا يغطي التكلفة الحقيقية يهدد استمرارية المشروع، وسعر مبالغ فيه يهدد استمرارية العلاقة مع العميل. تسعيرة تساعدك تجد التوازن الذي يبقيك مستمراً في السوق." data-en="A price below real cost threatens the business; an excessive price threatens customer relationships. Tas3eerah helps you find a sustainable balance.">سعر لا يغطي التكلفة الحقيقية يهدد استمرارية المشروع، وسعر مبالغ فيه يهدد استمرارية العلاقة مع العميل. تسعيرة تساعدك تجد التوازن الذي يبقيك مستمراً في السوق.</span>
         </div>
       </div>
       <div class="about-value-item">
         <div class="about-value-dot"></div>
         <div>
-          <strong data-ar="البساطة" data-en="Simplicity">البساطة</strong>
-          <span data-ar="نظام واحد يجمع كل احتياجاتك بدون تعقيد." data-en="One system that brings all your needs together — no complexity.">نظام واحد يجمع كل احتياجاتك بدون تعقيد.</span>
+          <strong data-ar="حماية القوة الشرائية للمستهلك" data-en="Protecting consumer purchasing power">حماية القوة الشرائية للمستهلك</strong>
+          <span data-ar="عدالة التسعير تعني أن يدفع المستهلك مقابل القيمة الحقيقية التي يحصل عليها، لا أكثر بسبب جهله بالتكلفة الفعلية." data-en="Fair pricing means consumers pay for the real value they receive, not extra because they do not know the actual cost.">عدالة التسعير تعني أن يدفع المستهلك مقابل القيمة الحقيقية التي يحصل عليها، لا أكثر بسبب جهله بالتكلفة الفعلية.</span>
+        </div>
+      </div>
+      <div class="about-value-item">
+        <div class="about-value-dot"></div>
+        <div>
+          <strong data-ar="المحافظة على العملاء" data-en="Retaining customers">المحافظة على العملاء</strong>
+          <span data-ar="الثقة التي يبنيها السعر العادل تدوم أطول من أي مكسب سريع من سعر مبالغ فيه لمرة واحدة." data-en="Trust built through fair pricing lasts longer than a one-off gain from an inflated price.">الثقة التي يبنيها السعر العادل تدوم أطول من أي مكسب سريع من سعر مبالغ فيه لمرة واحدة.</span>
         </div>
       </div>
     </div>
@@ -534,9 +546,8 @@
     <div class="footer-grid">
       <div>
         <div class="footer-brand">
-          <div class="footer-brand-logo footer-frame-logo frame-crossfade" data-frame-animation data-frame-speed="85" aria-label="تسعيرة">
-            <img data-frame-image class="is-visible" src="/assets/ui/frame-sequence/frame-01.png" alt="تسعيرة">
-            <img data-frame-image src="/assets/ui/frame-sequence/frame-01.png" alt="" aria-hidden="true">
+          <div class="footer-brand-logo" aria-label="تسعيرة">
+            <img src="/assets/logo.png?v=20261006" alt="تسعيرة">
           </div>
         </div>
         <div class="footer-gold-line"></div>
@@ -586,7 +597,7 @@
     <button onclick="hideAuth()" style="position:absolute;top:14px;left:14px;background:none;border:none;font-size:18px;color:var(--muted);cursor:pointer;line-height:1">✕</button>
 
     <div class="auth-logo">
-      <img class="auth-logo-img" src="/assets/logo.png" alt="تسعيرة">
+      <img class="auth-logo-img" src="/assets/logo.png?v=20261006" alt="تسعيرة">
     </div>
 
     <div id="authError" class="auth-error hidden"></div>

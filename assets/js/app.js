@@ -495,9 +495,13 @@ function loadProjectLedger() {
     )
   ].sort((a, b) => b.id - a.id);
 
-  const total = projects.reduce((sum, project) => sum + project.price, 0);
+  const totals = projects.reduce((groups, project) => {
+    groups[project.currency] = (groups[project.currency] || 0) + project.price;
+    return groups;
+  }, {});
   setText('projectLedgerCount', projects.length.toLocaleString('ar-SA'));
-  setText('projectLedgerRevenue', `${Math.round(total).toLocaleString('ar-SA')} ريال`);
+  setText('projectLedgerRevenue', Object.entries(totals).map(([currency, total]) =>
+    `${Math.round(total).toLocaleString('ar-SA')} ${currency}`).join(' · ') || '0 SAR');
   setText('projectLedgerLatest', projects[0]?.date || '—');
 
   const badge = document.getElementById('projectLogBadge');
@@ -568,7 +572,7 @@ function renderQuotes() {
       <td class="user-content">${esc(q.title)}</td>
       ${APP.role !== 'client'   ? `<td class="user-content">${esc(q.client_name || '-')}</td>` : ''}
       ${APP.role !== 'employee' ? `<td class="user-content">${esc(q.employee_name || '-')}</td>` : ''}
-      <td>${fmt(q.total)} ر.س</td>
+      <td>${fmt(q.total)} ${esc(q.currency_code || 'SAR')}</td>
       <td>${quoteRatingSummary(q)}</td>
       <td><span class="badge badge-${q.status}">${statusLabel(q.status)}</span></td>
       <td style="font-size:11px;color:var(--muted)">${q.created_at ? q.created_at.slice(0,10) : ''}</td>
@@ -618,7 +622,7 @@ async function viewQuote(id) {
   const taxAmt   = (subtotal - discount) * (q.tax_rate / 100);
   pdfDoc.innerHTML = `
     <div class="pdf-header">
-      <div><img src="/assets/logo.png" class="pdf-logo" alt="تسعيرة"></div>
+      <div><img src="/assets/logo.png?v=20261006" class="pdf-logo" alt="تسعيرة"></div>
       <div style="text-align:left">
         <h1>${translateString('عرض سعر')}</h1>
         <div class="pdf-meta">${translateString('رقم')}: ${q.number}</div>
@@ -636,10 +640,10 @@ async function viewQuote(id) {
       <tbody>${itemsHtml}</tbody>
     </table>
     <div class="pdf-totals">
-      <div class="pdf-total-row"><span>${translateString('المجموع الفرعي')}</span><span>${fmt(subtotal)} ${translateString('ر.س')}</span></div>
-      ${discount > 0 ? `<div class="pdf-total-row"><span>${translateString('خصم')}</span><span>- ${fmt(discount)} ${translateString('ر.س')}</span></div>` : ''}
-      <div class="pdf-total-row"><span>${translateString('ضريبة القيمة المضافة')} (${q.tax_rate}%)</span><span>${fmt(taxAmt)} ${translateString('ر.س')}</span></div>
-      <div class="pdf-total-row grand"><span>${translateString('الإجمالي')}</span><span>${fmt(q.total)} ${translateString('ر.س')}</span></div>
+      <div class="pdf-total-row"><span>${translateString('المجموع الفرعي')}</span><span>${fmt(subtotal)} ${esc(q.currency_code || 'SAR')}</span></div>
+      ${discount > 0 ? `<div class="pdf-total-row"><span>${translateString('خصم')}</span><span>- ${fmt(discount)} ${esc(q.currency_code || 'SAR')}</span></div>` : ''}
+      <div class="pdf-total-row"><span>${translateString('ضريبة القيمة المضافة')} (${q.tax_rate}%)</span><span>${fmt(taxAmt)} ${esc(q.currency_code || 'SAR')}</span></div>
+      <div class="pdf-total-row grand"><span>${translateString('الإجمالي')}</span><span>${fmt(q.total)} ${esc(q.currency_code || 'SAR')}</span></div>
     </div>
     ${q.notes ? `<div class="quote-notes-box"><strong>${translateString('ملاحظات')}:</strong><div id="quoteNotesTyping" class="quote-notes-typing" aria-live="polite"></div></div>` : ''}
     <div class="pdf-footer">${translateString('تسعيرة منصة التسعير الذكي')}</div>
@@ -689,7 +693,7 @@ async function shareActiveQuote() {
   const text = [
     `عرض سعر: ${quote.title || quote.number || ''}`,
     `رقم العرض: ${quote.number || quote.id}`,
-    `الإجمالي: ${fmt(quote.total)} ر.س`,
+    `الإجمالي: ${fmt(quote.total)} ${quote.currency_code || 'SAR'}`,
     quote.status ? `الحالة: ${statusLabel(quote.status)}` : ''
   ].filter(Boolean).join('\n');
 
@@ -834,6 +838,7 @@ async function editQuote(id) {
   document.getElementById('qFormTitle').textContent = 'تعديل عرض السعر';
   document.getElementById('qTitle').value    = q.title;
   document.getElementById('qTax').value      = q.tax_rate;
+  document.getElementById('qCurrency').value = q.currency_code || 'SAR';
   document.getElementById('qDiscount').value = q.discount;
   document.getElementById('qNotes').value    = q.notes || '';
   await ensureClientsLoaded();
@@ -906,10 +911,11 @@ function calcTotals() {
   const taxAmt   = (subtotal - discount) * tax / 100;
   const total    = subtotal - discount + taxAmt;
 
-  setText('totSub',   fmt(subtotal) + ' ر.س');
-  setText('totDis',   fmt(discount) + ' ر.س');
-  setText('totTax',   fmt(taxAmt)   + ' ر.س');
-  setText('totFinal', fmt(total)    + ' ر.س');
+  const currency = document.getElementById('qCurrency')?.value || 'SAR';
+  setText('totSub',   fmt(subtotal) + ' ' + currency);
+  setText('totDis',   fmt(discount) + ' ' + currency);
+  setText('totTax',   fmt(taxAmt)   + ' ' + currency);
+  setText('totFinal', fmt(total)    + ' ' + currency);
   setText('taxLbl',   `ضريبة (${tax}%)`);
 }
 
@@ -971,7 +977,8 @@ async function saveQuote() {
   }
 
   const action = editId ? 'update' : 'create';
-  const payload = { action, title, client_id: clientId, items, tax_rate: taxRate, discount, notes };
+  const payload = { action, title, client_id: clientId, items, tax_rate: taxRate, discount, notes,
+    currency_code: document.getElementById('qCurrency')?.value || 'SAR' };
   if (editId) payload.id = parseInt(editId);
 
   try {
@@ -1000,6 +1007,7 @@ function resetQuoteForm() {
   document.getElementById('qFormTitle').textContent = 'عرض سعر جديد';
   ['qTitle','qNotes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.getElementById('qTax').value = '15';
+  document.getElementById('qCurrency').value = 'SAR';
   document.getElementById('qDiscount').value = '0';
   document.getElementById('itemsBody').innerHTML = '';
   document.getElementById('quoteMsg').className = 'hidden';

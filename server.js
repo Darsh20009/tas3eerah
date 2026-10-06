@@ -15,12 +15,12 @@ const policies = require('./server/policies');
 const DatabaseSessionStore = require('./server/session-store');
 
 const root = __dirname;
-const legacyDocument = path.join(root, 'attached_assets', 'index_1789370030522.html');
 const secret = process.env.SESSION_SECRET ||
   (config.isProduction() ? null : crypto.randomBytes(32).toString('hex'));
 if (!secret) throw new Error('SESSION_SECRET is required in production.');
 
 const app = express();
+app.locals.currencies = require('./server/currencies').CURRENCIES;
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
 app.set('views', path.join(root, 'views'));
@@ -71,7 +71,7 @@ app.get('/policies', (req, res) => res.render('policies', { ...policies, assetVe
 app.get('/legacy-calculator.html', (req, res) =>
   res.sendFile(path.join(root, 'legacy-calculator.html')));
 app.get('/classic-tools', (req, res) => {
-  let html = fs.readFileSync(legacyDocument, 'utf8');
+  let html = classicTools.readSource();
   if (req.query.embed === '1') {
     html = html.replace('</head>', '<script src="/assets/js/currency.js?v=2"></script></head>');
     const selected = String(req.query.tool || '');

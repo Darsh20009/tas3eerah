@@ -5,7 +5,7 @@
   const SYMBOL_SRC = '/assets/riyal-symbol.png?v=2';
   // Match currency labels only. Do not treat the adjacent letters "ر" and "س"
   // inside normal Arabic words such as "أرسل" or "الرسالة" as currency.
-  const TOKEN_RE = /ر\.س|(?<![\u0600-\u06ff])ر\s+س(?![\u0600-\u06ff])|(?<![A-Za-z])SAR(?![A-Za-z])|(?<![\u0600-\u06ff])ريال(?![\u0600-\u06ff])|﷼/g;
+  const TOKEN_RE = /ر\.س|(?<![\u0600-\u06ff])ر\s+س(?![\u0600-\u06ff])|(?<![A-Za-z])SAR(?![A-Za-z])|(?<![\u0600-\u06ff])ريال(?:\s+سعودي)?(?![\u0600-\u06ff])(?!\s+(?:قطري|عماني|يمني))|﷼/g;
   let currencyObserver = null;
 
   function replace(root) {
@@ -18,8 +18,8 @@
       const parent = node.parentElement;
       if (
         parent &&
-        !['SCRIPT', 'STYLE', 'NOSCRIPT'].includes(parent.tagName) &&
-        !parent.closest('.user-content, .riyal-symbol') &&
+        !['SCRIPT', 'STYLE', 'NOSCRIPT', 'SELECT', 'OPTION', 'TEXTAREA'].includes(parent.tagName) &&
+        !parent.closest('.user-content, .riyal-symbol, #integrated-tools, [data-tool-currency]') &&
         TOKEN_RE.test(node.nodeValue)
       ) {
         nodes.push(node);
