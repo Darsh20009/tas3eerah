@@ -449,7 +449,8 @@ function navDirect(panelId) {
 function readLocalProjects(key) {
   try {
     const value = JSON.parse(localStorage.getItem(key) || '[]');
-    return Array.isArray(value) ? value : [];
+    return Array.isArray(value) ? value.filter(project =>
+      project && typeof project === 'object' && !Array.isArray(project)) : [];
   } catch (_) {
     return [];
   }
@@ -463,6 +464,7 @@ function loadProjectLedger() {
   const sourceNames = {
     services: 'الخدمات',
     packages: 'الباقات',
+    menu: 'قوائم المطاعم والكافيهات',
     retail: 'التجزئة',
     tech: 'المشاريع التقنية',
     saas: 'الاشتراكات التقنية',
@@ -482,8 +484,11 @@ function loadProjectLedger() {
         ['الربح', project.profit]
       ]
     })),
-    ...['packages', 'retail', 'tech', 'saas', 'ds'].flatMap(key =>
-      readLocalProjects(key).map(project => ({
+    ...['packages', 'menu', 'retail', 'tech', 'saas', 'ds'].flatMap(key =>
+      [...readLocalProjects(key + '_log'), ...readLocalProjects(key)]
+        .filter((project, index, entries) => !project.id ||
+          entries.findIndex(other => String(other.id) === String(project.id)) === index)
+        .map(project => ({
         id: Number(project.id) || 0,
         title: project.title || 'مشروع محفوظ',
         source: sourceNames[key],
@@ -972,6 +977,12 @@ async function saveQuote() {
   }
   if (!items.length) {
     showMsg('يرجى إضافة بند واحد على الأقل', true);
+    if (saveBtn) { saveBtn.dataset.busy = 'false'; saveBtn.disabled = false; }
+    return;
+  }
+  if (items.some(item => !Number.isFinite(item.qty) || item.qty <= 0 ||
+      !Number.isFinite(item.unit_price) || item.unit_price < 0)) {
+    showMsg('يجب أن تكون الكمية أكبر من صفر والسعر غير سالب', true);
     if (saveBtn) { saveBtn.dataset.busy = 'false'; saveBtn.disabled = false; }
     return;
   }

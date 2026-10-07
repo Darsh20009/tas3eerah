@@ -19,7 +19,7 @@
       if (
         parent &&
         !['SCRIPT', 'STYLE', 'NOSCRIPT', 'SELECT', 'OPTION', 'TEXTAREA'].includes(parent.tagName) &&
-        !parent.closest('.user-content, .riyal-symbol, #integrated-tools, [data-tool-currency]') &&
+        !parent.closest('.user-content, .riyal-symbol, #integrated-tools, .tool-screen, [data-tool-currency]') &&
         TOKEN_RE.test(node.nodeValue)
       ) {
         nodes.push(node);

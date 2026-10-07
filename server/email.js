@@ -192,9 +192,16 @@ async function connect(folder, settings, writable = false) {
   try {
     await client.connect();
     return client;
-  } catch {
+  } catch (error) {
     try { await client.logout(); } catch {}
-    throw new Error('تعذر الاتصال بصندوق البريد. تحقق من إعدادات البريد وحاول مرة أخرى.');
+    const failure = new Error('تعذر الاتصال بصندوق البريد. تحقق من إعدادات البريد وحاول مرة أخرى.');
+    // Keep only a known diagnostic code; never log credentials or IMAP responses.
+    const safeCodes = ['ETIMEDOUT', 'ETIMEOUT', 'ECONNREFUSED', 'ENOTFOUND', 'EAI_AGAIN',
+      'ECONNRESET', 'EHOSTUNREACH', 'CERT_HAS_EXPIRED', 'DEPTH_ZERO_SELF_SIGNED_CERT',
+      'UNABLE_TO_VERIFY_LEAF_SIGNATURE'];
+    failure.code = error.authenticationFailed ? 'IMAP_AUTH_FAILED'
+      : safeCodes.includes(error.code) ? error.code : 'IMAP_CONNECTION_FAILED';
+    throw failure;
   }
 }
 

@@ -4,6 +4,7 @@
   "description": "منصة تسعيرة العربية للتسعير وعروض الأسعار",
   "scripts": {
     "start": "node server.js",
+    "test:browser": "node scripts/browser-smoke.js && node scripts/audit-pages.js",
     "test": "node --test server/db.test.js server/api/api.test.js server/policies.test.js server/currencies.test.js"
   },
   "dependencies": {

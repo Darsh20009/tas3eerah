@@ -101,7 +101,7 @@ function hasMutationSelector(filter) {
     if (key === '$or') {
       if (!Array.isArray(value) || value.length === 0) return false;
       if (!value.every((branch) => hasMutationSelector(branch))) return false;
-      continue;
+      return true;
     }
     if (key === '$and') {
       if (!Array.isArray(value) || value.length === 0) continue;
@@ -753,7 +753,7 @@ async function insertDoc(collection, data) {
   if (!isPlainObject(data) || Object.keys(data).length === 0) fail('بيانات المستند غير صالحة.');
 
   const document = { ...data };
-  if (!Object.hasOwn(document, 'created_at')) {
+  if (COLLECTION_FIELDS[collection].has('created_at') && !Object.hasOwn(document, 'created_at')) {
     document.created_at = new Date().toISOString().replace('T', ' ').slice(0, 19);
   }
   for (const field of Object.keys(document)) assertField(collection, field);

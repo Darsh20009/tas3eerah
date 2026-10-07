@@ -154,6 +154,12 @@ test('SQLite facade keeps legacy rows, enforces safe filters, aggregates and per
   });
 
   await t.test('mutation guards reject unsafe filters and unknown fields/operators', async () => {
+    assert.equal(await db.deleteDoc('messages', {
+      $or: [{ sender_id: 999999 }, { receiver_id: 999999 }],
+    }), 0);
+    await assert.rejects(db.deleteDoc('messages', {
+      $or: [{ sender_id: 999999 }, {}],
+    }), /رفض تعديل أو حذف واسع/);
     await assert.rejects(db.updateDoc('users', {}, { is_active: 0 }), /رفض تعديل أو حذف واسع/);
     await assert.rejects(db.deleteDoc('users', {}), /رفض تعديل أو حذف واسع/);
     await assert.rejects(

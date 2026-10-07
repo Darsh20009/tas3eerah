@@ -219,6 +219,23 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
   });
   assert.equal(updatedCurrency.json.success, true);
   assert.equal((await db.findOne('quotes', { id: quoteId })).currency_code, 'EUR');
+  for (const invalidItem of [
+    { description: 'كمية صفرية', qty: 0, unit_price: 100 },
+    { description: 'كمية غير رقمية', qty: 'invalid', unit_price: 100 },
+    { description: 'سعر غير رقمي', qty: 1, unit_price: 'invalid' },
+    { description: 'تجاوز رقمي', qty: 1e200, unit_price: 1e200 },
+  ]) {
+    const invalidQuote = await request('/api/quotes', {
+      jar: adminJar, method: 'POST', token: adminCsrf.json.data.csrf_token,
+      body: { ...quotePayload, items: [invalidItem] },
+    });
+    assert.equal(invalidQuote.json.success, false, invalidItem.description);
+  }
+  const weakPasswordUpdate = await request('/api/admin', {
+    jar: adminJar, method: 'POST', token: adminCsrf.json.data.csrf_token,
+    body: { action: 'user_update', id: clientId, password: '1234567' },
+  });
+  assert.equal(weakPasswordUpdate.json.success, false);
   const invalidCurrency = await request('/api/quotes', {
     jar: adminJar, method: 'POST', token: adminCsrf.json.data.csrf_token,
     body: { action: 'update', id: quoteId, currency_code: 'INVALID' },
@@ -285,4 +302,108 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
   const contactInbox = await request('/api/admin?action=contact_messages', { jar: adminJar });
   assert.equal(contactInbox.json.success, true);
   assert.equal(contactInbox.json.data.length, 1);
+});
+
+test('user management, quote lifecycle, messaging and settings are isolated and permission-checked', async () => {
+  email.sendHtml = async () => {};
+  async function signIn(emailAddress) {
+    const jar = new Map();
+    const csrf = await request('/api/auth?action=csrf', { jar });
+    const token = csrf.json.data.csrf_token;
+    const login = await request('/api/auth', {
+      jar, token, method: 'POST',
+      body: { action: 'login', email: emailAddress, password: 'TestPassword@123' },
+    });
+    assert.equal(login.json.success, true);
+    return { jar, token, user: login.json.data };
+  }
+  function post(session, path, body) {
+    return request(path, { ...session, method: 'POST', body });
+  }
+  const admin = await signIn('admin@example.test');
+  const employeeCreated = await post(admin, '/api/admin', {
+    action: 'user_create', name: 'موظف مراجعة', email: 'review-employee@example.test',
+    password: 'TestPassword@123', role: 'employee', plan: 'pro',
+  });
+  assert.equal(employeeCreated.json.success, true);
+  const employeeId = employeeCreated.json.data.id;
+  const employee = await signIn('review-employee@example.test');
+  const client = await signIn('client@example.test');
+  const changedPlan = await post(admin, '/api/admin', {
+    action: 'set_plan', id: client.user.id, plan: 'pro',
+  });
+  assert.equal(changedPlan.json.success, true);
+  const otherCreated = await post(admin, '/api/admin', {
+    action: 'user_create', name: 'عميل آخر', email: 'review-other@example.test',
+    password: 'TestPassword@123', role: 'client', plan: 'pro',
+  });
+  assert.equal(otherCreated.json.success, true);
+  const other = await signIn('review-other@example.test');
+  for (const session of [employee, client, other]) {
+    const denied = await request('/api/admin?action=users', session);
+    assert.equal(denied.response.status, 403);
+  }
+  const clients = await request('/api/quotes?action=clients', employee);
+  assert.equal(clients.json.success, true);
+  assert.ok(clients.json.data.every(user => !Object.hasOwn(user, 'password_hash')));
+  const draft = await post(employee, '/api/quotes', {
+    action: 'create', title: 'عرض دورة المراجعة', client_id: client.user.id,
+    currency_code: 'KWD', items: [{ description: 'خدمة', qty: 2, unit_price: 50 }],
+    tax_rate: 15, discount: 10,
+  });
+  assert.equal(draft.json.success, true);
+  const quoteId = draft.json.data.id;
+  assert.equal((await db.findOne('quotes', { id: quoteId })).total, 103.5);
+  assert.equal((await request(`/api/quotes?action=get&id=${quoteId}`, other)).response.status, 403);
+  assert.equal((await post(client, '/api/quotes', {
+    action: 'update', id: quoteId, title: 'تعديل غير مسموح',
+  })).response.status, 403);
+  const updated = await post(employee, '/api/quotes', {
+    action: 'update', id: quoteId, currency_code: 'EUR', tax_rate: 0, discount: 0,
+  });
+  assert.equal(updated.json.success, true);
+  assert.equal((await db.findOne('quotes', { id: quoteId })).total, 100);
+  const sent = await post(employee, '/api/quotes', { action: 'status', id: quoteId, status: 'sent' });
+  assert.equal(sent.json.success, true);
+  const cannotEdit = await post(employee, '/api/quotes', { action: 'update', id: quoteId });
+  assert.equal(cannotEdit.json.success, false);
+  const accepted = await post(client, '/api/quotes', { action: 'status', id: quoteId, status: 'accepted' });
+  assert.equal(accepted.json.success, true);
+  for (const rating of [3, 5]) {
+    assert.equal((await post(client, '/api/quotes', {
+      action: 'rate', id: quoteId, rating,
+    })).json.success, true);
+  }
+  assert.equal(await db.count('quote_ratings', { quote_id: quoteId, user_id: client.user.id }), 1);
+  const message = await post(employee, '/api/messages', {
+    action: 'send', receiver_id: client.user.id, subject: 'مراجعة', body: 'رسالة مراجعة',
+  });
+  assert.equal(message.json.success, true);
+  const messageId = message.json.data.id;
+  assert.equal((await request(`/api/messages?action=thread&id=${messageId}`, other)).response.status, 403);
+  const reply = await post(client, '/api/messages', {
+    action: 'send', parent_id: messageId, receiver_id: employeeId, body: 'رد مراجعة',
+  });
+  assert.equal(reply.json.success, true);
+  const wrongReceiver = await post(client, '/api/messages', {
+    action: 'send', parent_id: messageId, receiver_id: other.user.id, body: 'رد إلى طرف آخر',
+  });
+  assert.equal(wrongReceiver.response.status, 403);
+  const thread = await request(`/api/messages?action=thread&id=${messageId}`, employee);
+  assert.equal(thread.json.data.length, 2);
+  assert.equal((await db.findOne('messages', { id: reply.json.data.id })).is_read, 1);
+  assert.equal((await post(admin, '/api/admin', {
+    action: 'save_settings', site_name: 'نظام اختبار',
+  })).json.success, true, 'new setting keys must be insertable');
+  assert.equal((await request('/api/admin?action=get_settings', admin)).json.data.site_name, 'نظام اختبار');
+  const contactId = (await db.findAll('contact_messages'))[0].id;
+  assert.equal((await post(admin, '/api/admin', { action: 'contact_mark_read', id: contactId })).json.success, true);
+  assert.equal((await post(admin, '/api/admin', { action: 'contact_delete', id: contactId })).json.success, true);
+  assert.equal(await db.count('contact_messages', { id: contactId }), 0);
+  assert.equal((await post(admin, '/api/admin', { action: 'user_toggle', id: admin.user.id })).json.success, false);
+  assert.equal((await post(admin, '/api/admin', { action: 'user_toggle', id: other.user.id })).json.success, true);
+  assert.equal((await request('/api/auth?action=me', other)).response.status, 401);
+  assert.equal((await post(admin, '/api/admin', { action: 'user_delete', id: other.user.id })).json.success, true);
+  assert.equal((await post(employee, '/api/quotes', { action: 'delete', id: quoteId })).json.success, true);
+  assert.equal(await db.count('quotes', { id: quoteId }), 0);
 });

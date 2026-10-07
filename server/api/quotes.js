@@ -76,9 +76,9 @@ function buildItems(items) {
     return {
       id: index + 1,
       description: text(item?.description, 500),
-      qty: Math.max(0.001, qtyInput),
+      qty: qtyInput,
       unit_price: Math.max(0, priceInput),
-      total: Math.round(Math.max(0.001, qtyInput) * Math.max(0, priceInput) * 10000) / 10000,
+      total: Math.round(qtyInput * Math.max(0, priceInput) * 10000) / 10000,
     };
   });
 }
@@ -158,20 +158,22 @@ function quoteTotals(items, taxInput, discountInput, allowEmptyDiscount = false)
   if (!Array.isArray(items) || !items.length) return { error: 'يرجى إضافة بند واحد على الأقل' };
   for (const item of items) {
     if (!text(item?.description, 500)) return { error: 'وصف البند مطلوب لكل بند' };
-    const qty = number(item?.qty, 1);
-    const price = number(item?.unit_price, 0);
-    if (!Number.isFinite(qty) || !Number.isFinite(price) || qty < 0 || price < 0) {
+    const qty = item?.qty == null ? 1 : Number(item.qty);
+    const price = item?.unit_price == null ? 0 : Number(item.unit_price);
+    if (!Number.isFinite(qty) || !Number.isFinite(price) || qty <= 0 || price < 0) {
       return { error: 'قيمة غير صالحة في أحد البنود' };
     }
   }
   const cleanItems = buildItems(items);
   const subtotal = cleanItems.reduce((sum, item) => sum + item.total, 0);
+  if (!Number.isFinite(subtotal)) return { error: 'قيمة البنود تتجاوز النطاق المسموح' };
   let discount = Math.max(0, number(discountInput, 0));
   if (discount > subtotal && !(allowEmptyDiscount && subtotal === 0)) {
     return { error: 'الخصم لا يمكن أن يتجاوز الإجمالي الفرعي' };
   }
   const taxRate = Math.min(100, Math.max(0, number(taxInput, 15)));
   const total = (subtotal - discount) * (1 + taxRate / 100);
+  if (!Number.isFinite(total)) return { error: 'الإجمالي يتجاوز النطاق المسموح' };
   return {
     items: cleanItems,
     subtotal: Math.round(subtotal * 10000) / 10000,

@@ -154,7 +154,7 @@ async function userUpdate(req, res, body) {
       return sendError(res, 'لا يمكن تغيير دور المدير الوحيد في النظام');
     }
   }
-  if (password && password.length < 6) return sendError(res, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+  if (password && password.length < 8) return sendError(res, 'كلمة المرور يجب أن تكون 8 أحرف على الأقل');
   const update = {};
   if (name) update.name = name;
   if (role) update.role = role;
@@ -300,7 +300,8 @@ async function mailboxFolder(res, body) {
       folder,
       mailbox: mail.publicConfig(settings),
     });
-  } catch {
+  } catch (error) {
+    console.error('[mailbox read failed]', error.code || error.name || 'MAIL_ERROR');
     return sendError(res, 'تعذر الاتصال بصندوق البريد. تحقق من الإعدادات وحاول مرة أخرى.', 502);
   }
 }

@@ -69,7 +69,7 @@ app.all('/api/{*path}', (req, res) => res.status(404).json({
 app.get('/favicon.ico', (req, res) => res.sendFile(path.join(root, 'assets/icons/icon-192.png')));
 app.get('/policies', (req, res) => res.render('policies', { ...policies, assetVersion: assetVersion() }));
 app.get('/legacy-calculator.html', (req, res) =>
-  res.sendFile(path.join(root, 'legacy-calculator.html')));
+  res.redirect('/classic-tools'));
 app.get('/classic-tools', (req, res) => {
   let html = classicTools.readSource();
   if (req.query.embed === '1') {
