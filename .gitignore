@@ -8,3 +8,5 @@ node_modules/
 .DS_Store
 database/*.db-shm
 database/*.db-wal
+database/*.db
+.local/git/
