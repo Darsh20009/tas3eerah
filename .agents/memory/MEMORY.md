@@ -6,5 +6,6 @@
 - [مصادقة البريد](mail-authentication.md) — افحص SMTP وIMAP مباشرة؛ كلمة مرور ويبميل الجديدة قد تختلف عن كلمة مرور التطبيقات.
 - [فصل قواعد MongoDB](mongo-environment-separation.md) — لا تخلط بيانات المعاينة المنقولة من SQLite مع سجلات Atlas الحالية للإنتاج
 - [حزم البناء الخارجي](external-npm-lock.md) — عناوين حزم Replit الداخلية في ملف القفل تحتاج تحويلها لسجل npm العام عند البناء خارج Replit
+- [رفع Git LFS](git-lfs-push.md) — الرفع التجريبي قد يكتب أقفالاً محلية؛ لا تعطل LFS لتجاوز حماية عمليات Git.
 - [Imported calculator lifecycle](imported-calculator-lifecycle.md) — shared standalone scripts must skip initialization for unmounted panels without aborting global declarations.
 - [ملكية سجل الحاسبات](calculator-history-ownership.md) — النتائج نسخ مستقلة عن المسودة؛ لا تنسب سجلات المتصفح القديمة تلقائياً لحساب.
