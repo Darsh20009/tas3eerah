@@ -58,12 +58,15 @@ function publicConfig(settings = {}) {
   };
 }
 
-function smtpTransport(settings = {}) {
+function smtpTransport(settings = {}, options = {}) {
   if (!isSendConfigured(settings)) throw new Error('لم يتم إعداد كلمة مرور صندوق البريد في Secrets');
+  const port = options.port || SMTP_PORT;
   return nodemailer.createTransport({
     host: HOST,
-    port: SMTP_PORT,
-    secure: SMTP_PORT === 465,
+    port,
+    secure: port === 465,
+    requireTLS: port !== 465,
+    authMethod: options.authMethod,
     auth: { user: address(settings), pass: sendPassword() },
     connectionTimeout: 12000,
     greetingTimeout: 12000,
@@ -71,8 +74,8 @@ function smtpTransport(settings = {}) {
   });
 }
 
-async function verifySend(settings = {}) {
-  const transporter = smtpTransport(settings);
+async function verifySend(settings = {}, options = {}) {
+  const transporter = smtpTransport(settings, options);
   try {
     await transporter.verify();
     return true;
