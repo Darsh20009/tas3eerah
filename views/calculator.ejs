@@ -156,6 +156,8 @@
 <script>window.CALCULATOR_CONTEXT = <%- JSON.stringify({slug,role:user.role}).replace(/[<>&]/g, c => ({'<':'\\u003c','>':'\\u003e','&':'\\u0026'}[c])) %>;</script>
 <script src="/assets/js/calculator-quote.js?v=<%= assetVersion %>"></script>
 <script src="/assets/js/calculator-cloud.js?v=<%= assetVersion %>"></script>
+<link rel="stylesheet" href="/assets/css/calculator-actions.css?v=<%= assetVersion %>">
+<script src="/assets/js/calculator-actions.js?v=<%= assetVersion %>"></script>
 <script>
   window.goHome = function () { window.location.href = '/dashboard'; };
   function openCalculatorSidebar() {

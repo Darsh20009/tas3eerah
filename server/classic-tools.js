@@ -213,6 +213,7 @@ function renameLegacyGlobals(markup) {
     .replace(/\bselectField\s*\(/g, 'classicSelectField(')
     .replace(/\bcalcPkg\s*\(/g, 'classicCalcPkg(')
     .replace(/\bfmt\s*\(/g, 'classicFmt(')
+    .replace(/\b(const|let|var)\s+fmt(?=\s*=)/g, '$1 classicFmt')
     .replace(/function loadRetailState\(\)\s*\{/, 'function loadRetailState(){ return false;')
     .replace(/function loadMenuState\(\)\s*\{/, 'function loadMenuState(){ return false;');
 }
@@ -261,7 +262,18 @@ function renderClassicTools(toolSlug = null) {
       /class=(["'])([^"']*\btool-screen\b[^"']*)\1/i,
       (_match, quote, className) => `class=${quote}${className} active${quote}`
     );
-    content = `${currencyControl()}\n${activeSelected}\n${scripts}`;
+    const share = findElementById(sourceBody, 'tool-share')
+      .replace('class="tool-screen"', 'class="calculator-share-panel"')
+      .replace(/<div class="back-bar">[\s\S]*?<\/div>/, '')
+      .replace('بياناتك <b>مجهولة الهوية تماماً</b> — لا اسم ولا معلومات شخصية. فقط السعر والقطاع والمدينة لبناء بيانات السوق.',
+        'مشاركات الأسعار تُحفظ ضمن حسابك، ولا تُعرض معلومات حسابك في هذه المشاركة.')
+      .replace(/background:linear-gradient\([^)]*\)/g, 'background:var(--card)');
+    content = `${currencyControl()}\n${activeSelected}
+      <dialog id="calculator-share-dialog" aria-label="مشاركة السعر">
+        <header class="calculator-share-header"><strong>مشاركة السعر</strong>
+          <button class="btn btn-ghost btn-sm" type="button" onclick="closeCalculatorShare()">إغلاق</button>
+        </header>${share}
+      </dialog>\n${scripts}`;
   }
 
   return `<style id="integrated-tools-source-style">\n@scope (#integrated-tools) {\n${css}\n}\n${COMPONENT_OVERRIDES}\n</style>\n<div id="integrated-tools" class="integrated-tools">${content}</div>`;

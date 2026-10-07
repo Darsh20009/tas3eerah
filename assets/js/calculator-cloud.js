@@ -131,32 +131,43 @@
     choice.hidden = selectedResults.length < 2;
     return selectedResults;
   }
-  async function save(rowIndex, prefix) {
+  async function save(rowIndex, prefix, options = {}) {
     if (saveButton.disabled) return;
+    const button = options.button;
+    const oldLabel = button?.textContent;
     try {
       const previous = choice.value;
       const results = resultChoices();
       if (!results.length) throw new Error('أكمل بيانات الحاسبة حتى تظهر نتيجة صالحة');
       if (prefix) {
-        const rows = [...root.querySelectorAll(`#${prefix}-rows > tr`)];
-        const position = rows.findIndex(row => row.id === `${prefix}-row-${rowIndex}`);
-        if (position >= 0) choice.value = String(position);
+        const position = results.findIndex(result => result.row_prefix === prefix && result.row_index === String(rowIndex));
+        if (position < 0) throw new Error('أكمل اسم المنتج وتكلفته حتى تظهر نتيجة صالحة');
+        choice.value = String(position);
       } else if (previous && results[Number(previous)]) choice.value = previous;
-      if (!title.value.trim()) { title.focus(); throw new Error('اكتب اسم النتيجة قبل الحفظ'); }
-      saveButton.disabled = true;
       const result = results[Number(choice.value)] || results[0];
+      const savedTitle = title.value.trim() || (options.autoTitle ? result.title : '');
+      if (!savedTitle) { title.focus(); throw new Error('اكتب اسم النتيجة قبل الحفظ'); }
+      saveButton.disabled = true;
+      if (button) { button.disabled = true; button.textContent = 'جارٍ الحفظ…'; }
       const state = snapshot();
-      await request('save', { state, title: title.value.trim(), price: result.price, currency_code: result.currency_code });
+      await request('save', { state, title: savedTitle, price: result.price, currency_code: result.currency_code });
+      if (button) button.textContent = 'تم الحفظ';
       try {
         await updateHistoryBadge();
         message('تم حفظ نتيجة جديدة في سجل حسابك. يمكنك استعادتها أو حذفها من السجل.');
       } catch {
         message('تم حفظ نتيجة جديدة في سجل حسابك، لكن تعذر تحديث العداد. افتح السجل للاطلاع عليها.');
       }
-    } catch (error) { message(error.message); } finally { saveButton.disabled = false; }
+    } catch (error) {
+      message(error.message);
+      if (button) { button.textContent = oldLabel; window.alert(error.message); }
+    } finally {
+      saveButton.disabled = false;
+      if (button) setTimeout(() => { button.disabled = false; button.textContent = oldLabel; }, 1500);
+    }
   }
   window.CalculatorCloud = {
-    snapshot, flush: saveState, save, ready: false,
+    snapshot, flush: saveState, save, request, ready: false,
     async openHistory() {
       clearTimeout(timer);
       await saveState();
@@ -165,14 +176,21 @@
   };
   saveButton.addEventListener('click', () => save());
   // Replace the standalone document's browser-only save actions.
-  window.saveProject = () => save();
-  window.saveGenericProject = () => save();
-  window.saveRetailRowToLog = index => save(index, 'ret');
-  window.saveMenuRowToLog = index => save(index, 'menu');
+  const originalSave = (signature, index, prefix) => save(index, prefix, {
+    autoTitle: true, button: [...root.querySelectorAll('[onclick]')].find(node => node.getAttribute('onclick') === signature),
+  });
+  window.saveProject = () => originalSave('saveProject()');
+  window.saveGenericProject = tool => originalSave(`saveGenericProject('${tool}')`);
+  window.saveRetailRowToLog = index => originalSave(`saveRetailRowToLog(${index})`, index, 'ret');
+  window.saveMenuRowToLog = index => originalSave(`saveMenuRowToLog(${index})`, index, 'menu');
   const nativePrint = window.print.bind(window);
+  let printing = false;
   window.print = async () => {
+    if (printing) return;
+    printing = true;
     try { await request('reserve_pdf'); nativePrint(); }
     catch (error) { message(error.message); window.alert(error.message); }
+    finally { printing = false; }
   };
   try {
     const saved = await request('state', null, true);

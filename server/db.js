@@ -31,6 +31,7 @@ const COLLECTION_FIELDS = Object.freeze({
   settings: new Set(['key', 'value']),
   calculator_results: new Set(['id', 'user_id', 'tool', 'title', 'price', 'currency_code', 'state', 'created_at']),
   calculator_states: new Set(['id', 'user_id', 'tool', 'state', 'updated_at']),
+  price_shares: new Set(['id', 'user_id', 'tool', 'participant_type', 'sector', 'city', 'product', 'price', 'unit', 'currency_code', 'created_at']),
   _counters: new Set(['id', 'seq']),
   sessions: new Set(['sid', 'sess', 'expires_at', 'updated_at']),
 });
@@ -426,6 +427,12 @@ function createSqliteSchema() {
       id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, tool TEXT NOT NULL,
       state TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE(user_id, tool)
     );
+    CREATE TABLE IF NOT EXISTS price_shares (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, tool TEXT NOT NULL,
+      participant_type TEXT NOT NULL, sector TEXT NOT NULL, city TEXT NOT NULL, product TEXT NOT NULL,
+      price REAL NOT NULL, unit TEXT NOT NULL, currency_code TEXT NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
@@ -674,6 +681,7 @@ async function initializeMongo() {
       mongoDatabase.collection('sessions').createIndex({ expiresAt: 1 }),
       mongoDatabase.collection('calculator_states').createIndex({ user_id: 1, tool: 1 }, { unique: true }),
       mongoDatabase.collection('calculator_results').createIndex({ user_id: 1, tool: 1, id: -1 }),
+      mongoDatabase.collection('price_shares').createIndex({ user_id: 1, id: -1 }),
     ]);
     selectedMode = 'mongo';
   } catch {

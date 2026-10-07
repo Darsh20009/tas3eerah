@@ -54,7 +54,12 @@ app.use('/assets', express.static(path.join(root, 'assets'), {
   fallthrough: false, maxAge: '1h',
 }));
 
-const assetVersion = () => String(Math.floor(fs.statSync(path.join(root, 'assets/css/app.css')).mtimeMs));
+const assetVersion = () => {
+  const files = ['assets/css', 'assets/js'].flatMap(directory =>
+    fs.readdirSync(path.join(root, directory)).filter(file => /\.(css|js)$/.test(file))
+      .map(file => path.join(root, directory, file)));
+  return String(Math.floor(Math.max(...files.map(file => fs.statSync(file).mtimeMs))));
+};
 
 app.use('/api/auth', require('./server/api/auth'));
 app.use('/api/quotes', require('./server/api/quotes'));

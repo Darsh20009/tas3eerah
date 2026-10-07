@@ -481,3 +481,34 @@ test('account-owned sector history, restore/delete, selected tools and atomic PD
   assert.equal((await post(client, '/api/quotes', { action: 'reserve_pdf', id: clientQuote.id })).response.status, 429);
   assert.equal((await post(admin, '/api/calculators', { action: 'reserve_pdf', tool: 'tech' })).json.success, true);
 });
+
+test('price sharing persists currency and unit, validates fields and isolates account history', async () => {
+  async function session(emailAddress) {
+    const jar = new Map();
+    const token = (await request('/api/auth?action=csrf', { jar })).json.data.csrf_token;
+    const login = await request('/api/auth', { jar, token, method: 'POST',
+      body: { action: 'login', email: emailAddress, password: 'TestPassword@123' } });
+    assert.equal(login.json.success, true);
+    return { jar, token };
+  }
+  const client = await session('client@example.test');
+  const employee = await session('review-employee@example.test');
+  const payload = { action: 'share_price', tool: 'services', participant_type: 'merchant',
+    sector: 'خدمات مهنية', city: 'الرياض', product: 'خدمة اختبار', price: 123, unit: 'للخدمة', currency_code: 'USD' };
+  const post = (body, options = client) => request('/api/calculators', { ...options, method: 'POST', body });
+  assert.equal((await post(payload, { jar: client.jar })).response.status, 403);
+  assert.equal((await request('/api/calculators?action=share_price&tool=services', client)).response.status, 405);
+  for (const overrides of [{ participant_type: '' }, { product: '' }, { city: '' }, { price: 0 },
+    { price: -1 }, { price: 'not-a-number' }, { currency_code: 'XXX' }, { unit: '' }]) {
+    assert.equal((await post({ ...payload, ...overrides })).response.status, 400);
+  }
+  assert.equal((await post({ ...payload, tool: 'menu' }, employee)).response.status, 403);
+  assert.equal((await post(payload)).json.success, true);
+  const list = (await request('/api/calculators?action=shares', client)).json.data;
+  assert.equal(list.points, 1);
+  assert.equal(list.entries.length, 1);
+  assert.equal(list.entries[0].currency_code, 'USD');
+  assert.equal(list.entries[0].unit, 'للخدمة');
+  assert.equal(list.entries[0].price, 123);
+  assert.equal((await request('/api/calculators?action=shares', employee)).json.data.entries.length, 0);
+});

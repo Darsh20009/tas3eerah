@@ -96,11 +96,63 @@ async function main() {
       assert.deepEqual(after.actions, before.actions, `${slug}: choice and row actions reload`);
       assert.equal(after.fields.length, before.fields.length, `${slug}: dynamic field count reload`);
       assert.equal(after.currency_code, 'USD', `${slug}: currency reload`);
-      await page.locator('#cloudResultTitle').fill('مراجعة ' + slug);
-      await page.locator('#cloudSave').click();
+      let rowIndex;
+      if (['menu', 'retail'].includes(slug)) {
+        const prefix = slug === 'menu' ? 'menu' : 'ret';
+        await page.locator(`#${prefix}-row-1 input[type="number"]`).first().fill('0');
+        rowIndex = await page.evaluate(() => window.CalculatorReadResults()[0].row_index);
+      }
+      const saveSelector = slug === 'services' ? '[onclick="saveProject()"]'
+        : slug === 'retail' ? `[onclick="saveRetailRowToLog(${rowIndex})"]`
+        : slug === 'menu' ? `[onclick="saveMenuRowToLog(${rowIndex})"]`
+        : '[onclick^="saveGenericProject("]';
+      await page.locator('#integrated-tools .tool-screen ' + saveSelector).first().click();
       await page.waitForFunction(() => !document.getElementById('cloudSave').disabled);
       assert.match(await page.locator('#cloudStateStatus').innerText(), /تم حفظ نتيجة جديدة/, `${slug}: cloud save`);
-      console.log(`${slug}: choices, editable input, dynamic rows, currency, reload and cloud save passed`);
+      await page.locator('#integrated-tools .tool-screen .share-cta').first().click();
+      await page.waitForSelector('#calculator-share-dialog[open]');
+      await page.locator('#share-type-merchant').click();
+      await page.locator('#share-sector').selectOption({ index: 1 });
+      await page.locator('#share-city').selectOption({ label: 'الرياض' });
+      await page.locator('#share-product').fill('مشاركة اختبار ' + slug);
+      await page.locator('#share-price').fill('123');
+      await page.locator('#share-submit-btn').click();
+      await page.waitForFunction(() => document.getElementById('calculator-share-status').textContent.includes('تم حفظ المشاركة'));
+      assert.match(await page.locator('#share-history').innerText(), new RegExp('مشاركة اختبار ' + slug));
+      assert.equal(await page.locator('#share-points-display').innerText(), String(slugs.indexOf(slug) + 1));
+      if (slug === 'services') {
+        await page.setViewportSize({ width: 390, height: 844 });
+        assert.equal(await page.evaluate(() => {
+          const dialog = document.getElementById('calculator-share-dialog');
+          return dialog.scrollWidth <= dialog.clientWidth + 1;
+        }), true);
+        await page.screenshot({ path: '/tmp/calculator-sharing-fixed.png' });
+        await page.setViewportSize({ width: 1280, height: 720 });
+      }
+      await page.locator('#calculator-share-dialog [onclick="closeCalculatorShare()"]').click();
+      const printSelector = slug === 'services' ? '[onclick="printServiceReport()"]'
+        : slug === 'packages' ? '[onclick="printPkgReport()"]'
+        : slug === 'menu' ? `[onclick="printMenuReport(${rowIndex})"]`
+        : slug === 'retail' ? `[onclick="printRetailReport(${rowIndex})"]` : '[onclick^="printGenericReport("]';
+      await page.locator('#integrated-tools .tool-screen ' + printSelector).first().click();
+      await page.waitForSelector('#print-report.show');
+      assert.match(await page.locator('#print-report').innerText(), /السعر النهائي المقترح/);
+      assert.doesNotMatch(await page.locator('#print-report').innerText(), /NaN|undefined/);
+      await page.locator('#calculatorReportPrint').click();
+      await page.waitForFunction(() => window.__testPrintCalls === 1);
+      await page.emulateMedia({ media: 'print' });
+      assert.equal(await page.locator('#calculatorReportPrint').isVisible(), false);
+      const pdf = await page.pdf({ format: 'A4' });
+      assert.equal(pdf.subarray(0, 5).toString(), '%PDF-');
+      assert.ok(pdf.length > 1000);
+      await page.emulateMedia({ media: 'screen' });
+      if (slug === 'services') {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.screenshot({ path: '/tmp/calculator-report-fixed.png' });
+        await page.setViewportSize({ width: 1280, height: 720 });
+      }
+      await page.locator('#calculatorReportClose').click();
+      console.log(`${slug}: native save, sharing, report preview/print/PDF and state reload passed`);
     }
     await page.goto(base + '/dashboard?panel=project-log');
     await page.waitForSelector('[data-restore-id]');
@@ -127,6 +179,18 @@ async function main() {
     page.once('dialog', dialog => dialog.accept());
     await page.locator('[data-delete-id]').first().click();
     await page.waitForFunction(() => document.querySelectorAll('[data-restore-id]').length === 6);
+    await page.goto(base + '/calculator/services');
+    await page.waitForFunction(() => window.CalculatorCloud?.ready);
+    await page.locator('#cloudResultTitle').fill('حفظ مسمى من الشريط');
+    await page.locator('#cloudSave').click();
+    await page.waitForFunction(() => !document.getElementById('cloudSave').disabled);
+    assert.match(await page.locator('#cloudStateStatus').innerText(), /تم حفظ نتيجة جديدة/);
+    await page.reload();
+    await page.waitForFunction(() => window.CalculatorCloud?.ready);
+    await page.locator('#integrated-tools .share-cta').first().click();
+    await page.waitForFunction(() => document.getElementById('share-points-display').textContent === '7');
+    assert.match(await page.locator('#share-history').innerText(), /مشاركة اختبار design/);
+    await page.locator('#calculator-share-dialog [onclick="closeCalculatorShare()"]').click();
     await page.goto(base + '/logout');
     await login('client'); // Same browser, different account.
     await page.goto(base + '/dashboard?panel=project-log');
@@ -135,6 +199,10 @@ async function main() {
     await page.goto(base + '/calculator/services');
     await page.waitForFunction(() => window.CalculatorCloud?.ready);
     assert.notEqual(await page.locator('#' + servicesId).inputValue(), '123');
+    await page.locator('#integrated-tools .share-cta').first().evaluate(element => element.click());
+    await page.waitForFunction(() => document.getElementById('share-history').textContent.includes('لا توجد'));
+    assert.equal(await page.locator('#share-points-display').innerText(), '0');
+    await page.locator('#calculator-share-dialog [onclick="closeCalculatorShare()"]').click();
     for (let index = 0; index < 3; index++) await page.evaluate(() => window.print());
     assert.equal(await page.evaluate(() => window.__testPrintCalls), 3);
     page.once('dialog', dialog => dialog.accept());

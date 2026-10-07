@@ -28,12 +28,16 @@ router.all('/', async (req, res) => {
   const body = req.body || {};
   const userId = Number(req.user.id);
   const tool = String((req.method === 'GET' ? req.query.tool : body.tool) || '');
-  const gets = ['list', 'get', 'state', 'access'];
+  const gets = ['list', 'get', 'state', 'access', 'shares'];
   if ((gets.includes(action) && req.method !== 'GET') || (!gets.includes(action) && req.method !== 'POST')) {
     return sendError(res, 'طريقة الطلب غير مسموحة', 405);
   }
   try {
     if (action === 'access') return sendOk(res, await account.access(req.user));
+    if (action === 'shares') {
+      const entries = await db.findAll('price_shares', { user_id: userId }, { sort: { id: -1 }, limit: 10 });
+      return sendOk(res, { entries, points: await db.count('price_shares', { user_id: userId }) });
+    }
     if (action === 'list') {
       if (tool && !Object.hasOwn(tools, tool)) return sendError(res, 'قطاع غير صحيح');
       const records = await db.findAll('calculator_results', { user_id: userId, ...(tool ? { tool } : {}) },
@@ -65,6 +69,19 @@ router.all('/', async (req, res) => {
       return sendOk(res, { selected_tools: body.tools });
     }
     if (!account.allowed(req.user, tool)) return sendError(res, 'الأداة غير مشمولة في اختيار باقتك', 403);
+    if (action === 'share_price') {
+      const participantType = text(body.participant_type, 20);
+      const sector = text(body.sector, 100), city = text(body.city, 100);
+      const product = text(body.product, 160), unit = text(body.unit, 40);
+      const price = Number(body.price), currency = currencyFor(String(body.currency_code || 'SAR'));
+      if (!['merchant', 'consumer'].includes(participantType) || !sector || !city || !product || !unit ||
+          !Number.isFinite(price) || price <= 0 || price > 1e12 || !currency) {
+        return sendError(res, 'اختر نوع المشارك والقطاع والمدينة وأدخل اسم المنتج والسعر والوحدة والعملة بشكل صحيح');
+      }
+      const id = await db.insertDoc('price_shares', { user_id: userId, tool, participant_type: participantType,
+        sector, city, product, price, unit, currency_code: currency.code });
+      return sendOk(res, { id });
+    }
     if (action === 'reserve_pdf') {
       const limit = account.limits(req.user).pdf_limit;
       if (!await db.reservePdfReport(userId, limit)) return sendError(res, 'وصلت إلى حد تقارير PDF لهذا الشهر', 429);

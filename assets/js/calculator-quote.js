@@ -29,7 +29,8 @@
       calculator(index);
       let detail;
       try { detail = JSON.parse(row.dataset.detail || 'null'); } catch { detail = null; }
-      return validResult(document.getElementById(`${namePrefix}-${index}`)?.value, detail?.suggested);
+      const result = validResult(document.getElementById(`${namePrefix}-${index}`)?.value, detail?.suggested);
+      return result ? { ...result, row_index: index, row_prefix: prefix } : null;
     }).filter(Boolean);
   }
 
