@@ -61,6 +61,7 @@ app.use('/api/quotes', require('./server/api/quotes'));
 app.use('/api/messages', require('./server/api/messages'));
 app.use('/api/admin', require('./server/api/admin'));
 app.use('/api/contact', require('./server/api/contact'));
+app.use('/api/calculators', require('./server/api/calculators'));
 app.use('/auth', require('./server/oauth'));
 app.all('/api/{*path}', (req, res) => res.status(404).json({
   success: false, error: 'المسار المطلوب غير موجود',
@@ -71,15 +72,8 @@ app.get('/policies', (req, res) => res.render('policies', { ...policies, assetVe
 app.get('/legacy-calculator.html', (req, res) =>
   res.redirect('/classic-tools'));
 app.get('/classic-tools', (req, res) => {
-  let html = classicTools.readSource();
-  if (req.query.embed === '1') {
-    html = html.replace('</head>', '<script src="/assets/js/currency.js?v=2"></script></head>');
-    const selected = String(req.query.tool || '');
-    if (selected && Object.hasOwn(tools, selected)) {
-      html = html.replace('</body>', `<script>window.goHome=function(){location.href='/dashboard'};document.addEventListener('DOMContentLoaded',function(){openTool(${JSON.stringify(selected)})});</script></body>`);
-    }
-  }
-  res.type('html').set('Cache-Control', 'no-store').send(html);
+  const selected = String(req.query.tool || '');
+  res.redirect(Object.hasOwn(tools, selected) ? `/calculator/${selected}` : '/dashboard?panel=tools');
 });
 
 app.use(auth.loadUser);
@@ -131,6 +125,7 @@ async function calculatorPage(req, res, next) {
       csrfToken: auth.csrfToken(req),
       tool: { ...tool, slug },
       toolMap: tools,
+      isToolAllowed: linkSlug => auth.planAllows(req.user, tools[linkSlug].plan),
       classicTools,
       openAccessMode: false,
       assetVersion: assetVersion(),

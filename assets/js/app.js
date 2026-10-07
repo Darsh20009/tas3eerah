@@ -658,7 +658,7 @@ async function viewQuote(id) {
   overlay.classList.remove('hidden');
 }
 
-function downloadQuotePdf() {
+async function downloadQuotePdf() {
   const overlay = document.getElementById('pdfOverlay');
   const pdfDoc = document.getElementById('pdfDoc');
   if (!overlay || !pdfDoc || overlay.classList.contains('hidden')) {
@@ -666,9 +666,15 @@ function downloadQuotePdf() {
     return;
   }
   if (!activeQuote) {
-    window.print();
+    showAppToast('تعذر تحديد عرض السعر للطباعة', true);
     return;
   }
+  if (downloadQuotePdf.busy) return;
+  downloadQuotePdf.busy = true;
+  try {
+    const reserved = await api('quotes', { action: 'reserve_pdf', id: activeQuote.id });
+    if (!reserved.success) { showAppToast(reserved.error || 'تعذر تصدير التقرير', true); return; }
+  } finally { downloadQuotePdf.busy = false; }
 
   const previousTitle = document.title;
   const safeNumber = String(activeQuote.number || activeQuote.id || 'quote')

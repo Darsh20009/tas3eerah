@@ -63,6 +63,7 @@
         return [];
     }
   }
+  window.CalculatorReadResults = currentResults;
 
   function notice(text, error = false) {
     message.textContent = text;

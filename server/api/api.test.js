@@ -98,6 +98,7 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
   app.use('/api/admin', adminRouter);
   app.use('/api/messages', messagesRouter);
   app.use('/api/contact', contactRouter);
+  app.use('/api/calculators', require('./calculators'));
   server = app.listen(0);
   await new Promise((resolve) => server.once('listening', resolve));
   origin = `http://127.0.0.1:${server.address().port}`;
@@ -406,4 +407,77 @@ test('user management, quote lifecycle, messaging and settings are isolated and 
   assert.equal((await post(admin, '/api/admin', { action: 'user_delete', id: other.user.id })).json.success, true);
   assert.equal((await post(employee, '/api/quotes', { action: 'delete', id: quoteId })).json.success, true);
   assert.equal(await db.count('quotes', { id: quoteId }), 0);
+});
+
+test('account-owned sector history, restore/delete, selected tools and atomic PDF quotas', async () => {
+  async function login(emailAddress) {
+    const jar = new Map();
+    const token = (await request('/api/auth?action=csrf', { jar })).json.data.csrf_token;
+    const result = await request('/api/auth', {
+      jar, token, method: 'POST', body: { action: 'login', email: emailAddress, password: 'TestPassword@123' },
+    });
+    assert.equal(result.json.success, true);
+    return { jar, token, id: result.json.data.id };
+  }
+  const admin = await login('admin@example.test');
+  const client = await login('client@example.test');
+  const employee = await login('review-employee@example.test');
+  const post = (session, path, body) => request(path, { ...session, method: 'POST', body });
+  await db.updateDoc('users', { id: client.id }, { plan: 'free' });
+  const stateFor = tool => ({ version: 1, tool, fields: [{ selector: '#audit', value: '123' }], actions: [], currency_code: 'USD' });
+  const savedIds = [];
+  for (const tool of ['services', 'menu', 'retail']) {
+    const result = await post(client, '/api/calculators', {
+      action: 'save', tool, title: 'نتيجة ' + tool, price: 123, currency_code: 'USD', state: stateFor(tool),
+    });
+    assert.equal(result.json.success, true, JSON.stringify(result.json));
+    savedIds.push(result.json.data.id);
+  }
+  assert.equal((await post(client, '/api/calculators', {
+    action: 'save', tool: 'tech', title: 'رابعة', price: 1, currency_code: 'SAR', state: stateFor('tech'),
+  })).response.status, 429);
+  const list = await request('/api/calculators?action=list', client);
+  assert.equal(list.json.data.length, 3);
+  assert.ok(list.json.data.every(record => !Object.hasOwn(record, 'state')));
+  assert.equal((await request('/api/calculators?action=list', employee)).json.data.length, 0);
+  for (const action of ['get', 'delete', 'restore']) {
+    const result = action === 'get'
+      ? await request(`/api/calculators?action=get&id=${savedIds[0]}`, employee)
+      : await post(employee, '/api/calculators', { action, id: savedIds[0] });
+    assert.equal(result.response.status, 404);
+  }
+  const changedState = stateFor('services'); changedState.fields[0].value = '999';
+  assert.equal((await post(client, '/api/calculators', {
+    action: 'save_state', tool: 'services', state: changedState,
+  })).json.success, true);
+  assert.equal((await request('/api/calculators?action=state&tool=services', client)).json.data.state.fields[0].value, '999');
+  assert.equal((await request('/api/calculators?action=state&tool=menu', client)).json.data.state.fields[0].value, '123');
+  assert.equal((await post(client, '/api/calculators', { action: 'restore', id: savedIds[0] })).json.success, true);
+  assert.equal((await request('/api/calculators?action=state&tool=services', client)).json.data.state.fields[0].value, '123');
+  assert.equal((await post(client, '/api/calculators', { action: 'delete', id: savedIds[0] })).json.success, true);
+  assert.equal((await request('/api/calculators?action=get&id=' + savedIds[0], client)).response.status, 404);
+  assert.equal((await post(employee, '/api/calculators', {
+    action: 'select_tools', tools: ['packages', 'tech', 'design'],
+  })).json.success, true);
+  const selected = (await request('/api/calculators?action=access', employee)).json.data;
+  assert.deepEqual(selected.selected_tools, ['packages', 'tech', 'design']);
+  const updatedUser = await db.findOne('users', { id: employee.id });
+  const auth = require('../auth');
+  assert.equal(auth.planAllows(updatedUser, 'calc_labor'), true);
+  assert.equal(auth.planAllows(updatedUser, 'calc_menu'), false);
+  assert.equal((await post(employee, '/api/calculators', {
+    action: 'save_state', tool: 'menu', state: stateFor('menu'),
+  })).response.status, 403);
+  for (const tools of [['tech'], ['tech', 'tech', 'design'], ['tech', 'design', 'unknown']]) {
+    assert.equal((await post(employee, '/api/calculators', { action: 'select_tools', tools })).json.success, false);
+  }
+  const reservations = await Promise.all(Array.from({ length: 10 }, () => post(client, '/api/calculators', {
+    action: 'reserve_pdf', tool: 'services',
+  })));
+  assert.equal(reservations.filter(result => result.json.success).length, 3);
+  assert.equal(reservations.filter(result => result.response.status === 429).length, 7);
+  assert.equal((await request('/api/calculators?action=access', client)).json.data.pdf_used, 3);
+  const clientQuote = await db.findOne('quotes', { client_id: client.id });
+  assert.equal((await post(client, '/api/quotes', { action: 'reserve_pdf', id: clientQuote.id })).response.status, 429);
+  assert.equal((await post(admin, '/api/calculators', { action: 'reserve_pdf', tool: 'tech' })).json.success, true);
 });

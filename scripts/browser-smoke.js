@@ -38,6 +38,8 @@ async function main() {
   });
   const failures = [];
   try {
+    // State mutation/restore is covered against an isolated DB by
+    // calculator-state-smoke. This live visual smoke must not change accounts.
     const policyContext = await browser.newContext({ ignoreHTTPSErrors: true });
     const policyPage = await policyContext.newPage();
     policyPage.on('pageerror', error => failures.push(`policies: ${error.message}`));
@@ -70,6 +72,16 @@ async function main() {
     for (const role of ['admin', 'employee', 'client']) {
       const context = await browser.newContext({ ignoreHTTPSErrors: true });
       const page = await context.newPage();
+      await page.route('**/api/calculators*', async route => {
+        const request = route.request();
+        if (request.method() === 'POST' && request.postDataJSON()?.action === 'save_state') {
+          return route.fulfill({ json: { success: true, data: {} } });
+        }
+        if (request.method() === 'GET' && new URL(request.url()).searchParams.get('action') === 'state') {
+          return route.fulfill({ json: { success: true, data: { state: null } } });
+        }
+        return route.continue();
+      });
       let currentPath = '';
       page.on('pageerror', error => failures.push(`${role} ${currentPath}: ${error.message}`));
       page.on('response', response => {

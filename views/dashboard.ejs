@@ -1,6 +1,9 @@
 
 <!DOCTYPE html>
 <% if (typeof locals.csrfToken !== 'string') throw new Error('Dashboard route must provide csrfToken'); if (typeof locals.openAccessMode !== 'boolean') throw new Error('Dashboard route must provide openAccessMode'); if (!Array.isArray(stats)) throw new Error('Dashboard route must provide stats cards'); if (!locals.overview) throw new Error('Dashboard route must provide overview metrics'); if (!Number.isFinite(Number(locals.quotesUsedThisMonth))) throw new Error('Dashboard route must provide quotesUsedThisMonth'); if (typeof locals.showExpiryBanner !== 'boolean') throw new Error('Dashboard route must provide expiry-banner state'); const csrfToken = locals.csrfToken; const role = user.role; const openAccessMode = locals.openAccessMode; const roleLabel = ({admin:'مدير النظام',employee:'موظف',client:'عميل'})[role] || role; const planName = plan.name_ar; const userTools = (isAdmin || openAccessMode) ? ['all'] : (plan.tools || []); const quickTools = [['services','01','الخدمات','تسعير الخدمات','calc_basic','/assets/landing/sector-services-icon-transparent.png'],['packages','02','الباقات','الباقات والاشتراكات','calc_pkg','/assets/landing/empty-box-transparent.png'],['menu','03','القائمة','المطاعم والكافيهات','calc_menu','/assets/landing/sector-restaurants-icon-transparent.png'],['retail','04','التجزئة','التجزئة والجملة','calc_store','/assets/landing/sector-retail-icon-transparent.png'],['tech','05','التقنية','المشاريع التقنية','calc_labor','/assets/landing/sector-technology-icon-transparent.png'],['saas','06','الاشتراكات','الخدمات المتكررة','calc_custom','/assets/landing/sector-technology-icon-transparent.png'],['design','07','التصميم','التصميم والمعمار','calc_office','/assets/landing/sector-design-icon-transparent.png']]; const maxQuotesThisMonth = isAdmin ? -1 : Number(locals.maxQuotesThisMonth ?? plan.max_quotes); const quotesUsedThisMonth = Number(locals.quotesUsedThisMonth); const quotesRemaining = maxQuotesThisMonth === -1 ? null : Math.max(0,maxQuotesThisMonth-quotesUsedThisMonth); const quotaLabel = locals.quotaLabel || (maxQuotesThisMonth===-1?'تسعير غير محدود':'متبقي '+quotesRemaining+' من '+maxQuotesThisMonth+' هذا الشهر'); const showExpiryBanner = locals.showExpiryBanner; const expiryBannerMsg = locals.expiryBannerMsg || ''; const expiryExpired = Boolean(locals.expiryExpired); const overview = locals.overview; const appData = locals.appData || {role,isAdmin,uid:Number(user.id),plan:user.plan,effectivePlan,isPaid:true,name:user.name,maxQuotes:maxQuotesThisMonth,quotesUsed:quotesUsedThisMonth,quotesRemaining}; const assetVersion = locals.assetVersion || 1; const currentYear = new Date().getFullYear(); const formatNumber=(value,decimals=0)=>Number(value||0).toLocaleString('en-US',{minimumFractionDigits:decimals,maximumFractionDigits:decimals}); const count=value=>Array.isArray(value)?value.length:Object.keys(value||{}).length; const escapeHtml=value=>value; %>
+<% const effectiveUserTools = !isAdmin && !openAccessMode && plan.tool_limit && Array.isArray(user.selected_tools)
+  ? user.selected_tools.slice(0, plan.tool_limit).map(slug => quickTools.find(tool => tool[0] === slug)?.[4]).filter(Boolean)
+  : userTools; %>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
@@ -197,7 +200,7 @@
     </div>
     <div class="quick-tools-list">
       <% for (const [slug, mark, short, name, legacySlug, image] of quickTools) {
-        let locked = !userTools.includes('all') && !userTools.includes(legacySlug); %>
+        let locked = !effectiveUserTools.includes('all') && !effectiveUserTools.includes(legacySlug); %>
       <button class="quick-tool <%= locked ? 'is-locked' : '' %>"
               type="button"
               data-tool="<%= slug %>"
@@ -535,7 +538,18 @@
 
     <!-- ══ TOOLS ══ -->
     <div class="section-panel" id="panel-tools">
-      
+      <section class="card" id="calculatorAccessPanel" data-role="<%= role %>" data-plan="<%= effectivePlan %>" data-admin="<%= isAdmin ? 'true' : 'false' %>" data-open="<%= openAccessMode ? 'true' : 'false' %>" hidden style="margin-bottom:18px">
+        <div class="card-header" style="margin-bottom:10px">
+          <div><h3>أدوات خطتك</h3><p style="color:var(--muted);font-size:12px;margin-top:3px">اختر الأدوات التي تناسب عملك ضمن الحد المتاح.</p></div>
+          <span class="badge badge-pro" id="calculatorSelectionCount">0 / 0</span>
+        </div>
+        <div id="calculatorAccessStatus" role="status" aria-live="polite" style="color:var(--muted);font-size:12px;margin-bottom:10px"></div>
+        <div id="calculatorToolChoices" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px"></div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px">
+          <button class="btn btn-primary btn-sm" id="calculatorSelectionSave" type="button" onclick="saveCalculatorSelection()">حفظ اختيار الأدوات</button>
+          <span id="calculatorQuotaSummary" style="font-size:12px;color:var(--muted)" aria-live="polite"></span>
+        </div>
+      </section>
 
       
 
@@ -547,7 +561,7 @@
           <p>نظّم تسعير خدماتك ومنتجاتك في دقائق، بمنهجية واضحة تناسب نشاطك. <strong><%= planName %> · <%= plan['max_quotes'] === -1 ? 'تسعير غير محدود' : plan['max_quotes'] + ' تسعيرات شهرياً' %></strong></p>
           <div class="tools-intro-meta">
             <span class="tools-plan-chip"><%= planName %></span>
-            <span><%= count(userTools) === 1 && userTools[0] === 'all' ? 'كل القطاعات متاحة' : count(userTools) + ' أدوات متاحة في باقتك' %></span>
+            <span><%= count(effectiveUserTools) === 1 && effectiveUserTools[0] === 'all' ? 'كل القطاعات متاحة' : count(effectiveUserTools) + ' أدوات متاحة في باقتك' %></span>
             <span><%= plan['max_pdf_reports'] === -1 ? 'تقارير PDF غير محدودة' : plan['max_pdf_reports'] + ' تقارير PDF' %></span>
           </div>
         </div>
@@ -568,8 +582,8 @@
           ['calc_office', 'تسعير التصميم الداخلي والمعماري','سكني · تجاري · معماري',          'سعّر مشاريع التصميم والتنفيذ وفق المساحة والمراحل والتكاليف.', '07', 'sand',  '/assets/landing/sector-design-icon-transparent.png'],
         ];
         for (const [slug, name, sectors, desc, icon, tone, image] of toolCards) {
-          let locked = !userTools.includes(slug) && !userTools.includes('all'); %>
-        <div class="tool-card sector-card tone-<%= tone %> <%= locked ? 'locked' : '' %>" onclick="<%= locked ? "showPlanUpgrade()" : `openTool('${slug}')` %>">
+          let locked = !effectiveUserTools.includes(slug) && !effectiveUserTools.includes('all'); %>
+        <div class="tool-card sector-card tone-<%= tone %> <%= locked ? 'locked' : '' %>" data-tool="<%= quickTools.find(tool => tool[4] === slug)?.[0] || '' %>" data-sectors="<%= sectors %>" onclick="<%= locked ? "showPlanUpgrade()" : `openTool('${slug}')` %>">
           <% if (locked) { %><div class="tool-lock ui-icon ui-icon-lock" aria-label="مقفل بالخطة"></div><% } %>
           <div class="sector-icon">
             <img class="sector-icon-image" src="<%= image %>" alt="" loading="lazy">
@@ -595,6 +609,15 @@
           <p>كل النتائج المحفوظة من حاسبات القطاعات في مكان واحد.</p>
         </div>
         <button class="btn btn-ghost btn-sm" type="button" onclick="loadProjectLedger()">تحديث السجل</button>
+      </div>
+      <div class="flex items-center gap-8" style="margin-bottom:12px;flex-wrap:wrap">
+        <label for="projectLedgerFilter" style="font-size:12px;color:var(--muted)">القطاع</label>
+        <select class="form-control" id="projectLedgerFilter" style="max-width:220px" onchange="loadProjectLedger()">
+          <option value="">كل القطاعات</option>
+          <% for (const [slug, , short] of quickTools) { %><option value="<%= slug %>"><%= short %></option><% } %>
+        </select>
+        <span id="projectLedgerStatus" role="status" aria-live="polite" style="font-size:12px;color:var(--muted)"></span>
+        <span id="calculatorHistoryQuota" role="status" style="font-size:12px;color:var(--muted)"></span>
       </div>
       <div class="project-ledger-summary">
         <div class="card project-ledger-stat"><span>عدد المشاريع</span><strong id="projectLedgerCount">0</strong></div>
@@ -1009,8 +1032,8 @@
       </div>
       <div class="quote-tool-rail-list">
         <% for (const [slug, mark, short, name, legacySlug] of quickTools) {
-          let locked = !userTools.includes('all') && !userTools.includes(legacySlug); %>
-        <button type="button" class="quote-tool-link <%= locked ? 'is-locked' : '' %>"
+          let locked = !effectiveUserTools.includes('all') && !effectiveUserTools.includes(legacySlug); %>
+        <button type="button" class="quote-tool-link <%= locked ? 'is-locked' : '' %>" data-tool="<%= quickTools.find(tool => tool[4] === legacySlug)?.[0] || '' %>"
                 onclick="<%= locked ? 'showPlanUpgrade()' : `closeQuoteAndOpenTool('${slug}')` %>">
           <span><%= mark %></span><%= short %>
         </button>
@@ -1105,6 +1128,7 @@ const APP = <%- JSON.stringify(appData).replace(/[<>&]/g, character => ({'<':'\\
 </script>
 <script src="/assets/js/currency.js?v=2"></script>
 <script src="/assets/js/app.js?v=<%= assetVersion %>"></script>
+<script src="/assets/js/account-calculators.js?v=<%= assetVersion %>"></script>
 <script src="/assets/js/form-enhancements.js?v=<%= assetVersion %>"></script>
 <script src="/assets/js/frame-loader.js?v=<%= assetVersion %>"></script>
 </body>

@@ -36,6 +36,11 @@ function effectivePlan(user) {
 
 function planAllows(user, feature) {
   if (user?.role === 'admin') return true;
+  const plan = PLANS[effectivePlan(user)];
+  if (plan?.tool_limit && Array.isArray(user?.selected_tools)) {
+    const toolMap = require('./tools');
+    return user.selected_tools.slice(0, plan.tool_limit).some(slug => toolMap[slug]?.plan === feature);
+  }
   const tools = PLANS[effectivePlan(user)]?.tools || [];
   return tools.includes(feature) || tools.includes('all');
 }

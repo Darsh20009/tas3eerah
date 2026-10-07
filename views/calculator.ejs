@@ -42,7 +42,7 @@
     }
   </style>
 </head>
-<body class="calculator-view">
+<body class="calculator-view" data-calculator-user="<%= user.id %>">
 <div class="app-shell calculator-shell">
   <div class="sb-overlay" id="calculatorSidebarOverlay" onclick="closeCalculatorSidebar()"></div>
   <aside class="sidebar" id="sidebar">
@@ -64,7 +64,7 @@
       <a class="sb-item" href="/dashboard"><span class="sb-icon">◧</span> عروض الأسعار</a>
       <div class="sb-section">التسعيرات</div>
       <% for (const [linkSlug, linkTitle] of Object.entries(sectorLinks)) { %>
-        <% let linkAvailable = isAdmin || planTools.includes('all') || planTools.includes(toolMap[linkSlug]['plan']); %>
+        <% let linkAvailable = isToolAllowed(linkSlug); %>
         <a class="sb-item <%= slug === linkSlug ? 'active' : '' %>" href="<%= linkAvailable ? '/calculator/' + linkSlug : '/dashboard?tool_locked=1' %>">
           <span class="sb-icon"><%= slug === linkSlug ? '●' : '○' %></span>
           <%= linkTitle %>
@@ -155,6 +155,7 @@
 <script src="/assets/js/frame-loader.js?v=<%= assetVersion %>"></script>
 <script>window.CALCULATOR_CONTEXT = <%- JSON.stringify({slug,role:user.role}).replace(/[<>&]/g, c => ({'<':'\\u003c','>':'\\u003e','&':'\\u0026'}[c])) %>;</script>
 <script src="/assets/js/calculator-quote.js?v=<%= assetVersion %>"></script>
+<script src="/assets/js/calculator-cloud.js?v=<%= assetVersion %>"></script>
 <script>
   window.goHome = function () { window.location.href = '/dashboard'; };
   function openCalculatorSidebar() {

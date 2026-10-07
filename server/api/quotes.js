@@ -45,6 +45,14 @@ router.all('/', async (req, res) => {
         return await rateQuote(req, res, body);
       case 'email_quote':
         return await emailQuote(req, res, body);
+      case 'reserve_pdf': {
+        const quote = await db.findOne('quotes', { id: Number(body.id) });
+        if (!quote) return sendError(res, 'عرض السعر غير موجود', 404);
+        if (!canAccessQuote(req.user, quote)) return sendError(res, 'غير مسموح', 403);
+        const limit = req.user.role === 'admin' ? -1 : PLANS[auth.effectivePlan(req.user)].max_pdf_reports;
+        if (!await db.reservePdfReport(req.user.id, limit)) return sendError(res, 'وصلت إلى حد تقارير PDF لهذا الشهر', 429);
+        return sendOk(res, { used: await db.pdfReportUsage(req.user.id), limit });
+      }
       default:
         return sendError(res, 'إجراء غير صحيح', 400);
     }

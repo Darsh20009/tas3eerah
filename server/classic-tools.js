@@ -142,9 +142,12 @@ function readSource() {
   const stat = fs.statSync(SOURCE_PATH);
   if (!sourceCache || stat.mtimeMs !== sourceMtime) {
     sourceCache = fs.readFileSync(SOURCE_PATH, 'utf8')
+      .replace(/onclick="toggleGenericLog\('[^']+'\)"/g, 'onclick="window.CalculatorCloud.openHistory()"')
+      .replace(/onclick="switchTab\('log'\)"/g, 'onclick="window.CalculatorCloud.openHistory()"')
+      .replace(/\blocalStorage\./g, 'window.CalculatorStorage.')
       .replace(/<script>\s*(?=let S =)/,
         '<script src="/assets/js/calculator-storage.js?v=20261007"></script><script>\n')
-      .replace(/JSON\.parse\(localStorage\.getItem\('(proj_log|share_history)'\)\|\|'\[\]'\)/g,
+      .replace(/JSON\.parse\(window\.CalculatorStorage\.getItem\('(proj_log|share_history)'\)\|\|'\[\]'\)/g,
         "readCalculatorHistory('$1')")
       .replace(/currency:\s*'ريال'/g, 'currency: GLOBAL_CURR.label, currency_code: GLOBAL_CURR.code')
       .replace(/currency:\s*(CURR|MENU_CURR|PKG_CURR)\.label/g, 'currency: $1.label, currency_code: $1.code')
@@ -209,7 +212,9 @@ function renameLegacyGlobals(markup) {
     .replace(/\bopenTool\s*\(/g, 'classicOpenTool(')
     .replace(/\bselectField\s*\(/g, 'classicSelectField(')
     .replace(/\bcalcPkg\s*\(/g, 'classicCalcPkg(')
-    .replace(/\bfmt\s*\(/g, 'classicFmt(');
+    .replace(/\bfmt\s*\(/g, 'classicFmt(')
+    .replace(/function loadRetailState\(\)\s*\{/, 'function loadRetailState(){ return false;')
+    .replace(/function loadMenuState\(\)\s*\{/, 'function loadMenuState(){ return false;');
 }
 
 function removeDecorativeEmoji(markup) {

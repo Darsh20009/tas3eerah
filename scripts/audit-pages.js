@@ -83,17 +83,6 @@ async function main() {
           } : { statusUnavailable: true };
         });
         console.log('Mailbox configuration flags:', JSON.stringify(mailboxState));
-        const ledgerCount = await page.evaluate(() => {
-          const sectors = ['packages', 'menu', 'retail', 'tech', 'saas', 'ds'];
-          localStorage.setItem('proj_log', JSON.stringify([{
-            id: 100, svc: 'مراجعة خدمة', price: 100, currency: 'ريال سعودي',
-          }]));
-          sectors.forEach((sector, index) => localStorage.setItem(sector + '_log',
-            JSON.stringify([{ id: 200 + index, title: 'مراجعة ' + sector, price: 50, currency: 'دولار أمريكي' }])));
-          loadProjectLedger();
-          return document.querySelectorAll('.project-ledger-item').length;
-        });
-        if (ledgerCount !== 7) failures.push(`history: expected seven sectors, got ${ledgerCount}`);
       }
       const panels = await page.locator('.sb-item[data-panel]').evaluateAll(elements =>
         [...new Set(elements.map(element => element.dataset.panel))]);
@@ -123,8 +112,8 @@ async function main() {
       }
       if (role === 'admin') {
         await page.evaluate(() => {
-          localStorage.setItem('proj_log', '{malformed');
-          localStorage.setItem('share_history', '{malformed');
+          window.CalculatorStorage.setItem('proj_log', '{malformed');
+          window.CalculatorStorage.setItem('share_history', '{malformed');
         });
         label = 'corrupt-local-history';
         await page.goto(base + '/calculator/packages', { waitUntil: 'load' });

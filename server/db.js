@@ -9,7 +9,7 @@ const config = require('./config');
 const COLLECTION_FIELDS = Object.freeze({
   users: new Set([
     'id', 'name', 'email', 'password_hash', 'role', 'plan', 'plan_expires_at',
-    'is_active', 'created_at',
+    'is_active', 'created_at', 'selected_tools',
   ]),
   quotes: new Set([
     'id', 'number', 'client_id', 'employee_id', 'title', 'status', 'subtotal',
@@ -29,6 +29,8 @@ const COLLECTION_FIELDS = Object.freeze({
     'id', 'name', 'email', 'message', 'ip', 'is_read', 'created_at',
   ]),
   settings: new Set(['key', 'value']),
+  calculator_results: new Set(['id', 'user_id', 'tool', 'title', 'price', 'currency_code', 'state', 'created_at']),
+  calculator_states: new Set(['id', 'user_id', 'tool', 'state', 'updated_at']),
   _counters: new Set(['id', 'seq']),
   sessions: new Set(['sid', 'sess', 'expires_at', 'updated_at']),
 });
@@ -135,6 +137,11 @@ function normalizeSqlValue(value) {
 }
 
 function decodeRow(row) {
+  for (const field of ['state', 'selected_tools']) {
+    if (row && typeof row[field] === 'string') {
+      try { row[field] = JSON.parse(row[field]); } catch { row[field] = null; }
+    }
+  }
   if (row && typeof row.items === 'string') {
     try {
       row.items = JSON.parse(row.items);
@@ -410,6 +417,15 @@ function createSqliteSchema() {
   });
 
   sqlite.exec(`
+    CREATE TABLE IF NOT EXISTS calculator_results (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, tool TEXT NOT NULL,
+      title TEXT NOT NULL, price REAL NOT NULL DEFAULT 0, currency_code TEXT NOT NULL DEFAULT 'SAR',
+      state TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE TABLE IF NOT EXISTS calculator_states (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, tool TEXT NOT NULL,
+      state TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE(user_id, tool)
+    );
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
@@ -490,7 +506,7 @@ function createSqliteSchema() {
   `);
 
   // Add only known, non-destructive compatibility columns to older SQLite files.
-  migrateColumns('users', { plan_expires_at: 'TEXT' });
+  migrateColumns('users', { plan_expires_at: 'TEXT', selected_tools: 'TEXT' });
   migrateColumns('quotes', { items: "TEXT NOT NULL DEFAULT '[]'", currency_code: "TEXT NOT NULL DEFAULT 'SAR'" });
   migrateColumns('sessions', {
     expires_at: 'INTEGER',
@@ -656,6 +672,8 @@ async function initializeMongo() {
       ),
       mongoDatabase.collection('quote_ratings').createIndex({ quote_id: 1 }),
       mongoDatabase.collection('sessions').createIndex({ expiresAt: 1 }),
+      mongoDatabase.collection('calculator_states').createIndex({ user_id: 1, tool: 1 }, { unique: true }),
+      mongoDatabase.collection('calculator_results').createIndex({ user_id: 1, tool: 1, id: -1 }),
     ]);
     selectedMode = 'mongo';
   } catch {
@@ -1372,6 +1390,44 @@ function getLastInsertedId() {
   return lastInsertedId;
 }
 
+async function saveCalculatorState(userId, tool, state) {
+  ensureInitialized();
+  const updated_at = new Date().toISOString();
+  if (selectedMode === 'mongo') {
+    await mongoDatabase.collection('calculator_states').updateOne(
+      { user_id: Number(userId), tool }, { $set: { state, updated_at } }, { upsert: true });
+  } else {
+    sqlite.prepare(`INSERT INTO calculator_states (user_id,tool,state,updated_at) VALUES (?,?,?,?)
+      ON CONFLICT(user_id,tool) DO UPDATE SET state=excluded.state,updated_at=excluded.updated_at`)
+      .run(Number(userId), tool, JSON.stringify(state), updated_at);
+  }
+}
+
+function pdfCounterId(userId) {
+  return `pdf:${Number(userId)}:${new Date().toISOString().slice(0, 7)}`;
+}
+async function pdfReportUsage(userId) {
+  ensureInitialized();
+  const id = pdfCounterId(userId);
+  if (selectedMode === 'mongo') return (await mongoDatabase.collection('_counters').findOne({ _id: id }))?.seq || 0;
+  return sqlite.prepare('SELECT seq FROM _counters WHERE id=?').get(id)?.seq || 0;
+}
+async function reservePdfReport(userId, limit) {
+  ensureInitialized();
+  if (limit === -1) return true;
+  const id = pdfCounterId(userId);
+  if (selectedMode === 'mongo') {
+    try {
+      await mongoDatabase.collection('_counters').updateOne({ _id: id }, { $setOnInsert: { seq: 0 } }, { upsert: true });
+    } catch (error) { if (error.code !== 11000) throw error; }
+    const result = await mongoDatabase.collection('_counters').updateOne(
+      { _id: id, seq: { $lt: limit } }, { $inc: { seq: 1 } });
+    return result.modifiedCount === 1;
+  }
+  sqlite.prepare('INSERT OR IGNORE INTO _counters(id,seq) VALUES (?,0)').run(id);
+  return sqlite.prepare('UPDATE _counters SET seq=seq+1 WHERE id=? AND seq<?').run(id, limit).changes === 1;
+}
+
 module.exports = Object.freeze({
   init,
   close,
@@ -1393,4 +1449,7 @@ module.exports = Object.freeze({
   sessionGet,
   sessionSet,
   sessionDestroy,
+  saveCalculatorState,
+  pdfReportUsage,
+  reservePdfReport,
 });
