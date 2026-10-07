@@ -6,7 +6,7 @@
     "start": "node server.js",
     "test:browser": "node scripts/calculator-state-smoke.js && node scripts/browser-smoke.js && node scripts/audit-pages.js",
     "test:calculators": "node scripts/calculator-state-smoke.js",
-    "test": "node --test server/db.test.js server/api/api.test.js server/policies.test.js server/currencies.test.js"
+    "test": "node --test server/db.test.js server/api/api.test.js server/policies.test.js server/currencies.test.js server/email.test.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

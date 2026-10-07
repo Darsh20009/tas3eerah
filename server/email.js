@@ -208,6 +208,15 @@ async function connect(folder, settings, writable = false) {
   }
 }
 
+async function verifyReceive(settings = {}) {
+  const client = await connect('inbox', settings);
+  try {
+    return true;
+  } finally {
+    await client.logout();
+  }
+}
+
 function resolveMailbox(mailboxes, key) {
   const definition = folderDefinitions()[key];
   for (const mailbox of mailboxes) {
@@ -287,6 +296,7 @@ async function folderMessages(folder, settings = {}, limit = 50) {
 
 async function folders(settings = {}) {
   const results = {};
+  let firstError;
   for (const [key, definition] of Object.entries(folderDefinitions())) {
     try {
       results[key] = await withMailbox(key, settings, false, async (client) => {
@@ -298,10 +308,12 @@ async function folders(settings = {}) {
           unread: Number(status.unseen || 0),
         };
       });
-    } catch {
+    } catch (error) {
+      firstError ||= error;
       results[key] = { key, label: definition.label, count: 0, unread: 0, available: false };
     }
   }
+  if (Object.values(results).every(folder => folder.available === false)) throw firstError;
   return results;
 }
 
@@ -376,6 +388,7 @@ module.exports = {
   isReceiveConfigured,
   publicConfig,
   verifySend,
+  verifyReceive,
   sendHtml,
   folderMessages,
   folders,
