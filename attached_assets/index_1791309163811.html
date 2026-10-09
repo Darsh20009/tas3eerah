@@ -1487,7 +1487,8 @@ hr{border:none;border-top:1px solid var(--border);margin:11px 0}
       </div>
       <div class="f">
         <label>رسوم بوابة الدفع %</label>
-        <input type="number" class="pkg-input" id="pkg-var-gateway-pct" placeholder="2.5" min="0" max="100" step="0.1" oninput="calcPkg()">
+        <input type="number" class="pkg-input" id="pkg-var-gateway-pct" placeholder="2.5" min="0" max="99.9" step="0.1" oninput="calcPkg()">
+        <div id="pkg-gateway-validation" role="alert" hidden style="font-size:11px;color:var(--red);margin-top:4px">يجب أن تكون رسوم بوابة الدفع أقل من 100٪ حتى يمكن حساب السعر الصافي.</div>
         <div class="muted" style="font-size:10px;margin-top:3px">النسبة التي تقتطعها بوابة الدفع الإلكتروني من كل عملية اشتراك — تأكد منها مع مزوّد الدفع الذي تتعامل معه</div>
       </div>
       <div class="f">
@@ -2207,6 +2208,8 @@ function printServiceReport(){
   printSimpleReport({
     title: svcLast.title,
     subtitle: svcLast.subtitle,
+    currency: svcLast.currency,
+    currencyCode: window.ToolCurrency?.current?.code,
     extraLines: [
       ['مستوى هامش الربح', svcLast.profitName],
       ['طريقة التسعير', svcLast.pricingMethod],
@@ -2642,6 +2645,9 @@ function printRetailReport(n){
       ['هامش الربح الإجمالي (من السعر النهائي)', grossMargin+'٪'],
     ],
     cost: fmt(d.realCost),
+    currency: CURR2.label,
+    currencyCode: CURR2.code,
+    assumptions: ['مصاريف الهدر والنقل والتخزين والتكاليف الثابتة محسوبة وفق النسب والقيم المدخلة.'],
     marginLabel: `نسبة الإضافة على التكلفة (${d.marginPct}٪)`,
     marginValue: fmt(d.profit),
     price: fmt(d.suggested),
@@ -2948,6 +2954,18 @@ function calcPkg(){
   const extraRev = auctRev + walRev;
   const netFixed = Math.max(0, fixed - extraRev);
 
+  const gatewayPct = pv('pkg-var-gateway-pct');
+  const gatewayInput = document.getElementById('pkg-var-gateway-pct');
+  const gatewayValidation = document.getElementById('pkg-gateway-validation');
+  const invalidGatewayPct = gatewayPct >= 100;
+  if(gatewayValidation) gatewayValidation.hidden = !invalidGatewayPct;
+  if(gatewayInput) gatewayInput.setAttribute('aria-invalid', invalidGatewayPct ? 'true' : 'false');
+  if(invalidGatewayPct){
+    document.getElementById('pkg-results').innerHTML = '';
+    pkgLast = [];
+    return;
+  }
+
   let totalSubs = 0;
   for(let i=1;i<=pkgTierCount;i++) totalSubs += pv('pkg-subs-'+i);
 
@@ -2965,7 +2983,6 @@ function calcPkg(){
 
   // التكلفة المتغيرة لكل مشترك (تُضاف مباشرة لكل مشترك، عكس التكاليف الثابتة الموزّعة)
   const varPerSub = pv('pkg-var-ai') + pv('pkg-var-support') + pv('pkg-var-other');
-  const gatewayPct = pv('pkg-var-gateway-pct');
   const reservePct = pv('pkg-reserve-pct');
 
   // ===== توزيع مرجّح للتكلفة الثابتة حسب وزن استهلاك كل باقة (مو بالتساوي) =====
@@ -3507,6 +3524,8 @@ function printMenuReport(n){
   printSimpleReport({
     title: name,
     subtitle: d.cat || '',
+    currency: MENU_CURR.label,
+    currencyCode: MENU_CURR.code,
     extraLines: [
       ['مستوى السوق المستهدف', levelLabels[menuLevel]||'—'],
       ['هامش الربح الإجمالي (من السعر النهائي)', grossMargin+'٪'],
@@ -4329,7 +4348,8 @@ updateShareDisplay();
         </div>
         <div class="f">
           <label>رسوم بوابة الدفع %</label>
-          <input type="number" id="saas-var-gateway-pct" min="0" max="100" step="0.1" placeholder="2.5" oninput="calcSaas()">
+          <input type="number" id="saas-var-gateway-pct" min="0" max="99.9" step="0.1" placeholder="2.5" oninput="calcSaas()">
+          <div id="saas-gateway-validation" role="alert" hidden style="font-size:11px;color:var(--red);margin-top:4px">يجب أن تكون رسوم بوابة الدفع أقل من 100٪ حتى يمكن حساب السعر الصافي.</div>
           <div class="muted" style="font-size:10px;margin-top:3px">النسبة التي تقتطعها بوابة الدفع من كل عملية اشتراك — تأكد منها مع مزوّد الدفع</div>
         </div>
         <div class="f">
@@ -4740,13 +4760,20 @@ function calcSaas(){
   // التكلفة المتغيرة لكل عميل (مفصّلة) — رسوم البوابة تُطبّق على السعر النهائي، مو كمبلغ ثابت
   const varDetailPerClient = sv('saas-var-data')+sv('saas-var-support')+sv('saas-var-api')+sv('saas-var');
   const gatewayPct = sv('saas-var-gateway-pct');
+  const gatewayInput = document.getElementById('saas-var-gateway-pct');
+  const gatewayValidation = document.getElementById('saas-gateway-validation');
+  const invalidGatewayPct = gatewayPct >= 100;
+  if(gatewayValidation) gatewayValidation.hidden = !invalidGatewayPct;
+  if(gatewayInput) gatewayInput.setAttribute('aria-invalid', invalidGatewayPct ? 'true' : 'false');
   const varPerClient = varDetailPerClient;
 
   const ready = saasType && saasProfit !== null && fixedMonthly > 0;
   const resEl = document.getElementById('saas-result');
   const phEl = document.getElementById('saas-ph');
-  if(resEl) resEl.style.display = ready ? 'block' : 'none';
-  if(phEl) phEl.style.display = ready ? 'none' : 'block';
+  if(resEl) resEl.style.display = ready && !invalidGatewayPct ? 'block' : 'none';
+  if(phEl) phEl.style.display = ready && !invalidGatewayPct ? 'none' : 'block';
+  if(invalidGatewayPct) saasLast = null;
+  if(invalidGatewayPct) return;
   if(!ready) return;
 
   const cycleCard = document.getElementById('saas-cycle-card');
@@ -4785,14 +4812,16 @@ function calcSaas(){
     if(profitLabel) profitLabel.textContent = isHourly ? 'الربح المستهدف / ساعة' : 'الربح المستهدف / مكالمة';
     document.getElementById('saas-r-price').textContent = unitPrice.toLocaleString('ar-SA');
 
-    const actualPct = Math.round(((unitPrice-unitCost)/unitCost)*100);
+    const netUnitRevenue = unitPrice * (1 - gatewayPct/100);
+    const actualPct = Math.round(((netUnitRevenue-unitCost)/unitCost)*100);
     document.getElementById('saas-r-pill').textContent = 'ربح '+actualPct+'٪ ✓';
 
     saasLast = {
       type: saasTypeNames[saasType]||'—', fixed: Math.round(totalFixedWithCapex), totalVar: 0,
       perClient: Math.round(unitCost), profit: Math.round(profitAmt),
       price: unitPrice, cycle: null, cycleName: isHourly?'بالساعة':'بالمكالمة/التذكرة', cycleDisc: 0,
-      cyclePrice: unitPrice, annual: null, currency: 'ريال',
+      cyclePrice: unitPrice, annual: null, currency: 'ريال', gatewayPct,
+      netProfit: unitPrice * (1 - gatewayPct/100) - unitCost,
       hybridEnabled: false, hybridPct: 0, hybridRevenue: 0
     };
     calcSaasCacLtv();
@@ -4849,7 +4878,8 @@ function calcSaas(){
   }
   document.getElementById('saas-r-annual-wrap').style.display = 'block';
 
-  const actualPct = Math.round(((monthlyPrice-costPerClient)/costPerClient)*100);
+  const netMonthlyRevenue = monthlyPrice * (1 - gatewayPct/100);
+  const actualPct = Math.round(((netMonthlyRevenue-costPerClient)/costPerClient)*100);
   document.getElementById('saas-r-pill').textContent = 'ربح '+actualPct+'٪ ✓';
 
   // النموذج الهجين: عمولة متغيرة على المعاملات
@@ -4870,7 +4900,8 @@ function calcSaas(){
     type: saasTypeNames[saasType]||'—', fixed: Math.round(totalFixedWithCapex), totalVar: Math.round(totalVar),
     perClient: Math.round(costPerClient), profit: Math.round(profitAmt),
     price: Math.round(monthlyPrice), cycle, cycleName: saasCycleNames[cycle], cycleDisc,
-    cyclePrice: Math.round(cyclePrice), annual: Math.round(annualPrice), currency: 'ريال',
+    cyclePrice: Math.round(cyclePrice), annual: Math.round(annualPrice), currency: 'ريال', gatewayPct,
+    netProfit: monthlyPrice * (1 - gatewayPct/100) - costPerClient,
     hybridEnabled: !!hybridEnabled, hybridPct, hybridRevenue: Math.round(hybridRevenue)
   };
   calcSaasCacLtv();
@@ -5459,8 +5490,21 @@ function calcDesign(){
       {label:'المرحلة الثانية', desc: document.getElementById('ds-p2-desc')?.value||'', pct:p2},
       {label:'المرحلة الثالثة', desc: document.getElementById('ds-p3-desc')?.value||'', pct:p3},
     ];
-    tbl.innerHTML = phases.map(ph => {
-      const amt = Math.round(finalPrice * ph.pct/100);
+    const amounts = phases.map(ph => Math.floor(finalPrice * ph.pct/100));
+    if(Math.round(pctSum * 1000) / 1000 === 100){
+      let remaining = Math.round(finalPrice - amounts.reduce((sum, amount) => sum + amount, 0));
+      const remainderOrder = phases.map((ph, index) => ({
+        index,
+        fraction: finalPrice * ph.pct/100 - amounts[index]
+      })).sort((left, right) => right.fraction - left.fraction || left.index - right.index);
+      for(let i=0; remaining > 0; i++, remaining--){
+        amounts[remainderOrder[i % remainderOrder.length].index]++;
+      }
+    } else {
+      phases.forEach((ph, index) => { amounts[index] = Math.round(finalPrice * ph.pct/100); });
+    }
+    tbl.innerHTML = phases.map((ph, index) => {
+      const amt = amounts[index];
       return `
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:11px 14px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center">
           <div>
@@ -5555,7 +5599,10 @@ function printGenericReport(tool){
   const proj = buildGenericProject(tool);
   if(!proj){ alert('أدخل بيانات كافية أولاً حتى تظهر النتيجة.'); return; }
   const fmt = v => Math.round(v).toLocaleString('ar-SA') + ' ' + proj.currency;
-  const grossMargin = proj.price>0 ? Math.round(((proj.price-proj.lines.find(l=>l[0].includes('إجمالي التكلفة')||l[0].includes('التكلفة لكل عميل'))?.[1]||0)/proj.price)*100) : 0;
+  const marginCost = proj.lines.find(l=>l[0].includes('إجمالي التكلفة')||l[0].includes('التكلفة لكل عميل'))?.[1] || 0;
+  const marginRevenue = tool === 'saas' ? proj.price * (1 - saasLast.gatewayPct/100) : proj.price;
+  const realizedProfit = tool === 'saas' ? saasLast.netProfit : marginRevenue - marginCost;
+  const grossMargin = marginRevenue>0 ? Math.round((realizedProfit/marginRevenue)*100) : 0;
 
   let extraLines = [];
   if(tool==='tech'){
@@ -5569,7 +5616,7 @@ function printGenericReport(tool){
       ['دورة الفوترة', saasLast.cycleName+' (خصم '+saasLast.cycleDisc+'٪)'],
       ['سعر الدورة الكاملة', fmt(saasLast.cyclePrice)],
       ['الاشتراك السنوي (مرجعي)', fmt(saasLast.annual)],
-      ['هامش الربح الإجمالي (من السعر الشهري)', grossMargin+'٪'],
+      ['هامش الربح الصافي بعد رسوم البوابة', grossMargin+'٪'],
     ];
     if(saasLast.hybridEnabled){
       extraLines.push(['نسبة عمولة المعاملات', saasLast.hybridPct+'٪']);
@@ -5589,10 +5636,12 @@ function printGenericReport(tool){
   printSimpleReport({
     title: proj.title,
     subtitle: '',
+    currency: proj.currency,
+    currencyCode: tool === 'saas' ? 'SAR' : window.ToolCurrency?.current?.code,
     extraLines,
     cost: fmt(costLine[1]),
-    marginLabel: profitLine[0],
-    marginValue: fmt(profitLine[1]),
+    marginLabel: tool === 'saas' ? 'الربح الصافي بعد رسوم بوابة الدفع' : profitLine[0],
+    marginValue: fmt(tool === 'saas' ? saasLast.netProfit : profitLine[1]),
     price: fmt(proj.price)
   });
 }

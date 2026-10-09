@@ -42,6 +42,18 @@ async function main() {
     const restored = (await (await api.get('/api/calculators?action=state&tool=services')).json()).data;
     assert.equal(restored.state.fields[0].value, '123');
     await post('/api/calculators', {
+      action: 'save_state', tool: 'services',
+      state: { ...state, fields: [{ selector: '#verification', value: '999' }] },
+    });
+    assert.equal((await (await api.get('/api/calculators?action=state&tool=services')).json()).data.state.fields[0].value, '999');
+    assert.equal((await (await api.get('/api/calculators?action=get&id=' + saved.id)).json()).data.state.fields[0].value, '123',
+      'saving a new draft must not overwrite the saved result snapshot');
+    await post('/api/calculators', { action: 'restore', id: saved.id });
+    assert.equal((await (await api.get('/api/calculators?action=state&tool=services')).json()).data.state.fields[0].value, '123',
+      'restoring from MongoDB must restore the saved calculator snapshot');
+    assert.equal((await (await api.get('/api/calculators?action=get&id=' + saved.id)).json()).data.state.fields[0].value, '123',
+      'restoring must keep the saved result intact');
+    await post('/api/calculators', {
       action: 'share_price', tool: 'services', participant_type: 'consumer',
       product: 'تحقق مشاركة مؤقت', sector: 'خدمات', city: 'الرياض', unit: 'للخدمة', price: 123, currency_code: 'USD',
     });
@@ -51,7 +63,7 @@ async function main() {
     assert.equal(shares.entries[0].unit, 'للخدمة');
     await post('/api/calculators', { action: 'delete', id: saved.id });
     assert.equal(await db.count('calculator_results', { user_id: userId }), 0);
-    console.log('Live MongoDB save/state/read/delete and price-sharing checks passed.');
+    console.log('Live MongoDB save/state/read/restore/delete and price-sharing checks passed.');
   } finally {
     if (api) {
       try { await api.get('/logout'); } finally { await api.dispose(); }

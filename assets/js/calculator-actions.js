@@ -94,6 +94,23 @@
     returnFocus = document.activeElement;
     const rows = [...(data.extraLines || []), ['التكلفة الإجمالية', data.cost],
       [data.marginLabel || 'هامش الربح', data.marginValue]];
+    const currency = String(data.currency || data.currencyCode ||
+      window.ToolCurrency?.current?.code || 'عملة الأداة');
+    const currencyCode = String(data.currencyCode || window.ToolCurrency?.current?.code || '');
+    const roundingByTool = {
+      services: 'التقريب: رفع السعر إلى مضاعفات 5 من وحدة العملة.',
+      packages: 'التقريب: رفع سعر كل باقة إلى مضاعفات 5 من وحدة العملة.',
+      menu: 'التقريب: رفع السعر إلى أقرب نصف وحدة من العملة.',
+      retail: 'التقريب: رفع السعر إلى أقرب نصف وحدة من العملة.',
+      tech: 'التقريب: رفع السعر إلى مضاعفات 100 من وحدة العملة.',
+      saas: 'التقريب: رفع الاشتراك الشهري إلى مضاعفات 5؛ والساعة أو التذكرة إلى أقرب نصف وحدة.',
+      design: 'التقريب: رفع السعر إلى مضاعفات 100 من وحدة العملة.',
+    };
+    const assumptions = [
+      `العملة المسجلة: ${currency}${currencyCode && currencyCode !== currency ? ` (${currencyCode})` : ''}. لا يجري التقرير تحويلاً بين العملات.`,
+      roundingByTool[context.slug] || 'الأسعار معروضة بعملة الحاسبة المختارة.',
+      ...(data.assumptions || []),
+    ];
     report.innerHTML = `<article class="calculator-report">
       <div class="calculator-report-controls">
         <button id="calculatorReportPrint" type="button" class="btn btn-primary">طباعة / حفظ PDF</button>
@@ -101,15 +118,17 @@
       </div>
       <header class="calculator-report-header"><img src="/assets/logo.png" alt="تسعيرة"><h2>تقرير التسعير</h2>
         <p>${escape(new Date().toLocaleDateString('ar-SA'))}</p></header>
-      <h3>${escape(data.title)}</h3><p>${escape(data.subtitle)}</p>
+      <h3>${escape(data.title)}</h3><p>${escape(data.subtitle || '')}</p>
       ${data.packages ? `<table><thead><tr>${['الباقة', 'المشتركون', 'الهامش', 'الحد الأدنى', 'السعر النهائي المقترح']
         .map(label => `<th>${escape(label)}</th>`).join('')}</tr></thead><tbody>${data.packages.map(item =>
         `<tr>${item.map(value => `<td>${escape(value)}</td>`).join('')}</tr>`).join('')}</tbody></table>` :
-      `<table><tbody>${rows.map(row => `<tr><td>${escape(row[0])}</td><td>${escape(row[1])}</td></tr>`).join('')}
+      `<table><thead><tr><th>البند</th><th>القيمة</th></tr></thead><tbody>${rows.map(row => `<tr><td>${escape(row[0])}</td><td>${escape(row[1])}</td></tr>`).join('')}
         <tr class="calculator-report-final"><td>السعر النهائي المقترح</td><td>${escape(data.price)}</td></tr></tbody></table>
       `}
       ${data.comparison ? `<p>${escape(String(data.comparison).replace(/<[^>]*>/g, ''))}</p>` : ''}
-      <p class="calculator-report-note">السعر المقترح لا يشمل ضريبة القيمة المضافة. هذا تقرير تسعير وليس مستندًا محاسبيًا رسميًا.</p>
+      <section class="calculator-report-assumptions"><strong>أساس الحساب</strong>${assumptions.map(item =>
+        `<p>${escape(item)}</p>`).join('')}</section>
+      <p class="calculator-report-note">السعر المقترح لا يشمل ضريبة القيمة المضافة، ولا يشمل أي رسوم لم تُدخل في الحاسبة. هذا تقرير تسعير وليس مستندًا محاسبيًا رسميًا.</p>
     </article>`;
     report.querySelector('#calculatorReportPrint').onclick = () => window.print();
     report.querySelector('#calculatorReportClose').onclick = window.closePrintReport;
@@ -124,6 +143,8 @@
       ? `${Number(value).toLocaleString('ar-SA', { maximumFractionDigits: 2 })} ${currency}` : '—';
     window.printSimpleReport({
       title: 'مقارنة الباقات والاشتراكات',
+      currency: results[0].currency,
+      currencyCode: window.ToolCurrency?.current?.code,
       packages: pkgLast.filter(item => Number.isFinite(Number(item.suggested)) && Number(item.suggested) > 0)
         .map(item => [item.name, item.subs, item.margin + '٪', amount(item.minPrice), amount(item.suggested)]),
     });

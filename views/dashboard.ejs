@@ -606,7 +606,7 @@
       <div class="panel-heading">
         <div>
           <h2>سجل المشاريع</h2>
-          <p>كل النتائج المحفوظة من حاسبات القطاعات في مكان واحد.</p>
+          <p>النتائج المحفوظة هنا نسخ مستقلة؛ مسودات العمل داخل الحاسبات لا تظهر في السجل حتى تحفظها.</p>
         </div>
         <button class="btn btn-ghost btn-sm" type="button" onclick="loadProjectLedger()">تحديث السجل</button>
       </div>
@@ -616,6 +616,8 @@
           <option value="">كل القطاعات</option>
           <% for (const [slug, , short] of quickTools) { %><option value="<%= slug %>"><%= short %></option><% } %>
         </select>
+        <label class="sr-only" for="projectLedgerSearch">البحث في النتائج المحفوظة</label>
+        <input class="form-control" id="projectLedgerSearch" type="search" placeholder="ابحث بالاسم أو القطاع أو العملة" oninput="filterProjectLedger()" style="max-width:300px">
         <span id="projectLedgerStatus" role="status" aria-live="polite" style="font-size:12px;color:var(--muted)"></span>
         <span id="calculatorHistoryQuota" role="status" style="font-size:12px;color:var(--muted)"></span>
       </div>

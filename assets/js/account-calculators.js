@@ -14,6 +14,7 @@
   let accessInfo = null;
   let selected = new Set();
   let ledgerRequest = 0;
+  let ledgerRecords = [];
   const accessPanel = () => document.getElementById('calculatorAccessPanel');
   const role = () => accessPanel()?.dataset.role || '';
   const plan = () => accessPanel()?.dataset.plan || '';
@@ -162,6 +163,13 @@
     if (!list || !empty) return;
     if (!records.length) {
       list.innerHTML = '';
+      const searching = Boolean(document.getElementById('projectLedgerSearch')?.value.trim());
+      const heading = empty.querySelector('h3');
+      const detail = empty.querySelector('p');
+      if (heading) heading.textContent = searching ? 'لا توجد نتائج مطابقة' : 'لا توجد مشاريع محفوظة بعد';
+      if (detail) detail.textContent = searching
+        ? 'جرّب كلمة بحث مختلفة أو غيّر القطاع.'
+        : 'احسب نتيجة من إحدى الحاسبات ثم احفظها لتظهر هنا.';
       empty.classList.remove('hidden');
       return;
     }
@@ -210,6 +218,26 @@
     }
   }
 
+  function filterProjectLedger() {
+    const input = document.getElementById('projectLedgerSearch');
+    const query = String(input?.value || '').trim().toLocaleLowerCase('ar');
+    const matches = query
+      ? ledgerRecords.filter(record => [
+        record.title, labels[record.tool] || record.tool, record.created_at,
+        record.currency_code, record.price,
+      ].some(value => String(value ?? '').toLocaleLowerCase('ar').includes(query)))
+      : ledgerRecords;
+    setLedgerSummary(matches);
+    renderLedgerRows(matches);
+    const status = document.getElementById('projectLedgerStatus');
+    if (status) {
+      status.style.color = 'var(--muted)';
+      status.textContent = query
+        ? `${arNumber(matches.length)} من ${arNumber(ledgerRecords.length)} نتيجة محفوظة تطابق البحث`
+        : ledgerRecords.length ? `${arNumber(ledgerRecords.length)} نتيجة محفوظة` : 'لا توجد نتائج محفوظة لهذا القطاع.';
+    }
+  }
+
   async function loadProjectLedger() {
     const sectorSelect = document.getElementById('projectLedgerFilter');
     if (sectorSelect && !sectorSelect.dataset.initialized) {
@@ -230,6 +258,7 @@
     const result = await window.api(query);
     if (requestId !== ledgerRequest) return;
     if (!result?.success || !Array.isArray(result.data)) {
+      ledgerRecords = [];
       list.innerHTML = '';
       empty.classList.add('hidden');
       setLedgerSummary([]);
@@ -239,13 +268,8 @@
       }
       return;
     }
-    const records = result.data;
-    setLedgerSummary(records);
-    renderLedgerRows(records);
-    if (status) {
-      status.style.color = 'var(--muted)';
-      status.textContent = records.length ? `${arNumber(records.length)} نتيجة محفوظة` : 'لا توجد نتائج محفوظة لهذا القطاع.';
-    }
+    ledgerRecords = result.data;
+    filterProjectLedger();
   }
 
   async function restoreCalculation(event) {
@@ -276,6 +300,7 @@
   }
 
   window.loadProjectLedger = loadProjectLedger;
+  window.filterProjectLedger = filterProjectLedger;
   window.saveCalculatorSelection = saveCalculatorSelection;
   document.addEventListener('DOMContentLoaded', () => {
     loadCalculatorAccess();

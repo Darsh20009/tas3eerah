@@ -16,8 +16,22 @@ const db = require('../server/db');
 const { app } = require('../server');
 const slugs = ['services', 'packages', 'menu', 'retail', 'tech', 'saas', 'design'];
 
+function localizedNumber(value) {
+  const normalized = String(value).replace(/[٠-٩]/g, digit => String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit)))
+    .replace(/[٬,]/g, '').replace(/٫/g, '.');
+  const firstNumber = normalized.match(/-?\d+(?:\.\d+)?/);
+  return firstNumber ? Number(firstNumber[0]) : NaN;
+}
+
+async function assertNumber(page, selector, expected, message) {
+  const text = await page.locator(selector).first().innerText();
+  const actual = localizedNumber(text);
+  assert.ok(Number.isFinite(actual), `${message}: invalid number "${text}"`);
+  assert.equal(actual, expected, message);
+}
+
 async function main() {
-  let browser, server;
+  let browser, server, mathContext;
   try {
     await db.init();
     const password = await bcrypt.hash('CalculatorTest@123', 10);
@@ -25,6 +39,8 @@ async function main() {
       await db.insertDoc('users', { name: 'مستخدم اختبار ' + role, email: role + '@calculator.test',
         password_hash: password, role, plan, is_active: 1, plan_expires_at: null });
     }
+    await db.insertDoc('users', { name: 'مستخدم اختبار الحسابات المرجعية', email: 'math@calculator.test',
+      password_hash: password, role: 'admin', plan: 'pro', is_active: 1, plan_expires_at: null });
     server = await new Promise(resolve => {
       const running = app.listen(0, '127.0.0.1', () => resolve(running));
     });
@@ -41,9 +57,9 @@ async function main() {
     const page = await context.newPage();
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
-    async function login(role) {
-      await page.goto(base);
-      const result = await page.evaluate(async role => {
+    async function login(role, target = page) {
+      await target.goto(base);
+      const result = await target.evaluate(async role => {
         const token = (await (await fetch('/api/auth?action=csrf')).json()).data.csrf_token;
         return (await (await fetch('/api/auth', { method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': token },
@@ -52,6 +68,149 @@ async function main() {
       }, role);
       assert.equal(result, true);
     }
+
+    // Reference-value browser checks use their own account so they cannot alter
+    // the save/restore lifecycle fixtures below.
+    mathContext = await browser.newContext();
+    const mathPage = await mathContext.newPage();
+    const mathErrors = [];
+    mathPage.on('pageerror', error => mathErrors.push(error.message));
+    await login('math', mathPage);
+    for (const slug of slugs) {
+      await mathPage.goto(base + '/calculator/' + slug);
+      try {
+        await mathPage.waitForFunction(() => window.CalculatorCloud?.ready);
+      } catch (error) {
+        console.error(`${slug}: failed to initialize`, await mathPage.title(),
+          (await mathPage.locator('body').innerText()).slice(0, 500), mathErrors);
+        throw error;
+      }
+      const fill = async (id, value) => mathPage.locator('#' + id).fill(String(value));
+      if (slug === 'services') {
+        await mathPage.locator('[onclick*="classicSelectField(this,\'art\')"]').first().click();
+        await mathPage.locator('[onclick*="selectSvc(this,\'art\',\'بورتريه شخصي\')"]').first().click();
+        await mathPage.locator('[onclick*="selectLevel(this,30"]').first().click();
+        await fill('art-tools', 100);
+        await fill('art-units', 3);
+        await fill('art-unit-price', 40);
+        await fill('fix-rent', 120);
+        await fill('fix-projects', 4);
+        await assertNumber(mathPage, '#r-base', 250, 'services: itemized costs and fixed-cost share');
+        await assertNumber(mathPage, '#r-price', 325, 'services: 30% markup and upward-to-5 rounding');
+      } else if (slug === 'packages') {
+        await fill('pkg-fix-1', 100);
+        await fill('pkg-subs-1', 2);
+        await fill('pkg-subs-2', 0);
+        await fill('pkg-subs-3', 0);
+        await fill('pkg-margin-1', 25);
+        await fill('pkg-var-gateway-pct', 0);
+        await assertNumber(mathPage, '.pkg-result-card .pkg-result-price', 65, 'packages: 25% markup and upward-to-5 rounding');
+        await fill('pkg-var-gateway-pct', 100);
+        assert.equal(await mathPage.locator('#pkg-gateway-validation').isVisible(), true,
+          'packages: a 100% payment fee must be rejected');
+        assert.equal(await mathPage.locator('.pkg-result-card .pkg-result-price').count(), 0,
+          'packages: invalid fee must not leave a stale result');
+        await fill('pkg-var-gateway-pct', 0);
+        await assertNumber(mathPage, '.pkg-result-card .pkg-result-price', 65, 'packages: valid result returns after correction');
+      } else if (slug === 'menu') {
+        await mathPage.locator('[onclick="addMenuRow()"]').first().click();
+        const rowId = await mathPage.locator('#menu-rows tr[id^="menu-row-"]').last().getAttribute('id');
+        const row = Number(rowId.replace('menu-row-', ''));
+        await mathPage.locator(`#mcat-${row}`).selectOption({ label: 'قهوة ساخنة' });
+        await fill('menu-fixed', 1200);
+        await fill('menu-days', 20);
+        await fill('menu-orders', 10);
+        await fill(`mcost-${row}`, 10);
+        await fill(`mwaste-${row}`, 10);
+        const detail = await mathPage.locator(`#menu-row-${row}`).getAttribute('data-detail');
+        const values = JSON.parse(detail);
+        assert.equal(values.totalCost, 17, 'menu: 10% waste plus 6 fixed cost per order');
+        assert.equal(values.marginPct, 30, 'menu: standard hot coffee margin');
+        assert.equal(values.suggested, 22.5, 'menu: upward rounding to half a currency unit');
+      } else if (slug === 'retail') {
+        const electronicsValue = await mathPage.locator('#ret-sector option').evaluateAll(options =>
+          options.find(option => option.textContent.includes('إلكترونيات'))?.value);
+        assert.ok(electronicsValue, 'retail: electronics reference sector exists');
+        await mathPage.locator('#ret-sector').selectOption(electronicsValue);
+        await mathPage.locator('[onclick="addRetailRow()"]').first().click();
+        const rowId = await mathPage.locator('#ret-rows tr[id^="ret-row-"]').last().getAttribute('id');
+        const row = Number(rowId.replace('ret-row-', ''));
+        await fill('ret-purchases', 1000);
+        await fill('ret-waste', 0);
+        await fill('ret-transport', 0);
+        await fill('ret-storage', 0);
+        await fill(`rcost-${row}`, 100);
+        const values = JSON.parse(await mathPage.locator(`#ret-row-${row}`).getAttribute('data-detail'));
+        assert.equal(values.realCost, 100, 'retail: no hidden cost add-ons in this reference case');
+        assert.equal(values.marginPct, 18, 'retail: mid-market electronics margin');
+        assert.equal(values.suggested, 118, 'retail: 18% markup and half-unit rounding');
+      } else if (slug === 'tech') {
+        await mathPage.locator('#tech-type-web').click();
+        await mathPage.locator('#tech-lvl-2').click();
+        await fill('tech-design-h', 2);
+        await fill('tech-design-rate', 100);
+        await fill('tech-licenses', 30);
+        await fill('tech-fix-rent', 120);
+        await fill('tech-fix-projects', 3);
+        await fill('tech-reserve-pct', 10);
+        await assertNumber(mathPage, '#tech-r-base', 297, 'tech: effort, licenses, allocated fixed cost, and reserve');
+        await assertNumber(mathPage, '#tech-r-price', 500, 'tech: 35% markup and upward-to-100 rounding');
+      } else if (slug === 'saas') {
+        await mathPage.locator('#saas-type-saas').click();
+        await mathPage.locator('#saas-lvl-2').click();
+        await fill('saas-rent', 1200);
+        await fill('saas-clients', 10);
+        await fill('saas-var-support', 5);
+        await fill('saas-reserve-pct', 0);
+        await fill('saas-var-gateway-pct', 5);
+        await assertNumber(mathPage, '#saas-r-price', 185, 'SaaS: gateway gross-up and upward-to-5 rounding');
+        assert.match(await mathPage.locator('#saas-r-pill').innerText(), /41٪/,
+          'SaaS: realized markup must subtract payment-gateway fees');
+        await mathPage.locator('#saas-cycle').selectOption('3');
+        await fill('saas-cycle-disc', 10);
+        assert.equal(localizedNumber(await mathPage.locator('#saas-r-annual').innerText()), 500,
+          'SaaS: discounted 3-month price rounds up to 500');
+        await fill('saas-var-gateway-pct', 100);
+        assert.equal(await mathPage.locator('#saas-gateway-validation').isVisible(), true,
+          'SaaS: a 100% payment fee must be rejected');
+        assert.equal(await mathPage.locator('#saas-result').isVisible(), false,
+          'SaaS: invalid fee must not display a stale result');
+        await fill('saas-var-gateway-pct', 0);
+        await mathPage.locator('#saas-type-support').click();
+        await mathPage.locator('#saas-supmode-hourly').click();
+        await fill('saas-support-hours', 25);
+        await fill('saas-var-gateway-pct', 5);
+        await assertNumber(mathPage, '#saas-r-price', 74, 'SaaS hourly support: fees and half-unit rounding');
+        assert.match(await mathPage.locator('#saas-r-pill').innerText(), /41٪/,
+          'SaaS hourly support: realized markup subtracts gateway fees');
+      } else if (slug === 'design') {
+        await mathPage.locator('#ds-type-villa').click();
+        await mathPage.locator('#ds-scope-design').click();
+        await mathPage.locator('#ds-method-sqm').click();
+        await mathPage.locator('#ds-lvl-1').click();
+        await fill('ds-area', 25);
+        await fill('ds-sqm-rate', 100);
+        await fill('ds-print', 50);
+        await fill('ds-fix-rent', 120);
+        await fill('ds-fix-projects', 4);
+        await fill('ds-reserve-pct', 10);
+        await fill('ds-p1-pct', 33.3);
+        await fill('ds-p2-pct', 33.3);
+        await fill('ds-p3-pct', 33.4);
+        await assertNumber(mathPage, '#ds-r-price', 3500, 'design: cost, reserve, 20% markup, and upward-to-100 rounding');
+        const phaseAmounts = await mathPage.locator('#ds-payments-table > div').evaluateAll(cards =>
+          cards.map(card => {
+            const amount = card.lastElementChild.textContent.replace(/[٠-٩]/g, digit =>
+              String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit))).replace(/[٬,]/g, '').replace(/[^\d.-]/g, '');
+            return Number(amount);
+          }));
+        assert.deepEqual(phaseAmounts, [1166, 1165, 1169], 'design: stable largest-remainder allocation');
+        assert.equal(phaseAmounts.reduce((sum, amount) => sum + amount, 0), 3500,
+          'design: 100% payment schedule must equal the project total exactly');
+      }
+      console.log(`${slug}: independent browser reference calculation passed`);
+    }
+    assert.equal(mathErrors.length, 0, mathErrors.join('\n'));
     await login('admin');
     for (const slug of slugs) {
       await page.goto(base + '/calculator/' + slug);
@@ -137,7 +296,11 @@ async function main() {
       await page.locator('#integrated-tools .tool-screen ' + printSelector).first().click();
       await page.waitForSelector('#print-report.show');
       assert.match(await page.locator('#print-report').innerText(), /السعر النهائي المقترح/);
+        assert.match(await page.locator('#print-report').innerText(), /أساس الحساب/);
+        assert.match(await page.locator('#print-report').innerText(), /العملة المسجلة/);
+        assert.match(await page.locator('#print-report').innerText(), /لا يشمل ضريبة القيمة المضافة/);
       assert.doesNotMatch(await page.locator('#print-report').innerText(), /NaN|undefined/);
+        assert.equal(await page.locator('#print-report thead th').count() > 0, true, `${slug}: repeatable report table heading`);
       await page.locator('#calculatorReportPrint').click();
       await page.waitForFunction(() => window.__testPrintCalls === 1);
       await page.emulateMedia({ media: 'print' });
@@ -160,6 +323,16 @@ async function main() {
     await page.locator('#panel-project-log select').selectOption('menu');
     await page.waitForFunction(() => document.querySelectorAll('[data-restore-id]').length === 1);
     await page.locator('#panel-project-log select').selectOption('');
+    await page.waitForFunction(() => document.querySelectorAll('[data-restore-id]').length === 7);
+    await page.locator('#projectLedgerSearch').fill('الخدمات');
+    await page.waitForFunction(() => document.querySelectorAll('[data-restore-id]').length === 1);
+    const ledgerStatus = await page.locator('#projectLedgerStatus').innerText();
+    assert.match(ledgerStatus.replace(/[٠-٩]/g, digit =>
+      String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit))), /1 من 7/);
+    await page.locator('#projectLedgerSearch').fill('لا توجد كلمة كهذه');
+    await page.waitForFunction(() => document.querySelectorAll('[data-restore-id]').length === 0);
+    assert.match(await page.locator('#projectLedgerEmpty h3').innerText(), /لا توجد نتائج مطابقة/);
+    await page.locator('#projectLedgerSearch').fill('');
     await page.waitForFunction(() => document.querySelectorAll('[data-restore-id]').length === 7);
     // Restore a saved result after changing its latest working state.
     await page.goto(base + '/calculator/services');
@@ -226,6 +399,7 @@ async function main() {
     assert.equal(errors.length, 0, errors.join('\n'));
     console.log('Dashboard restore/delete, same-browser account isolation and paid-tool selection passed.');
   } finally {
+    if (mathContext) await mathContext.close();
     if (browser) await browser.close();
     if (server) await new Promise(resolve => server.close(resolve));
     await db.close();
