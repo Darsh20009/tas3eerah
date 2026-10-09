@@ -30,6 +30,13 @@ function receivePassword(settings = {}) {
     : sendPassword();
 }
 
+function missingPasswordError() {
+  return Object.assign(
+    new Error('لم يتم إعداد كلمة مرور صندوق البريد في Secrets'),
+    { code: 'MAIL_CREDENTIALS_MISSING' },
+  );
+}
+
 function isSendConfigured(settings = {}) {
   return Boolean(sendPassword() && emailLooksValid(address(settings)));
 }
@@ -59,7 +66,7 @@ function publicConfig(settings = {}) {
 }
 
 function smtpTransport(settings = {}, options = {}) {
-  if (!isSendConfigured(settings)) throw new Error('لم يتم إعداد كلمة مرور صندوق البريد في Secrets');
+  if (!isSendConfigured(settings)) throw missingPasswordError();
   const port = options.port || SMTP_PORT;
   return nodemailer.createTransport({
     host: HOST,
@@ -181,7 +188,7 @@ async function connect(folder, settings, writable = false) {
   const account = accountForFolder(folder, settings);
   const password = passwordForFolder(folder, settings);
   const configured = ['sent', 'drafts'].includes(folder) ? isSendConfigured(settings) : isReceiveConfigured(settings);
-  if (!configured) throw new Error('لم يتم إعداد كلمة مرور صندوق البريد في Secrets');
+  if (!configured) throw missingPasswordError();
   const client = new ImapFlow({
     host: HOST,
     port: IMAP_PORT,

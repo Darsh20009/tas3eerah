@@ -290,6 +290,35 @@ async function settingsMap() {
   return Object.fromEntries(rows.filter((row) => row.key).map((row) => [row.key, row.value || '']));
 }
 
+const MAIL_NETWORK_ERROR_CODES = new Set([
+  'ECONNREFUSED', 'ECONNRESET', 'EHOSTUNREACH', 'ENOTFOUND',
+  'EAI_AGAIN', 'ETIMEDOUT', 'ETIMEOUT',
+]);
+
+function mailboxFailureMessage(error, fallback) {
+  if (error?.code === 'MAIL_CREDENTIALS_MISSING') {
+    return 'كلمة مرور البريد اللازمة غير مضبوطة في إعدادات الأسرار.';
+  }
+  if (error?.code === 'IMAP_AUTH_FAILED') {
+    return 'رفض مزود البريد بيانات دخول IMAP. تحقق من حساب الاستقبال وكلمة مرور التطبيق المرتبطة به، ومن تفعيل IMAP.';
+  }
+  if (error?.code === 'EAUTH' || Number(error?.responseCode) === 535) {
+    return 'رفض مزود البريد بيانات دخول SMTP. تحقق من حساب الإرسال وكلمة مرور التطبيق المرتبطة به.';
+  }
+  if (MAIL_NETWORK_ERROR_CODES.has(error?.code)) {
+    return 'تعذر الوصول إلى خادم البريد. تحقق من اتصال الشبكة وإعدادات المضيف والمنفذ.';
+  }
+  return fallback;
+}
+
+function failMailboxOperation(res, action, error, fallback) {
+  const code = typeof error?.code === 'string' && /^[A-Z0-9_-]{1,64}$/.test(error.code)
+    ? error.code
+    : 'MAIL_ERROR';
+  console.error(`[mailbox ${action} failed]`, code);
+  return sendError(res, mailboxFailureMessage(error, fallback), 502);
+}
+
 async function mailboxFolder(res, body) {
   const settings = await settingsMap();
   const folder = text(body.folder || 'inbox', 40).toLowerCase();
@@ -301,8 +330,7 @@ async function mailboxFolder(res, body) {
       mailbox: mail.publicConfig(settings),
     });
   } catch (error) {
-    console.error('[mailbox read failed]', error.code || error.name || 'MAIL_ERROR');
-    return sendError(res, 'تعذر الاتصال بصندوق البريد. تحقق من الإعدادات وحاول مرة أخرى.', 502);
+    return failMailboxOperation(res, 'read', error, 'تعذر الاتصال بصندوق البريد. تحقق من الإعدادات وحاول مرة أخرى.');
   }
 }
 
@@ -313,8 +341,8 @@ async function mailboxFolders(res) {
       folders: await mail.folders(settings),
       mailbox: mail.publicConfig(settings),
     });
-  } catch {
-    return sendError(res, 'تعذر الاتصال بصندوق البريد. تحقق من الإعدادات وحاول مرة أخرى.', 502);
+  } catch (error) {
+    return failMailboxOperation(res, 'folders', error, 'تعذر الاتصال بصندوق البريد. تحقق من الإعدادات وحاول مرة أخرى.');
   }
 }
 
@@ -322,8 +350,8 @@ async function mailboxMarkRead(res, body) {
   try {
     await mail.markFolderRead(number(body.uid), text(body.folder || 'inbox', 40).toLowerCase(), await settingsMap());
     return sendOk(res, [], 'تم تعليم الرسالة كمقروءة');
-  } catch {
-    return sendError(res, 'تعذر تحديث حالة الرسالة في صندوق البريد', 502);
+  } catch (error) {
+    return failMailboxOperation(res, 'mark-read', error, 'تعذر تحديث حالة الرسالة في صندوق البريد');
   }
 }
 
@@ -336,8 +364,8 @@ async function mailboxMove(res, body) {
       await settingsMap(),
     );
     return sendOk(res, [], 'تم نقل الرسالة');
-  } catch {
-    return sendError(res, 'تعذر نقل الرسالة في صندوق البريد', 502);
+  } catch (error) {
+    return failMailboxOperation(res, 'move', error, 'تعذر نقل الرسالة في صندوق البريد');
   }
 }
 
@@ -345,8 +373,8 @@ async function mailboxDelete(res, body) {
   try {
     await mail.delete(number(body.uid), text(body.folder || 'inbox', 40).toLowerCase(), await settingsMap());
     return sendOk(res, [], 'تم حذف الرسالة');
-  } catch {
-    return sendError(res, 'تعذر حذف الرسالة من صندوق البريد', 502);
+  } catch (error) {
+    return failMailboxOperation(res, 'delete', error, 'تعذر حذف الرسالة من صندوق البريد');
   }
 }
 
@@ -359,8 +387,8 @@ async function mailboxSaveDraft(res, body) {
   try {
     await mail.saveDraft(to, subject || '(بدون موضوع)', mail.simpleMessage(message || '(مسودة فارغة)', subject || '(بدون موضوع)'), await settingsMap());
     return sendOk(res, [], 'تم حفظ المسودة');
-  } catch {
-    return sendError(res, 'تعذر حفظ المسودة. تحقق من إعدادات صندوق البريد.', 502);
+  } catch (error) {
+    return failMailboxOperation(res, 'save-draft', error, 'تعذر حفظ المسودة. تحقق من إعدادات صندوق البريد.');
   }
 }
 
@@ -374,8 +402,8 @@ async function mailboxSend(res, body) {
   try {
     await mail.sendHtml(to, subject, mail.simpleMessage(message, subject), await settingsMap());
     return sendOk(res, [], 'تم إرسال الرسالة من صندوق البريد');
-  } catch {
-    return sendError(res, 'تعذر إرسال البريد. تحقق من إعدادات صندوق البريد وحاول مرة أخرى.', 502);
+  } catch (error) {
+    return failMailboxOperation(res, 'send', error, 'تعذر إرسال البريد. تحقق من إعدادات صندوق البريد وحاول مرة أخرى.');
   }
 }
 

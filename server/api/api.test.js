@@ -194,6 +194,38 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
   assert.equal(adminStats.json.data.quotes_total, 1);
   assert.equal(adminStats.json.data.rating_count, 1);
 
+  const originalFolderMessages = email.folderMessages;
+  email.folderMessages = async () => {
+    throw Object.assign(new Error('private provider response'), { code: 'IMAP_AUTH_FAILED' });
+  };
+  try {
+    const mailboxFailure = await request('/api/admin', {
+      jar: adminJar, method: 'POST', token: adminCsrf.json.data.csrf_token,
+      body: { action: 'mailbox_folder', folder: 'inbox' },
+    });
+    assert.equal(mailboxFailure.response.status, 502);
+    assert.match(mailboxFailure.json.error, /رفض مزود البريد بيانات دخول IMAP/);
+    assert.doesNotMatch(mailboxFailure.json.error, /private provider response/);
+  } finally {
+    email.folderMessages = originalFolderMessages;
+  }
+
+  const originalSendHtml = email.sendHtml;
+  email.sendHtml = async () => {
+    throw Object.assign(new Error('private SMTP response'), { code: 'EAUTH', response: 'provider details' });
+  };
+  try {
+    const sendFailure = await request('/api/admin', {
+      jar: adminJar, method: 'POST', token: adminCsrf.json.data.csrf_token,
+      body: { action: 'mailbox_send', to: 'client@example.test', subject: 'اختبار', message: 'رسالة اختبار' },
+    });
+    assert.equal(sendFailure.response.status, 502);
+    assert.match(sendFailure.json.error, /رفض مزود البريد بيانات دخول SMTP/);
+    assert.doesNotMatch(sendFailure.json.error, /private SMTP response|provider details/);
+  } finally {
+    email.sendHtml = originalSendHtml;
+  }
+
   const registerJar = new Map();
   const registerCsrf = await request('/api/auth?action=csrf', { jar: registerJar });
   const registration = await request('/api/auth', {
