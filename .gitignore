@@ -10,3 +10,4 @@ database/*.db-shm
 database/*.db-wal
 database/*.db
 .local/git/
+/generated-artifacts/

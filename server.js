@@ -84,6 +84,7 @@ app.get('/classic-tools', (req, res) => {
 app.use(auth.loadUser);
 app.get('/help', (req, res) => res.render('help', {
   signedIn: Boolean(req.user),
+  isAdmin: req.user?.role === 'admin',
   tools,
   assetVersion: assetVersion(),
 }));

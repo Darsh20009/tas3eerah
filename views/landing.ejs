@@ -54,7 +54,7 @@
     <a href="#features" data-ar="المميزات"  data-en="Features">المميزات</a>
     <a href="#pricing"  data-ar="الأسعار"   data-en="Pricing">الأسعار</a>
     <a href="#about"    data-ar="من نحن"    data-en="About">من نحن</a>
-    <a href="/help"      data-ar="دليل الاستخدام" data-en="Guide">دليل الاستخدام</a>
+    <a href="/help"      data-ar="دليل المستخدم" data-en="User guide">دليل المستخدم</a>
     <a href="#contact"  data-ar="تواصل"     data-en="Contact">تواصل</a>
   </div>
 
@@ -73,7 +73,7 @@
   <a href="#features" onclick="closeLandMenu()" data-ar="المميزات" data-en="Features">المميزات</a>
   <a href="#pricing"  onclick="closeLandMenu()" data-ar="الأسعار" data-en="Pricing">الأسعار</a>
   <a href="#about"    onclick="closeLandMenu()" data-ar="من نحن" data-en="About">من نحن</a>
-  <a href="/help" data-ar="دليل الاستخدام" data-en="Guide">دليل الاستخدام</a>
+  <a href="/help" data-ar="دليل المستخدم" data-en="User guide">دليل المستخدم</a>
   <a href="#contact"  onclick="closeLandMenu()" data-ar="تواصل معنا" data-en="Contact us">تواصل معنا</a>
   <div class="lmm-actions">
     <button class="btn btn-ghost"   onclick="closeLandMenu();showAuth('login')" data-ar="تسجيل الدخول" data-en="Sign in">تسجيل الدخول</button>
@@ -537,6 +537,23 @@
         <p data-ar="من البداية إلى التوسع" data-en="From starting out to scaling">من البداية إلى التوسع</p>
       </article>
     </div>
+    <div class="landing-tour">
+      <div class="landing-tour-copy">
+        <span class="tour-kicker" data-ar="جولة داخل تسعيرة" data-en="Inside Tas3eerah">جولة داخل تسعيرة</span>
+        <h3 data-ar="من اختيار الأداة إلى عرض سعر واضح" data-en="From choosing a tool to a clear quote">من اختيار الأداة إلى عرض سعر واضح</h3>
+        <p data-ar="شاهد كيف تنظم التسعيرات، تحفظ المشاريع، وتتابع العروض من لوحة واحدة." data-en="See how to organize pricing, save projects and follow quotes from one dashboard.">شاهد كيف تنظم التسعيرات، تحفظ المشاريع، وتتابع العروض من لوحة واحدة.</p>
+        <a class="btn btn-primary btn-sm" href="/help" data-ar="افتح دليل المستخدم" data-en="Open the user guide">افتح دليل المستخدم</a>
+      </div>
+      <div class="landing-tour-screen-frame">
+        <video class="landing-tour-video" controls preload="metadata"
+               poster="/assets/hero-reference-branded.png?v=<%= assetVersion %>"
+               aria-label="فيديو تسويقي يشرح منصة تسعيرة">
+          <source src="/assets/video/tas3eerah-product-tour.mp4?v=<%= assetVersion %>" type="video/mp4">
+          متصفحك لا يدعم تشغيل الفيديو.
+        </video>
+        <small class="landing-tour-video-note">لقطات فعلية من لوحات النظام وأدوات التسعير، مع موسيقى خلفية هادئة.</small>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -559,7 +576,7 @@
           <a href="#features" data-ar="المميزات" data-en="Features">المميزات</a>
           <a href="#pricing" data-ar="الأسعار" data-en="Pricing">الأسعار</a>
           <a href="#about" data-ar="من نحن" data-en="About">من نحن</a>
-          <a href="/help" data-ar="دليل الاستخدام" data-en="Guide">دليل الاستخدام</a>
+          <a href="/help" data-ar="دليل المستخدم" data-en="User guide">دليل المستخدم</a>
           <a href="#contact" data-ar="تواصل" data-en="Contact">تواصل</a>
         </div>
       </div>
@@ -1030,6 +1047,7 @@ function submitContact() {
 }
 </script>
 <script src="/assets/js/form-enhancements.js?v=<%= assetVersion %>"></script>
+<script src="/assets/js/product-tour.js?v=<%= assetVersion %>"></script>
 <script src="/assets/js/frame-loader.js?v=<%= assetVersion %>"></script>
 </body>
 </html>

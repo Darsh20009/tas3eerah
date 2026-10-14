@@ -61,13 +61,23 @@ async function main() {
     console.log(`policies: ${await policySections.count()} sections, mobile width ${mobileWidth}px`);
     const help = await policyPage.goto(`${baseUrl}/help`, { waitUntil: 'load' });
     const helpRoles = await policyPage.locator('#roles h3').allTextContents();
+    const helpTitle = await policyPage.locator('.guide-title h1').innerText();
     const helpWidth = await policyPage.evaluate(() => document.documentElement.scrollWidth);
     if (help.status() !== 200 || await policyPage.locator('.guide-list li').count() !== 7 ||
-        helpRoles.length !== 3 || helpWidth > 390) {
-      failures.push(`help: missing calculators or roles, or mobile overflow (${helpWidth}px)`);
+        helpTitle !== 'دليل المستخدم' || helpRoles.length !== 0 || helpWidth > 390) {
+      failures.push(`public help: calculators leaked role details or mobile overflow (${helpWidth}px)`);
     }
-    console.log(`help: HTTP ${help.status()}, three roles, mobile width ${helpWidth}px`);
+    console.log(`public help: HTTP ${help.status()}, admin role details hidden, mobile width ${helpWidth}px`);
     await policyContext.close();
+
+    const adminHelpContext = await browser.newContext({ ignoreHTTPSErrors: true });
+    const adminHelpPage = await adminHelpContext.newPage();
+    await login(adminHelpPage, 'admin');
+    await adminHelpPage.goto(`${baseUrl}/help`, { waitUntil: 'load' });
+    if (await adminHelpPage.locator('#roles h3').count() !== 3) {
+      failures.push('admin help: role and permission details are missing');
+    }
+    await adminHelpContext.close();
 
     for (const role of ['admin', 'employee', 'client']) {
       const context = await browser.newContext({ ignoreHTTPSErrors: true });
@@ -98,6 +108,29 @@ async function main() {
       console.log(`${role} dashboard: HTTP ${dashboard.status()}, ${dashboardTitle}, path ${new URL(page.url()).pathname}`);
       if (dashboard.status() !== 200 || !dashboardTitle.includes('لوحة التحكم')) {
         failures.push(`${role} dashboard failed to render`);
+      }
+      const tour = page.locator('#dashboardTour');
+      if (await tour.count() !== 1 || await tour.getAttribute('data-role') !== role) {
+        failures.push(`${role}: role-specific dashboard guide is missing`);
+      } else {
+        await page.locator('#tourHide').click();
+        if (!await tour.evaluate(element => element.classList.contains('hidden'))) {
+          failures.push(`${role}: hide guide action failed`);
+        }
+        await page.reload();
+        if (!await tour.evaluate(element => element.classList.contains('hidden'))) {
+          failures.push(`${role}: hidden guide preference was not saved`);
+        }
+        await page.locator('#tourShow').click();
+        if (await tour.evaluate(element => element.classList.contains('hidden'))) {
+          failures.push(`${role}: show guide action failed`);
+        }
+      }
+      const managementPanels = ['users', 'subscriptions', 'mailbox', 'contact-inbox', 'activity', 'settings'];
+      const exposedManagementPanels = await page.locator('.sb-item[data-panel]').evaluateAll((elements, allowedPanels) =>
+        elements.map(element => element.dataset.panel).filter(panel => allowedPanels.includes(panel)), managementPanels);
+      if (role === 'client' && exposedManagementPanels.length) {
+        failures.push(`client: management panels exposed in sidebar (${exposedManagementPanels.join(', ')})`);
       }
 
       if (role === 'admin') {

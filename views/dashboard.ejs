@@ -143,7 +143,7 @@
     <button class="sb-item" data-panel="account" onclick="nav(this)">
       <span class="sb-icon">◉</span> حسابي
     </button>
-    <a class="sb-item" href="/help"><span class="sb-icon">?</span> الشرح</a>
+    <a class="sb-item" href="/help"><span class="sb-icon">?</span> دليل المستخدم</a>
   </nav>
 
   <div class="sb-footer">
@@ -222,12 +222,42 @@
           <span class="dashboard-welcome-kicker">لوحة العمل</span>
           <h1>مرحباً بك، <%= user['name'] %></h1>
           <p>كل ما تحتاجه لتسعير مشاريعك بوضوح، في مساحة واحدة هادئة ومنظمة.</p>
+          <button type="button" class="tour-hero-link" onclick="document.getElementById('dashboardTour').scrollIntoView({behavior:'smooth',block:'center'})">شاهد دليل لوحة التحكم</button>
         </div>
         <div class="dashboard-welcome-mark">
           <img src="/assets/icons/icon-192.png?v=20261006" alt="تسعيرة">
           <span>PRICE<br>WITH<br>CLARITY</span>
         </div>
       </div>
+      <section class="tour-card" id="dashboardTour" data-role="<%= role %>" data-user="<%= Number(user.id) %>" aria-labelledby="tourTitle">
+        <div class="tour-copy">
+          <span class="tour-kicker">دليل سريع</span>
+          <h2 id="tourTitle">تعرّف على لوحة <%= roleLabel %></h2>
+          <p id="tourDescription">خطوات قصيرة توضّح طريقة استخدام أدوات تسعيرة ومتابعة عملك.</p>
+          <div class="tour-controls">
+            <button type="button" class="btn btn-primary btn-sm" id="tourNext">التالي</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="tourPlay" aria-pressed="false">تشغيل تلقائي</button>
+            <button type="button" class="tour-hide" id="tourHide">إخفاء الدليل</button>
+          </div>
+          <div class="tour-progress" aria-label="تقدم الدليل"><span id="tourProgress"></span></div>
+          <small id="tourStepLabel" aria-live="polite"></small>
+        </div>
+        <div class="tour-screen-frame" aria-hidden="true">
+          <div class="tour-screen">
+            <div class="tour-screen-top"><img src="/assets/icons/icon-192.png?v=20261006" alt=""><i></i><i></i><i></i></div>
+            <div class="tour-screen-body">
+              <div class="tour-screen-nav"><b>تسعيرة</b><i></i><i></i><i></i><i></i></div>
+              <div class="tour-screen-main">
+                <strong id="tourSceneTitle">لوحة العمل</strong>
+                <div class="tour-scene-stats"><i></i><i></i><i></i></div>
+                <div class="tour-scene-content"><b></b><b></b><b></b><b></b></div>
+                <div class="tour-scene-caption" id="tourSceneCaption">نظرة عامة على عملك</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <button type="button" class="tour-show hidden" id="tourShow">إظهار دليل لوحة التحكم</button>
       <div class="stats-grid" id="statsGrid">
         <% /* Role-specific statistic cards are supplied by the Node route. */ %>
         <% for (const [label, value, sub, cls] of stats) { %>
@@ -1130,6 +1160,7 @@ const APP = <%- JSON.stringify(appData).replace(/[<>&]/g, character => ({'<':'\\
 </script>
 <script src="/assets/js/currency.js?v=2"></script>
 <script src="/assets/js/app.js?v=<%= assetVersion %>"></script>
+<script src="/assets/js/product-tour.js?v=<%= assetVersion %>"></script>
 <script src="/assets/js/account-calculators.js?v=<%= assetVersion %>"></script>
 <script src="/assets/js/form-enhancements.js?v=<%= assetVersion %>"></script>
 <script src="/assets/js/frame-loader.js?v=<%= assetVersion %>"></script>
