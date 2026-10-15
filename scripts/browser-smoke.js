@@ -169,7 +169,9 @@ async function main() {
           const before = count ? await calculator.innerText() : '';
           let recalculated = null;
           if (await numberInput.count()) {
-            await numberInput.fill('123');
+            // Package prices are rounded to five currency units; a small
+            // capital-cost input can legitimately leave the rendered output unchanged.
+            await numberInput.fill(slug === 'packages' ? '123000' : '123');
             await numberInput.dispatchEvent('input');
             await numberInput.dispatchEvent('change');
             await page.waitForTimeout(150);
