@@ -165,17 +165,33 @@ async function main() {
             await page.locator('#saas-clients').fill('10');
             await page.locator('#saas-clients').dispatchEvent('input');
           }
-          const numberInput = page.locator('#integrated-tools .tool-screen.active input[type="number"]:visible').first();
-          const before = count ? await calculator.innerText() : '';
+          let numberInput = page.locator('#integrated-tools .tool-screen.active input[type="number"]:visible').first();
+          let output = calculator;
+          if (slug === 'menu') {
+            numberInput = page.locator('#mcost-1');
+            output = page.locator('#mprice-1');
+          }
+          if (slug === 'design') {
+            await page.locator('#ds-type-villa').click();
+            await page.locator('#ds-scope-design').click();
+            await page.locator('#ds-method-sqm').click();
+            await page.locator('#ds-lvl-2').click();
+            await page.locator('#ds-area').fill('100');
+            await page.locator('#ds-sqm-rate').fill('100');
+            numberInput = page.locator('#ds-area');
+            output = page.locator('#ds-r-price');
+          }
+          const before = count ? await output.innerText() : '';
           let recalculated = null;
           if (await numberInput.count()) {
             // Package prices are rounded to five currency units; a small
             // capital-cost input can legitimately leave the rendered output unchanged.
-            await numberInput.fill(slug === 'packages' ? '123000' : '123');
+            const values = { packages: '123000', menu: '100', design: '1000' };
+            await numberInput.fill(values[slug] || '123');
             await numberInput.dispatchEvent('input');
             await numberInput.dispatchEvent('change');
             await page.waitForTimeout(150);
-            recalculated = before !== await calculator.innerText();
+            recalculated = before !== await output.innerText();
           }
           await page.waitForTimeout(100);
           console.log(`${slug}: HTTP ${response.status()}, active screens ${count}, output changed ${recalculated}, title ${await page.title()}`);

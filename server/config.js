@@ -6,6 +6,17 @@ const APP_ENV = String(process.env.APP_ENV || process.env.NODE_ENV || 'developme
 const APP_URL = String(
   process.env.APP_URL || process.env.RENDER_EXTERNAL_URL || 'http://localhost:5000',
 ).replace(/\/+$/, '');
+const OAUTH_REDIRECT_CONFIGURED = (() => {
+  const configuredUrl = String(process.env.APP_URL || process.env.RENDER_EXTERNAL_URL || '').trim();
+  if (!configuredUrl) return false;
+  try {
+    const url = new URL(configuredUrl);
+    return url.protocol === 'https:' && Boolean(url.hostname) &&
+      !url.username && !url.password && !url.search && !url.hash;
+  } catch {
+    return false;
+  }
+})();
 const MONGODB_URI = String(process.env.MONGODB_URI || '').trim();
 const MONGODB_DB_NAME = String(
   process.env.MONGODB_DB_NAME || (APP_ENV === 'production' ? 'tas3eerah' : 'tas3eerah_dev'),
@@ -86,6 +97,10 @@ function isProduction() {
   return APP_ENV === 'production';
 }
 
+function isOAuthRedirectConfigured() {
+  return OAUTH_REDIRECT_CONFIGURED;
+}
+
 function assertDatabaseReady() {
   if (!MONGODB_URI && !(APP_ENV === 'test' && process.env.DB_TEST_SQLITE === '1')) {
     throw new Error('لم يتم إعداد MONGODB_URI؛ يتطلب تشغيل التطبيق MongoDB ولا يستخدم SQLite بديلاً.');
@@ -114,6 +129,7 @@ module.exports = Object.freeze({
   SESSION_LIFETIME,
   PLANS,
   isProduction,
+  isOAuthRedirectConfigured,
   assertDatabaseReady,
   getConfiguredAdmin,
 });

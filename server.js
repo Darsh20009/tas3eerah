@@ -94,8 +94,10 @@ app.get('/', (req, res) => {
     plans: config.PLANS,
     csrfToken: auth.csrfToken(req),
     openAccessMode: false,
-    googleEnabled: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
-    appleEnabled: Boolean(process.env.APPLE_CLIENT_ID && process.env.APPLE_TEAM_ID && process.env.APPLE_KEY_ID && process.env.APPLE_PRIVATE_KEY),
+    googleEnabled: config.isOAuthRedirectConfigured() &&
+      Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
+    appleEnabled: config.isOAuthRedirectConfigured() &&
+      Boolean(process.env.APPLE_CLIENT_ID && process.env.APPLE_TEAM_ID && process.env.APPLE_KEY_ID && process.env.APPLE_PRIVATE_KEY),
     oauthError: String(req.query.oauth_error || ''),
     assetVersion: assetVersion(),
   });

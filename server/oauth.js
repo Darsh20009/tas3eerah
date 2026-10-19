@@ -38,6 +38,7 @@ function redirectUri(provider) {
 
 function redirectError(res, error) {
   const messages = {
+    oauth_redirect_not_configured: 'لم يتم إعداد عنوان HTTPS ثابت لتسجيل الدخول الاجتماعي',
     google_not_configured: 'لم يتم إعداد تسجيل الدخول عبر Google',
     apple_not_configured: 'لم يتم إعداد تسجيل الدخول عبر Apple',
     cancelled: 'تم إلغاء تسجيل الدخول',
@@ -58,6 +59,7 @@ function csrfState() {
 }
 
 router.get('/google', (req, res) => {
+  if (!config.isOAuthRedirectConfigured()) return redirectError(res, 'oauth_redirect_not_configured');
   const { clientId, clientSecret } = googleCredentials();
   if (!clientId || !clientSecret) return redirectError(res, 'google_not_configured');
   const state = csrfState();
@@ -97,6 +99,7 @@ router.get('/google/callback', async (req, res) => {
 });
 
 router.get('/apple', (req, res) => {
+  if (!config.isOAuthRedirectConfigured()) return redirectError(res, 'oauth_redirect_not_configured');
   const credentials = appleCredentials();
   if (!credentials.clientId || !credentials.teamId || !credentials.keyId || !credentials.privateKey) {
     return redirectError(res, 'apple_not_configured');

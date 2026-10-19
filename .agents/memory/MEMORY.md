@@ -9,3 +9,4 @@
 - [رفع Git LFS](git-lfs-push.md) — الرفع التجريبي قد يكتب أقفالاً محلية؛ لا تعطل LFS لتجاوز حماية عمليات Git.
 - [Imported calculator lifecycle](imported-calculator-lifecycle.md) — shared standalone scripts must skip initialization for unmounted panels without aborting global declarations.
 - [ملكية سجل الحاسبات](calculator-history-ownership.md) — النتائج نسخ مستقلة عن المسودة؛ لا تنسب سجلات المتصفح القديمة تلقائياً لحساب.
+- [أسرار OAuth وسيرفر المعاينة](oauth-secrets-runtime.md) — بعد إضافة أسرار OAuth أعد تشغيل سيرفر المعاينة قبل الحكم على إعداد المسارات.
