@@ -9,7 +9,7 @@ const config = require('./config');
 const COLLECTION_FIELDS = Object.freeze({
   users: new Set([
     'id', 'name', 'email', 'password_hash', 'role', 'plan', 'plan_expires_at',
-    'is_active', 'created_at', 'selected_tools',
+    'is_active', 'created_at', 'selected_tools', 'trial_used_at', 'trial_plan', 'trial_ends_at',
   ]),
   quotes: new Set([
     'id', 'number', 'client_id', 'employee_id', 'title', 'status', 'subtotal',
@@ -29,6 +29,10 @@ const COLLECTION_FIELDS = Object.freeze({
     'id', 'name', 'email', 'message', 'ip', 'is_read', 'created_at',
   ]),
   settings: new Set(['key', 'value']),
+  payment_transactions: new Set([
+    'id', 'user_id', 'plan', 'amount', 'currency', 'status', 'merchant_reference_id',
+    'geidea_session_id', 'geidea_order_id', 'response_code', 'created_at', 'updated_at', 'paid_at',
+  ]),
   calculator_results: new Set(['id', 'user_id', 'tool', 'title', 'price', 'currency_code', 'state', 'created_at']),
   calculator_states: new Set(['id', 'user_id', 'tool', 'state', 'updated_at']),
   price_shares: new Set(['id', 'user_id', 'tool', 'participant_type', 'sector', 'city', 'product', 'price', 'unit', 'currency_code', 'created_at']),
@@ -441,6 +445,9 @@ function createSqliteSchema() {
       role TEXT NOT NULL DEFAULT 'client',
       plan TEXT NOT NULL DEFAULT 'free',
       plan_expires_at TEXT,
+      trial_used_at TEXT,
+      trial_plan TEXT,
+      trial_ends_at TEXT,
       is_active INTEGER NOT NULL DEFAULT 1,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
@@ -500,6 +507,21 @@ function createSqliteSchema() {
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL DEFAULT ''
     );
+    CREATE TABLE IF NOT EXISTS payment_transactions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      plan TEXT NOT NULL,
+      amount REAL NOT NULL,
+      currency TEXT NOT NULL,
+      status TEXT NOT NULL,
+      merchant_reference_id TEXT NOT NULL UNIQUE,
+      geidea_session_id TEXT,
+      geidea_order_id TEXT,
+      response_code TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT,
+      paid_at TEXT
+    );
     CREATE TABLE IF NOT EXISTS _counters (
       id TEXT PRIMARY KEY,
       seq INTEGER NOT NULL DEFAULT 0
@@ -513,7 +535,10 @@ function createSqliteSchema() {
   `);
 
   // Add only known, non-destructive compatibility columns to older SQLite files.
-  migrateColumns('users', { plan_expires_at: 'TEXT', selected_tools: 'TEXT' });
+  migrateColumns('users', {
+    plan_expires_at: 'TEXT', selected_tools: 'TEXT', trial_used_at: 'TEXT',
+    trial_plan: 'TEXT', trial_ends_at: 'TEXT',
+  });
   migrateColumns('quotes', { items: "TEXT NOT NULL DEFAULT '[]'", currency_code: "TEXT NOT NULL DEFAULT 'SAR'" });
   migrateColumns('sessions', {
     expires_at: 'INTEGER',

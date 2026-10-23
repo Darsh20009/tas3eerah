@@ -1395,6 +1395,52 @@ async function requestUpgrade(planKey, planName) {
   }
 }
 
+async function startGeideaPayment(planKey) {
+  const result = await api('payments', { action: 'create_session', plan: planKey });
+  if (!result.success) {
+    showAppToast(result.error || 'تعذر بدء الدفع عبر جيديا', true);
+    return;
+  }
+  const start = () => {
+    if (typeof window.GeideaCheckout !== 'function') {
+      showAppToast('تعذر تحميل صفحة الدفع من جيديا.', true);
+      return;
+    }
+    const checkout = new window.GeideaCheckout(
+      async data => {
+        const confirmed = await api('payments', {
+          action: 'confirm', payment_id: result.data.paymentId, order_id: data.orderId,
+        });
+        if (confirmed.success) {
+          showAppToast('تم تأكيد الدفع وتفعيل اشتراكك.');
+          window.location.reload();
+        } else {
+          showAppToast(confirmed.error || 'لم يتم تأكيد الدفع. لم تتغير خطتك.', true);
+        }
+      },
+      () => showAppToast('تعذر إكمال الدفع. لم تتغير خطتك.', true),
+      () => showAppToast('أُلغيت عملية الدفع. لم تتغير خطتك.', true),
+    );
+    checkout.startPayment(result.data.sessionId);
+  };
+  if (typeof window.GeideaCheckout === 'function') return start();
+  const script = document.createElement('script');
+  script.src = 'https://www.ksamerchant.geidea.net/hpp/geideaCheckout.min.js';
+  script.onload = start;
+  script.onerror = () => showAppToast('تعذر تحميل صفحة الدفع من جيديا.', true);
+  document.head.appendChild(script);
+}
+
+async function startGeideaTrial(planKey) {
+  const result = await api('payments', { action: 'start_trial', plan: planKey });
+  if (!result.success) {
+    showAppToast(result.error || 'تعذر بدء الشهر المجاني', true);
+    return;
+  }
+  showAppToast('بدأ شهرك المجاني. يمكنك متابعة تاريخ انتهائه من الاشتراك.');
+  window.location.reload();
+}
+
 // ─── TOOL STATE (sessionStorage) ─────────
 function saveToolState(slug) {
   const panel = document.getElementById('tool-' + slug);
@@ -1888,12 +1934,13 @@ async function loadSubscriptions() {
     setText('planCount_free',       r.data.plan_free);
     setText('planCount_plus',       r.data.plan_plus);
     setText('planCount_pro',        r.data.plan_pro);
+    setText('subscriptionRevenue', `${new Intl.NumberFormat('ar-SA').format(Number(r.data.collected_revenue_sar || 0))} ر.س`);
   }
 
   const r2 = await api('admin?action=users');
   const tb = document.getElementById('subsTbody');
   if (!tb || !r2.success) return;
-  const paid = r2.data.filter(u => u.role === 'client' && u.is_active && u.plan !== 'free' && u.subscription_status === 'active');
+  const paid = r2.data.filter(u => u.role === 'client' && u.is_active && ['active', 'trial'].includes(u.subscription_status));
   const expired = r2.data.filter(u => u.subscription_status === 'expired');
   const monthlyValue = paid.reduce((sum, u) => sum + Number(u.monthly_plan_value || 0), 0);
   setText('activeSubscriptionCount', paid.length);
@@ -1903,9 +1950,10 @@ async function loadSubscriptions() {
     <tr>
        <td class="user-content">${esc(u.name)}</td>
        <td class="user-content" style="direction:ltr;text-align:right;font-size:12px">${esc(u.email)}</td>
-      <td><span class="badge" style="${u.subscription_status === 'active' ? 'background:rgba(92,186,150,.12);color:#2a8a60' : u.subscription_status === 'expired' || u.subscription_status === 'inactive' ? 'background:rgba(216,107,114,.1);color:var(--danger)' : ''}">${u.subscription_status === 'active' ? 'فعّال' : u.subscription_status === 'expired' ? 'منتهي' : u.subscription_status === 'inactive' ? 'حساب معطّل' : 'مجاني'}</span></td>
-      <td><span class="badge badge-${u.plan}">${planLabel(u.plan)}</span></td>
+      <td><span class="badge" style="${u.subscription_status === 'active' || u.subscription_status === 'trial' ? 'background:rgba(92,186,150,.12);color:#2a8a60' : u.subscription_status === 'expired' || u.subscription_status === 'inactive' ? 'background:rgba(216,107,114,.1);color:var(--danger)' : ''}">${u.subscription_status === 'active' ? 'فعّال' : u.subscription_status === 'trial' ? 'تجربة مجانية' : u.subscription_status === 'expired' ? 'منتهي' : u.subscription_status === 'inactive' ? 'حساب معطّل' : 'مجاني'}</span></td>
+      <td><span class="badge badge-${u.subscription_plan}">${planLabel(u.subscription_plan)}</span></td>
       <td style="font-size:12px">${new Intl.NumberFormat('ar-SA').format(Number(u.monthly_plan_value || 0))} ر.س</td>
+      <td style="font-size:12px">${new Intl.NumberFormat('ar-SA').format(Number(u.collected_total || 0))} ر.س</td>
       <td style="font-size:12px;color:var(--muted)">${u.plan_expires_at ? `${esc(u.plan_expires_at)}${u.days_remaining !== null ? ` · ${u.days_remaining > 0 ? `باقي ${u.days_remaining} يوم` : 'انتهى'}` : ''}` : '—'}</td>
       <td>
         <select class="form-control" style="width:110px" onchange="quickPlan(${u.id},this.value)">

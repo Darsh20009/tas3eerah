@@ -87,8 +87,10 @@ async function dashboardData(user) {
     statusCounts,
   };
 
-  const expiry = user.plan_expires_at && user.plan !== 'free'
-    ? Date.parse(user.plan_expires_at) : NaN;
+  const activeTrialExpiry = user.trial_plan === activePlan && user.trial_ends_at
+    ? Date.parse(user.trial_ends_at) : NaN;
+  const expiry = Number.isFinite(activeTrialExpiry) ? activeTrialExpiry
+    : user.plan_expires_at && user.plan !== 'free' ? Date.parse(user.plan_expires_at) : NaN;
   const daysLeft = Number.isFinite(expiry) ? Math.ceil((expiry - Date.now()) / 86400000) : null;
   const showExpiryBanner = daysLeft !== null && daysLeft <= 7;
   const expiryExpired = showExpiryBanner && daysLeft <= 0;

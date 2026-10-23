@@ -26,6 +26,10 @@ function safeUser(user) {
 }
 
 function effectivePlan(user) {
+  const trialExpiry = Date.parse(user?.trial_ends_at || '');
+  if (user?.trial_plan && Number.isFinite(trialExpiry) && trialExpiry > Date.now()) {
+    return user.trial_plan;
+  }
   const plan = user?.plan || 'free';
   const expires = user?.plan_expires_at;
   if (plan === 'free' || !expires) return plan;

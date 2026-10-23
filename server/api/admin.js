@@ -68,6 +68,7 @@ async function ratingStats() {
 async function stats(res) {
   const month = new Date().toISOString().slice(0, 7);
   const rating = await ratingStats();
+  const paidTransactions = await db.findAll('payment_transactions', { status: 'paid' });
   return sendOk(res, {
     users_total: await db.count('users'),
     users_active: await db.count('users', { is_active: 1 }),
@@ -81,6 +82,8 @@ async function stats(res) {
     plan_pro: await db.count('users', { plan: 'pro' }),
     rating_average: rating.average,
     rating_count: rating.count,
+    paid_transactions_count: paidTransactions.length,
+    collected_revenue_sar: paidTransactions.reduce((sum, payment) => sum + Number(payment.amount || 0), 0),
   });
 }
 
@@ -101,18 +104,30 @@ async function users(req, res) {
     projection: {
       id: 1, name: 1, email: 1, role: 1, plan: 1,
       plan_expires_at: 1, is_active: 1, created_at: 1,
+      trial_used_at: 1, trial_plan: 1, trial_ends_at: 1,
     },
   });
+  const paidTransactions = await db.findAll('payment_transactions', { status: 'paid' });
+  const collectedByUser = new Map();
+  for (const payment of paidTransactions) {
+    const id = Number(payment.user_id);
+    collectedByUser.set(id, (collectedByUser.get(id) || 0) + Number(payment.amount || 0));
+  }
   const now = Date.now();
   return sendOk(res, results.map((user) => {
     const expiry = user.plan_expires_at ? Date.parse(user.plan_expires_at) : NaN;
     const daysRemaining = Number.isFinite(expiry) ? Math.ceil((expiry - now) / 86400000) : null;
+    const trialExpiry = Date.parse(user.trial_ends_at || '');
+    const trialActive = Number.isFinite(trialExpiry) && trialExpiry > now;
     const expired = Number.isFinite(expiry) && expiry <= now && user.plan !== 'free';
+    const subscriptionPlan = trialActive ? user.trial_plan : user.plan;
     return {
       ...user,
-      subscription_status: !user.is_active ? 'inactive' : user.plan === 'free' ? 'free' : expired ? 'expired' : 'active',
-      days_remaining: daysRemaining,
-      monthly_plan_value: Number(PLANS[user.plan]?.price || 0),
+      subscription_status: !user.is_active ? 'inactive' : trialActive ? 'trial' : user.plan === 'free' ? 'free' : expired ? 'expired' : 'active',
+      days_remaining: trialActive ? Math.ceil((trialExpiry - now) / 86400000) : daysRemaining,
+      subscription_plan: subscriptionPlan,
+      monthly_plan_value: Number(PLANS[subscriptionPlan]?.price || 0),
+      collected_total: collectedByUser.get(Number(user.id)) || 0,
     };
   }));
 }

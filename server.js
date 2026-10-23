@@ -65,6 +65,7 @@ app.use('/api/auth', require('./server/api/auth'));
 app.use('/api/quotes', require('./server/api/quotes'));
 app.use('/api/messages', require('./server/api/messages'));
 app.use('/api/admin', require('./server/api/admin'));
+app.use('/api/payments', require('./server/api/payments'));
 app.use('/api/contact', require('./server/api/contact'));
 app.use('/api/calculators', require('./server/api/calculators'));
 app.use('/auth', require('./server/oauth'));
