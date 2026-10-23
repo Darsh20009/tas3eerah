@@ -22,6 +22,8 @@ const quotesRouter = require('./quotes');
 const adminRouter = require('./admin');
 const messagesRouter = require('./messages');
 const contactRouter = require('./contact');
+const paymentsRouter = require('./payments');
+const geidea = require('../geidea');
 
 let server;
 let origin;
@@ -98,6 +100,7 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
   app.use('/api/admin', adminRouter);
   app.use('/api/messages', messagesRouter);
   app.use('/api/contact', contactRouter);
+  app.use('/api/payments', paymentsRouter);
   app.use('/api/calculators', require('./calculators'));
   server = app.listen(0);
   await new Promise((resolve) => server.once('listening', resolve));
@@ -193,6 +196,114 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
   assert.equal(adminStats.json.success, true);
   assert.equal(adminStats.json.data.quotes_total, 1);
   assert.equal(adminStats.json.data.rating_count, 1);
+
+  const originalDateNow = Date.now;
+  const originalCreateSession = geidea.createSession;
+  const originalGetOrder = geidea.getOrder;
+  const originalDomain = process.env.REPLIT_DEV_DOMAIN;
+  let createdSession;
+  let approvedOrder = false;
+  geidea.createSession = async (input) => {
+    createdSession = input;
+    return { sessionId: 'test-session', publicKey: 'public-test-key' };
+  };
+  geidea.getOrder = async () => ({
+    order: {
+      responseCode: approvedOrder ? '000' : '123',
+      status: approvedOrder ? 'Paid' : 'Declined',
+      merchantReferenceId: createdSession.reference,
+      amount: 49,
+      currency: 'SAR',
+    },
+  });
+  process.env.REPLIT_DEV_DOMAIN = 'test.example.replit.dev';
+  try {
+    Date.now = () => Date.parse('2026-10-26T00:00:00+03:00');
+    const startedTrial = await request('/api/payments', {
+      jar: clientJar, method: 'POST', token: csrfToken,
+      body: { action: 'start_trial', plan: 'plus' },
+    });
+    assert.equal(startedTrial.response.status, 200, JSON.stringify(startedTrial.json));
+    assert.equal(startedTrial.json.data.plan, 'plus');
+    assert.ok(Date.parse(startedTrial.json.data.expires_at) > Date.now());
+    const duplicateTrial = await request('/api/payments', {
+      jar: clientJar, method: 'POST', token: csrfToken,
+      body: { action: 'start_trial', plan: 'pro' },
+    });
+    assert.equal(duplicateTrial.response.status, 409);
+
+    const paidTrialId = await db.insertDoc('users', {
+      name: 'مشترك حالي', email: 'paid-trial@example.test', password_hash: passwordHash,
+      role: 'client', plan: 'plus', plan_expires_at: new Date(Date.now() + 60 * 86400000).toISOString(),
+      trial_used_at: null, trial_plan: null, trial_ends_at: null, is_active: 1,
+    });
+    const paidTrialJar = new Map();
+    const paidTrialCsrf = await request('/api/auth?action=csrf', { jar: paidTrialJar });
+    await request('/api/auth', {
+      jar: paidTrialJar, method: 'POST', token: paidTrialCsrf.json.data.csrf_token,
+      body: { action: 'login', email: 'paid-trial@example.test', password: 'TestPassword@123' },
+    });
+    const existingCustomerTrial = await request('/api/payments', {
+      jar: paidTrialJar, method: 'POST', token: paidTrialCsrf.json.data.csrf_token,
+      body: { action: 'start_trial', plan: 'pro' },
+    });
+    assert.equal(existingCustomerTrial.response.status, 200, 'existing paid clients are eligible for the one-time offer');
+    assert.equal((await db.findOne('users', { id: paidTrialId })).plan, 'plus', 'trial does not overwrite the paid base plan');
+
+    const usedTrialId = await db.insertDoc('users', {
+      name: 'عميل استخدم التجربة', email: 'used-trial@example.test', password_hash: passwordHash,
+      role: 'client', plan: 'free', plan_expires_at: null,
+      trial_used_at: new Date().toISOString(), trial_plan: null, trial_ends_at: null, is_active: 1,
+    });
+    const usedTrialJar = new Map();
+    const usedTrialCsrf = await request('/api/auth?action=csrf', { jar: usedTrialJar });
+    await request('/api/auth', {
+      jar: usedTrialJar, method: 'POST', token: usedTrialCsrf.json.data.csrf_token,
+      body: { action: 'login', email: 'used-trial@example.test', password: 'TestPassword@123' },
+    });
+    const rejectedUsedTrial = await request('/api/payments', {
+      jar: usedTrialJar, method: 'POST', token: usedTrialCsrf.json.data.csrf_token,
+      body: { action: 'start_trial', plan: 'plus' },
+    });
+    assert.equal(rejectedUsedTrial.response.status, 409);
+    assert.equal((await db.findOne('users', { id: usedTrialId })).plan, 'free');
+
+    Date.now = originalDateNow;
+    const pending = await request('/api/payments', {
+      jar: clientJar, method: 'POST', token: csrfToken,
+      body: { action: 'create_session', plan: 'plus' },
+    });
+    assert.equal(pending.response.status, 200);
+    assert.equal(pending.json.data.sessionId, 'test-session');
+    assert.equal((await db.findOne('users', { id: clientId })).plan, 'free', 'creating checkout cannot activate a plan');
+    assert.equal((await db.findOne('payment_transactions', { id: pending.json.data.paymentId })).status, 'pending');
+
+    const declined = await request('/api/payments', {
+      jar: clientJar, method: 'POST', token: csrfToken,
+      body: { action: 'confirm', payment_id: pending.json.data.paymentId, order_id: 'declined-order' },
+    });
+    assert.equal(declined.response.status, 409);
+    assert.equal((await db.findOne('users', { id: clientId })).plan, 'free', 'declined payment cannot activate a plan');
+
+    approvedOrder = true;
+    const approvedSession = await request('/api/payments', {
+      jar: clientJar, method: 'POST', token: csrfToken,
+      body: { action: 'create_session', plan: 'plus' },
+    });
+    const confirmedPayment = await request('/api/payments', {
+      jar: clientJar, method: 'POST', token: csrfToken,
+      body: { action: 'confirm', payment_id: approvedSession.json.data.paymentId, order_id: 'approved-order' },
+    });
+    assert.equal(confirmedPayment.response.status, 200);
+    assert.equal((await db.findOne('users', { id: clientId })).plan, 'plus');
+    assert.ok(Date.parse(confirmedPayment.json.data.expires_at) > Date.now());
+  } finally {
+    Date.now = originalDateNow;
+    geidea.createSession = originalCreateSession;
+    geidea.getOrder = originalGetOrder;
+    if (originalDomain === undefined) delete process.env.REPLIT_DEV_DOMAIN;
+    else process.env.REPLIT_DEV_DOMAIN = originalDomain;
+  }
 
   const originalVerifySend = email.verifySend;
   const originalVerifyReceive = email.verifyReceive;

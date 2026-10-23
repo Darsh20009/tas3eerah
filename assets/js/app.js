@@ -27,6 +27,20 @@ const UI_TRANSLATIONS = {
   'بانتظار الرد':'Awaiting response', 'عملاء لديّ':'My clients',
   'قيد الانتظار':'Pending', 'بانتظار ردك':'Awaiting your response',
   'خطتك':'Your plan', 'مستوى الاشتراك':'Subscription level',
+  'خطة الاشتراك':'Subscription plan', 'مجاني':'Free', 'خطة خطتك':'Your plan',
+  'تسعيرة واحدة للخدمات أو المنتجات شهرياً':'1 service or product quote per month',
+  'تصدير ٣ تقارير PDF':'Export 3 PDF reports', 'سجل يعرض ٣ خدمات أو منتجات':'History of 3 services or products',
+  'مستخدم واحد':'1 user', 'دعم عبر البريد خلال ٣ أيام':'Email support within 3 days',
+  'اختيار أداتي تسعير حسب احتياجك':'Choose 2 pricing tools for your needs',
+  '١٥ تسعيراً للخدمات أو المنتجات شهرياً':'15 service or product quotes per month',
+  'تصدير ١٥ تقرير PDF':'Export 15 PDF reports', 'سجل مشاريع كامل':'Full project history',
+  'مستخدمان':'2 users', 'دعم عبر البريد خلال ٤٨ ساعة':'Email support within 48 hours',
+  'اختيار ٣ أدوات تسعير حسب احتياجك':'Choose 3 pricing tools for your needs',
+  'تسعير غير محدود للخدمات أو المنتجات':'Unlimited service or product quotes',
+  'حتى ٤ مستخدمين للفريق':'Up to 4 team members',
+  'رسائل داخلية بين أعضاء الفريق':'Internal messages between team members',
+  'تقارير PDF غير محدودة مع شعار العميل':'Unlimited PDF reports with your logo',
+  'أولوية الدعم خلال ٢٤ ساعة عبر البريد وواتساب':'Priority email and WhatsApp support within 24 hours',
   'ابدأ من هنا':'Start here', 'أدواتك السريعة':'Quick tools',
   'تسعير الخدمات':'Service pricing', 'للمشاريع والخدمات اليومية':'For daily projects and services',
   'الباقات والاشتراكات':'Packages & subscriptions', 'وزّع التكلفة على مستوياتك':'Distribute costs across your tiers',
@@ -323,7 +337,8 @@ const panelTitles = {
   users: ['إدارة المستخدمين', 'User Management'], subscriptions: ['الاشتراكات', 'Subscriptions'],
   mailbox: ['البريد الوارد', 'Mailbox'],
   'contact-inbox': ['رسائل الموقع', 'Website messages'], activity: ['سجل النشاط', 'Activity Log'],
-  settings: ['إعدادات النظام', 'System Settings'], account: ['حسابي', 'My Account']
+  settings: ['إعدادات النظام', 'System Settings'], account: ['حسابي', 'My Account'],
+  subscription: ['خطة الاشتراك', 'Subscription plan']
 };
 
 function panelTitle(panel) {
@@ -342,6 +357,32 @@ function panelTitle(panel) {
 document.addEventListener('DOMContentLoaded', () => {
   applyLanguage();
   installClassicQuoteBridge();
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('panel') === 'subscription' && APP.role === 'client') {
+    navDirect('subscription');
+    const paymentState = params.get('payment');
+    if (paymentState === 'success') {
+      showSubscriptionStatus(
+        'success',
+        'تم التحقق من الدفع وتفعيل الخطة. راجع تاريخ الانتهاء واستخدام الشهر في هذه الصفحة.',
+        'Payment verified and plan activated. Review your expiry date and monthly usage here.',
+      );
+      window.history.replaceState({}, '', `${window.location.pathname}?panel=subscription`);
+    } else if (paymentState === 'trial') {
+      showSubscriptionStatus(
+        'success',
+        'بدأ الشهر المجاني. تاريخ الانتهاء وحدود خطتك الحالية ظاهرة في هذه الصفحة.',
+        'Your free month has started. Its end date and your current plan limits are shown here.',
+      );
+      window.history.replaceState({}, '', `${window.location.pathname}?panel=subscription`);
+    } else if (paymentState === 'cancelled') {
+      showSubscriptionStatus('info', 'أُلغيت عملية الدفع. لم تتغير خطتك؛ يمكنك اختيار خطة لاحقاً.', 'Checkout was cancelled. Your plan was not changed; you can choose a plan later.');
+      window.history.replaceState({}, '', `${window.location.pathname}?panel=subscription`);
+    } else if (paymentState === 'failed') {
+      showSubscriptionStatus('error', 'لم تكتمل عملية الدفع ولم تتغير خطتك. حاول مجدداً أو تواصل مع الدعم إذا خُصم المبلغ.', 'Payment did not complete and your plan was not changed. Retry or contact support if you were charged.');
+      window.history.replaceState({}, '', `${window.location.pathname}?panel=subscription`);
+    }
+  }
   languageObserver = new MutationObserver(() => {
     if (!languageObserver) return;
     languageObserver.disconnect();
@@ -1310,9 +1351,18 @@ function updateCicLabel(toolId) {
 }
 
 function showPlanUpgrade() {
-  document.getElementById('upgradeModal').classList.remove('hidden');
+  window.suggestedUpgradePlan = APP.effectivePlan === 'plus' ? 'pro' : 'plus';
+  document.getElementById('upgradeModal')?.classList.remove('hidden');
 }
 
+function focusSuggestedPlan() {
+  if (APP.role !== 'client') return;
+  const key = window.suggestedUpgradePlan || (APP.effectivePlan === 'plus' ? 'pro' : 'plus');
+  document.querySelectorAll('.sub-plan').forEach(card => card.classList.remove('sub-plan-suggested'));
+  const card = document.querySelector(`.sub-plan[data-plan="${key}"]`);
+  card?.classList.add('sub-plan-suggested');
+  card?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
 async function openClassicQuote(slug, title, amount, notes = '') {
   const value = Number(amount) || 0;
   if (value <= 0) {
@@ -1426,85 +1476,155 @@ function installClassicQuoteBridge() {
   };
 }
 
-async function requestUpgrade(planKey, planName) {
-  const msg = document.getElementById('upgradeRequestMsg');
-  const showMessage = (text, isError = false) => {
-    if (!msg) return;
-    msg.className = `alert alert-${isError ? 'danger' : 'success'} mt-16`;
-    msg.textContent = text;
-  };
+let subscriptionChoice = null;
 
-  showMessage('جارٍ إرسال طلب الترقية...');
-
-  const contactsResponse = await api('messages?action=contacts');
-  const contacts = contactsResponse.success && Array.isArray(contactsResponse.data)
-    ? contactsResponse.data
-    : [];
-  const admin = contacts.find(contact => contact.role === 'admin');
-
-  if (!admin) {
-    showMessage('تعذر العثور على حساب الإدارة لإرسال الطلب.', true);
+function showSubscriptionStatus(kind, arabic, english) {
+  const status = document.getElementById('subscriptionFlowStatus');
+  if (!status) {
+    showAppToast(L.current === 'en' ? english : arabic, kind !== 'success');
     return;
   }
-
-  const response = await api('messages', {
-    action: 'upgrade_request',
-    receiver_id: admin.id,
-    plan: planKey,
-    plan_name: planName,
-  });
-
-  if (response.success) {
-    showMessage('تم إرسال طلب الترقية إلى الإدارة بنجاح.');
-  } else {
-    showMessage(response.error || 'تعذر إرسال طلب الترقية حالياً.', true);
-  }
+  status.className = `alert alert-${kind === 'success' ? 'success' : kind === 'info' ? 'info' : 'danger'} mb-8`;
+  status.textContent = L.current === 'en' ? english : arabic;
+  status.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
-async function startGeideaPayment(planKey) {
-  const result = await api('payments', { action: 'create_session', plan: planKey });
-  if (!result.success) {
-    showAppToast(result.error || 'تعذر بدء الدفع عبر جيديا', true);
-    return;
+function reviewSubscriptionChoice(planKey, mode) {
+  const plan = SUBSCRIPTION_PLANS?.[planKey];
+  if (!plan || !['trial', 'payment'].includes(mode) || plan.price <= 0) return;
+  subscriptionChoice = { planKey, mode };
+  const arabic = L.current !== 'en';
+  const name = arabic ? plan.name_ar : plan.name_en;
+  const monthlyQuotes = plan.max_quotes === -1
+    ? (arabic ? 'تسعيرات غير محدودة كل شهر' : 'Unlimited quotes each month')
+    : (arabic ? `${plan.max_quotes} تسعيرة كل شهر` : `${plan.max_quotes} quotes each month`);
+  const pdfReports = plan.max_pdf_reports === -1
+    ? (arabic ? 'تقارير PDF غير محدودة' : 'Unlimited PDF reports')
+    : (arabic ? `${plan.max_pdf_reports} تقرير PDF` : `${plan.max_pdf_reports} PDF reports`);
+  const tools = plan.tool_limit
+    ? (arabic ? `${plan.tool_limit} أدوات تسعير متخصصة` : `${plan.tool_limit} specialized pricing tools`)
+    : '';
+  const period = arabic ? 'شهر واحد' : '1 month';
+  const price = arabic ? `${Number(plan.price).toLocaleString('ar-SA')} ر.س، شامل الضريبة` : `SAR ${plan.price}, VAT included`;
+  document.getElementById('subscriptionReviewPlan').textContent = `${arabic ? 'الخطة المختارة:' : 'Selected plan:'} ${name}`;
+  document.getElementById('subscriptionReviewPrice').textContent = mode === 'trial'
+    ? (arabic ? `الفترة: ${period} مجاناً، ثم لا يوجد خصم تلقائي.` : `Period: ${period} free, with no automatic charge afterwards.`)
+    : (arabic ? `الفترة: ${period} · السعر: ${price}` : `Period: ${period} · Price: ${price}`);
+  document.getElementById('subscriptionReviewBenefits').textContent = [monthlyQuotes, pdfReports, tools].filter(Boolean).join(' · ');
+  document.querySelectorAll('.sub-plan').forEach(card => card.classList.remove('sub-plan-selected'));
+  const selectedCard = document.querySelector(`.sub-plan[data-plan="${planKey}"]`);
+  selectedCard?.classList.add('sub-plan-selected');
+  const trialNote = document.getElementById('subscriptionReviewTrialNote');
+  if (trialNote) {
+    trialNote.classList.toggle('hidden', mode !== 'trial');
+    trialNote.textContent = mode === 'trial'
+      ? (arabic
+        ? 'سيبدأ الشهر المجاني فور التأكيد دون إدخال بطاقة. ينتهي بعد شهر؛ بعدها تعود إلى خطتك الحالية ما لم تشترك.'
+        : 'The free month starts after confirmation without entering a card. After one month, your account returns to its current plan unless you subscribe.')
+      : '';
   }
-  const start = () => {
-    if (typeof window.GeideaCheckout !== 'function') {
-      showAppToast('تعذر تحميل صفحة الدفع من جيديا.', true);
+  const confirm = document.getElementById('subscriptionReviewConfirm');
+  const label = confirm?.querySelector('span');
+  if (label) label.textContent = mode === 'trial'
+    ? (arabic ? 'ابدأ الشهر المجاني' : 'Start free month')
+    : (arabic ? 'انتقل إلى دفع جيديا' : 'Continue to Geidea checkout');
+  document.getElementById('subscriptionReviewStatus')?.classList.add('hidden');
+  document.getElementById('subscriptionReviewModal')?.classList.remove('hidden');
+}
+
+function closeSubscriptionReview() {
+  document.getElementById('subscriptionReviewModal')?.classList.add('hidden');
+  subscriptionChoice = null;
+}
+
+async function confirmSubscriptionChoice() {
+  if (!subscriptionChoice) return;
+  const { planKey, mode } = subscriptionChoice;
+  const confirmButton = document.getElementById('subscriptionReviewConfirm');
+  if (confirmButton) confirmButton.disabled = true;
+  const status = document.getElementById('subscriptionReviewStatus');
+  const setReviewStatus = (kind, ar, en) => {
+    if (!status) return;
+    status.className = `alert alert-${kind === 'success' ? 'success' : kind === 'info' ? 'info' : 'danger'} mt-16`;
+    status.textContent = L.current === 'en' ? en : ar;
+  };
+  setReviewStatus('info', mode === 'trial' ? 'جارٍ تفعيل الشهر المجاني...' : 'جارٍ إنشاء جلسة الدفع...', mode === 'trial' ? 'Starting your free month...' : 'Creating your checkout session...');
+  if (mode === 'trial') {
+    const result = await api('payments', { action: 'start_trial', plan: planKey });
+    if (!result.success) {
+      setReviewStatus('error', result.error || 'تعذر بدء الشهر المجاني. لم تتغير خطتك.', 'Could not start the free month. Your plan was not changed. Check eligibility or contact support.');
+      if (confirmButton) confirmButton.disabled = false;
       return;
     }
-    const checkout = new window.GeideaCheckout(
-      async data => {
-        const confirmed = await api('payments', {
-          action: 'confirm', payment_id: result.data.paymentId, order_id: data.orderId,
-        });
-        if (confirmed.success) {
-          showAppToast('تم تأكيد الدفع وتفعيل اشتراكك.');
-          window.location.reload();
-        } else {
-          showAppToast(confirmed.error || 'لم يتم تأكيد الدفع. لم تتغير خطتك.', true);
-        }
-      },
-      () => showAppToast('تعذر إكمال الدفع. لم تتغير خطتك.', true),
-      () => showAppToast('أُلغيت عملية الدفع. لم تتغير خطتك.', true),
-    );
-    checkout.startPayment(result.data.sessionId);
-  };
-  if (typeof window.GeideaCheckout === 'function') return start();
-  const script = document.createElement('script');
-  script.src = 'https://www.ksamerchant.geidea.net/hpp/geideaCheckout.min.js';
-  script.onload = start;
-  script.onerror = () => showAppToast('تعذر تحميل صفحة الدفع من جيديا.', true);
-  document.head.appendChild(script);
-}
-
-async function startGeideaTrial(planKey) {
-  const result = await api('payments', { action: 'start_trial', plan: planKey });
-  if (!result.success) {
-    showAppToast(result.error || 'تعذر بدء الشهر المجاني', true);
+    window.location.href = `${window.location.pathname}?panel=subscription&payment=trial`;
     return;
   }
-  showAppToast('بدأ شهرك المجاني. يمكنك متابعة تاريخ انتهائه من الاشتراك.');
-  window.location.reload();
+
+  const result = await api('payments', { action: 'create_session', plan: planKey });
+  if (!result.success) {
+    setReviewStatus('error', `${result.error || 'تعذر بدء الدفع.'} لم تتغير خطتك. حاول مرة أخرى أو تواصل مع الدعم.`, 'Could not start Geidea checkout. Your plan was not changed. Try again or contact support.');
+    if (confirmButton) confirmButton.disabled = false;
+    return;
+  }
+  const launchCheckout = () => {
+    if (typeof window.GeideaCheckout !== 'function') {
+      setReviewStatus('error', 'تعذر تحميل صفحة الدفع من جيديا. لم تتغير خطتك؛ تحقق من الاتصال ثم أعد المحاولة.', 'Could not load Geidea checkout. Your plan was not changed; check your connection and retry.');
+      if (confirmButton) confirmButton.disabled = false;
+      return;
+    }
+    try {
+      const checkout = new window.GeideaCheckout(
+        async data => {
+          if (!data?.orderId) {
+            setReviewStatus('error', 'لم يصل رقم الطلب من جيديا. لم تتغير خطتك؛ تواصل مع الدعم قبل إعادة الدفع.', 'Geidea did not return an order ID. Your plan was not changed; contact support before trying again.');
+            if (confirmButton) confirmButton.disabled = false;
+            return;
+          }
+          setReviewStatus('info', 'جارٍ التحقق من الدفع لدى جيديا...', 'Verifying payment with Geidea...');
+          const confirmed = await api('payments', {
+            action: 'confirm', payment_id: result.data.paymentId, order_id: data.orderId,
+          });
+          if (confirmed.success) {
+            window.location.href = `${window.location.pathname}?panel=subscription&payment=success`;
+          } else {
+            setReviewStatus('error', `${confirmed.error || 'لم تؤكد جيديا نجاح الدفع.'} لم يتم تفعيل الخطة. إذا خُصم المبلغ، تواصل مع الدعم.`, 'Geidea did not verify this payment. Your plan was not activated. Contact support if you were charged.');
+            if (confirmButton) confirmButton.disabled = false;
+          }
+        },
+        () => {
+          setReviewStatus('error', 'لم تكتمل عملية الدفع. لم تتغير خطتك؛ يمكنك المحاولة مجدداً.', 'Payment did not complete. Your plan was not changed; you can try again.');
+          if (confirmButton) confirmButton.disabled = false;
+        },
+        () => {
+          setReviewStatus('info', 'ألغيت الدفع. لم تتغير خطتك؛ يمكنك اختيار الخطة لاحقاً.', 'You cancelled checkout. Your plan was not changed; you can choose a plan later.');
+          if (confirmButton) confirmButton.disabled = false;
+        },
+      );
+      checkout.startPayment(result.data.sessionId);
+    } catch {
+      setReviewStatus('error', 'تعذر بدء واجهة دفع جيديا. لم تتغير خطتك؛ أعد المحاولة.', 'Could not start Geidea checkout. Your plan was not changed; retry.');
+      if (confirmButton) confirmButton.disabled = false;
+    }
+  };
+  if (typeof window.GeideaCheckout === 'function') return launchCheckout();
+  let script = document.querySelector('script[data-geidea-checkout]');
+  if (script) {
+    script.addEventListener('load', launchCheckout, { once: true });
+    script.addEventListener('error', () => {
+      setReviewStatus('error', 'تعذر تحميل صفحة الدفع من جيديا. لم تتغير خطتك؛ أعد المحاولة.', 'Could not load Geidea checkout. Your plan was not changed; retry.');
+      if (confirmButton) confirmButton.disabled = false;
+    }, { once: true });
+    return;
+  }
+  script = document.createElement('script');
+  script.dataset.geideaCheckout = 'true';
+  script.src = 'https://www.ksamerchant.geidea.net/hpp/geideaCheckout.min.js';
+  script.onload = launchCheckout;
+  script.onerror = () => {
+    setReviewStatus('error', 'تعذر تحميل صفحة الدفع من جيديا. لم تتغير خطتك؛ تحقق من الاتصال ثم أعد المحاولة.', 'Could not load Geidea checkout. Your plan was not changed; check your connection and retry.');
+    if (confirmButton) confirmButton.disabled = false;
+  };
+  document.head.appendChild(script);
 }
 
 // ─── TOOL STATE (sessionStorage) ─────────

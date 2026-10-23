@@ -2,6 +2,7 @@
 <!DOCTYPE html>
 <% if (typeof locals.csrfToken !== 'string') throw new Error('Dashboard route must provide csrfToken'); if (typeof locals.openAccessMode !== 'boolean') throw new Error('Dashboard route must provide openAccessMode'); if (!Array.isArray(stats)) throw new Error('Dashboard route must provide stats cards'); if (!locals.overview) throw new Error('Dashboard route must provide overview metrics'); if (!Number.isFinite(Number(locals.quotesUsedThisMonth))) throw new Error('Dashboard route must provide quotesUsedThisMonth'); if (typeof locals.showExpiryBanner !== 'boolean') throw new Error('Dashboard route must provide expiry-banner state'); const csrfToken = locals.csrfToken; const role = user.role; const openAccessMode = locals.openAccessMode; const roleLabel = ({admin:'مدير النظام',employee:'موظف',client:'عميل'})[role] || role; const planName = plan.name_ar; const userTools = (isAdmin || openAccessMode) ? ['all'] : (plan.tools || []); const quickTools = [['services','01','الخدمات','تسعير الخدمات','calc_basic','/assets/landing/sector-services-icon-transparent.png'],['packages','02','الباقات','الباقات والاشتراكات','calc_pkg','/assets/landing/empty-box-transparent.png'],['menu','03','القائمة','المطاعم والكافيهات','calc_menu','/assets/landing/sector-restaurants-icon-transparent.png'],['retail','04','التجزئة','التجزئة والجملة','calc_store','/assets/landing/sector-retail-icon-transparent.png'],['tech','05','التقنية','المشاريع التقنية','calc_labor','/assets/landing/sector-technology-icon-transparent.png'],['saas','06','الاشتراكات','الخدمات المتكررة','calc_custom','/assets/landing/sector-technology-icon-transparent.png'],['design','07','التصميم','التصميم والمعمار','calc_office','/assets/landing/sector-design-icon-transparent.png']]; const maxQuotesThisMonth = isAdmin ? -1 : Number(locals.maxQuotesThisMonth ?? plan.max_quotes); const quotesUsedThisMonth = Number(locals.quotesUsedThisMonth); const quotesRemaining = maxQuotesThisMonth === -1 ? null : Math.max(0,maxQuotesThisMonth-quotesUsedThisMonth); const quotaLabel = locals.quotaLabel || (maxQuotesThisMonth===-1?'تسعير غير محدود':'متبقي '+quotesRemaining+' من '+maxQuotesThisMonth+' هذا الشهر'); const showExpiryBanner = locals.showExpiryBanner; const expiryBannerMsg = locals.expiryBannerMsg || ''; const expiryExpired = Boolean(locals.expiryExpired); const overview = locals.overview; const appData = locals.appData || {role,isAdmin,uid:Number(user.id),plan:user.plan,effectivePlan,isPaid:true,name:user.name,maxQuotes:maxQuotesThisMonth,quotesUsed:quotesUsedThisMonth,quotesRemaining}; const assetVersion = locals.assetVersion || 1; const currentYear = new Date().getFullYear(); const formatNumber=(value,decimals=0)=>Number(value||0).toLocaleString('en-US',{minimumFractionDigits:decimals,maximumFractionDigits:decimals}); const count=value=>Array.isArray(value)?value.length:Object.keys(value||{}).length; const escapeHtml=value=>value; %>
 <% const freeTrialAvailable = Date.now() >= Date.parse('2026-10-25T00:00:00+03:00'); %>
+<% const trialExpiryDate = Date.parse(user.trial_ends_at || ''); const activeFreeTrial = Boolean(user.trial_plan === effectivePlan && Number.isFinite(trialExpiryDate) && trialExpiryDate > Date.now()); const trialEligible = freeTrialAvailable && !user.trial_used_at; const subscriptionExpiry = activeFreeTrial ? user.trial_ends_at : (user.plan !== 'free' ? user.plan_expires_at : null); %>
 <% const workspaceCopy = {
   client: { welcome: 'مرحباً بك', welcomeEn: 'Welcome', intro: 'ابدأ طلب تسعيرتك، تابع رد الموظف، وتأكد من خطتك من مكان واحد.' },
   employee: { welcome: 'مساحة عملك', welcomeEn: 'Your workspace', intro: 'ابدأ بعرض يحتاج إلى متابعة، أو أنشئ عرضاً جديداً لعميلك.' },
@@ -555,14 +556,29 @@
     <div class="section-panel" id="panel-subscription">
       <div class="card">
         <div class="card-header">
-          <h3>خطة الاشتراك</h3>
+          <div>
+            <h3>خطتك واستخدامك</h3>
+            <small style="display:block;color:var(--muted);margin-top:4px" data-ar="راجع الحد الحالي، ثم اختر الخطة المناسبة قبل الانتقال للدفع." data-en="Review your current limits, then choose a plan before checkout.">راجع الحد الحالي، ثم اختر الخطة المناسبة قبل الانتقال للدفع.</small>
+          </div>
           <span class="badge badge-<%= effectivePlan %>"><%= plans[effectivePlan]['name_ar'] %></span>
         </div>
+        <div class="mailbox-note" style="margin-bottom:16px" id="subscriptionCurrentStatus">
+          <% if (activeFreeTrial) { %>
+            <span data-ar="تجربتك المجانية لخطة <%= plans[effectivePlan].name_ar %> تنتهي في " data-en="Your free trial for <%= plans[effectivePlan].name_en %> ends on "><%= `تجربتك المجانية لخطة ${plans[effectivePlan].name_ar} تنتهي في ` %></span><strong><%= new Date(subscriptionExpiry).toLocaleDateString('ar-SA') %></strong>
+          <% } else if (subscriptionExpiry && Date.parse(subscriptionExpiry) > Date.now()) { %>
+            <span data-ar="اشتراكك الحالي ساري حتى " data-en="Your current subscription is active until "><%= 'اشتراكك الحالي ساري حتى ' %></span><strong><%= new Date(subscriptionExpiry).toLocaleDateString('ar-SA') %></strong>
+          <% } else if (user.trial_used_at) { %>
+            <span data-ar="استخدمت الشهر المجاني سابقاً. يمكنك اختيار خطة مدفوعة للمتابعة." data-en="Your free month has already been used. Choose a paid plan to continue.">استخدمت الشهر المجاني سابقاً. يمكنك اختيار خطة مدفوعة للمتابعة.</span>
+          <% } else { %>
+            <span data-ar="الخطة الحالية: " data-en="Current plan: ">الخطة الحالية: </span><strong><%= plans[effectivePlan].name_ar %></strong>
+          <% } %>
+        </div>
+        <div id="subscriptionFlowStatus" class="hidden mb-8" role="status" aria-live="polite"></div>
 
         <!-- Usage summary -->
         <div class="upgrade-current" style="margin-bottom:24px">
           <div class="upgrade-usage">
-            <span>عروض الأسعار هذا الشهر</span>
+            <span data-ar="استخدام التسعيرات هذا الشهر" data-en="Quotes used this month">استخدام التسعيرات هذا الشهر</span>
             <strong id="subUsageCount">
               <%= quotesUsedThisMonth %>
               /
@@ -583,10 +599,10 @@
         </div>
 
         <!-- Plan comparison -->
-        <h4 style="font-size:13px;font-weight:800;margin-bottom:16px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">مقارنة الخطط</h4>
+        <h4 style="font-size:13px;font-weight:800;margin-bottom:16px;color:var(--muted)" data-ar="اختر خطتك" data-en="Choose your plan">اختر خطتك</h4>
         <div class="sub-plan-cards">
           <% for (const [pKey, pVal] of Object.entries(plans)) { %>
-          <div class="sub-plan <%= effectivePlan === pKey ? 'sub-plan-current' : '' %>">
+          <div class="sub-plan <%= effectivePlan === pKey ? 'sub-plan-current' : '' %>" data-plan="<%= pKey %>">
             <% if (effectivePlan === pKey) { %>
             <div style="font-size:10px;font-weight:800;color:var(--p);letter-spacing:.5px;margin-bottom:6px">خطتك الحالية</div>
             <% } %>
@@ -602,18 +618,25 @@
               ✓ <%= feat %><br>
               <% } %>
             </div>
-            <% if (pVal['price'] > 0 && !user.trial_used_at) { %>
-            <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:12px"
-                    <%= freeTrialAvailable ? '' : 'disabled' %>
-                    onclick="startGeideaTrial('<%= pKey %>')">
-              <%= freeTrialAvailable ? 'ابدأ شهراً مجانياً' : 'متاح من الأحد 25 أكتوبر' %>
-            </button>
-            <% } %>
             <% if (pVal['price'] > 0) { %>
-            <button class="btn btn-outline btn-sm" style="width:100%;margin-top:12px"
-                    onclick="startGeideaPayment('<%= pKey %>')">
-              اشترك أو جدّد عبر جيديا
-            </button>
+              <div style="font-size:12px;color:var(--muted);margin-top:10px">
+                <span data-ar="الفترة: شهر واحد" data-en="Billing period: 1 month">الفترة: شهر واحد</span>
+                <span> · </span><span data-ar="السعر: <%= formatNumber(pVal.price, 0) %> ر.س" data-en="Price: <%= formatNumber(pVal.price, 0) %> SAR"><%= `السعر: ${formatNumber(pVal.price, 0)} ر.س` %></span>
+              </div>
+              <% if (trialEligible) { %>
+              <button class="btn btn-primary btn-sm" style="width:100%;margin-top:12px"
+                      onclick="reviewSubscriptionChoice('<%= pKey %>', 'trial')">
+                <span data-ar="راجع الشهر المجاني" data-en="Review free month">راجع الشهر المجاني</span>
+              </button>
+              <% } else if (!freeTrialAvailable && !user.trial_used_at) { %>
+              <p style="font-size:11px;color:var(--muted);margin:10px 0 0" data-ar="يبدأ عرض الشهر المجاني يوم الأحد 25 أكتوبر 2026." data-en="The free-month offer starts Sunday, October 25, 2026.">يبدأ عرض الشهر المجاني يوم الأحد 25 أكتوبر 2026.</p>
+              <% } else if (user.trial_used_at) { %>
+              <p style="font-size:11px;color:var(--muted);margin:10px 0 0" data-ar="الشهر المجاني مستخدم لهذا الحساب." data-en="The free month has already been used on this account.">الشهر المجاني مستخدم لهذا الحساب.</p>
+              <% } %>
+              <button class="btn btn-outline btn-sm" style="width:100%;margin-top:12px"
+                      onclick="reviewSubscriptionChoice('<%= pKey %>', 'payment')">
+                <span data-ar="<%= effectivePlan === pKey ? 'مراجعة التجديد والدفع' : 'مراجعة الخطة والدفع' %>" data-en="<%= effectivePlan === pKey ? 'Review renewal and payment' : 'Review plan and payment' %>"><%= effectivePlan === pKey ? 'مراجعة التجديد والدفع' : 'مراجعة الخطة والدفع' %></span>
+              </button>
             <% } %>
           </div>
           <% } %>
@@ -1273,6 +1296,25 @@
   </div>
 </div>
 
+<div class="modal-overlay hidden" id="subscriptionReviewModal" role="dialog" aria-modal="true" aria-labelledby="subscriptionReviewTitle">
+  <div class="modal-box" style="max-width:480px">
+    <h3 id="subscriptionReviewTitle" data-ar="راجع اختيارك" data-en="Review your choice">راجع اختيارك</h3>
+    <p id="subscriptionReviewPlan" style="font-size:14px;font-weight:700;margin:14px 0 6px"></p>
+    <p id="subscriptionReviewPrice" style="color:var(--muted);font-size:13px"></p>
+    <p id="subscriptionReviewBenefits" style="font-size:13px;line-height:1.8;margin-top:12px"></p>
+    <p id="subscriptionReviewTrialNote" class="mailbox-note hidden" style="margin-top:12px"></p>
+    <div id="subscriptionReviewStatus" class="hidden mt-16" role="status" aria-live="polite"></div>
+    <div class="flex gap-8" style="margin-top:20px">
+      <button class="btn btn-primary flex-1" id="subscriptionReviewConfirm" onclick="confirmSubscriptionChoice()">
+        <span data-ar="تأكيد ومتابعة" data-en="Confirm and continue">تأكيد ومتابعة</span>
+      </button>
+      <button class="btn btn-ghost" id="subscriptionReviewCancel" onclick="closeSubscriptionReview()">
+        <span data-ar="رجوع" data-en="Back">رجوع</span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Plan upgrade notice -->
 <div class="modal-overlay hidden" id="upgradeModal">
   <div class="modal-box" style="text-align:center">
@@ -1281,7 +1323,7 @@
     <p style="color:var(--muted);font-size:13px;margin-bottom:20px">هذه الأداة متاحة بعد اختيارها ضمن باقة Plus أو Pro.</p>
     <div class="flex gap-8" style="justify-content:center">
       <% if (role === 'client') { %>
-      <button class="btn btn-primary" onclick="document.getElementById('upgradeModal').classList.add('hidden');navDirect('subscription')">عرض خطط الاشتراك</button>
+      <button class="btn btn-primary" onclick="document.getElementById('upgradeModal').classList.add('hidden');navDirect('subscription');focusSuggestedPlan()">عرض خطط الاشتراك</button>
       <% } else { %>
       <button class="btn btn-primary" onclick="document.getElementById('upgradeModal').classList.add('hidden')">حسناً</button>
       <% } %>
@@ -1292,6 +1334,11 @@
 
 <script>
 const APP = <%- JSON.stringify(appData).replace(/[<>&]/g, character => ({'<':'\\u003c','>':'\\u003e','&':'\\u0026'}[character])) %>;
+const SUBSCRIPTION_PLANS = <%- JSON.stringify(Object.fromEntries(Object.entries(plans).map(([key, value]) => [key, {
+  name_ar: value.name_ar, name_en: value.name_en, price: value.price,
+  max_quotes: value.max_quotes, max_pdf_reports: value.max_pdf_reports,
+  tool_limit: value.tool_limit || 0,
+}]))) %>;
 </script>
 <script src="/assets/js/currency.js?v=2"></script>
 <script src="/assets/js/app.js?v=<%= assetVersion %>"></script>

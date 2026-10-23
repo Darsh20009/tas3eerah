@@ -32,7 +32,7 @@ router.post('/', async (req, res) => {
       const now = new Date();
       const expiry = new Date(now);
       expiry.setMonth(expiry.getMonth() + 1);
-      const modified = await db.updateDoc('users', { id: Number(req.user.id), trial_used_at: null }, {
+      const modified = await db.updateDoc('users', { id: Number(req.user.id), trial_used_at: { $eq: null } }, {
         trial_used_at: now.toISOString(),
         trial_plan: plan,
         trial_ends_at: expiry.toISOString(),

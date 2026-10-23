@@ -2547,6 +2547,8 @@ select.form-control { cursor: pointer; }
   border-radius: var(--r-xl); padding: 20px; transition: .15s;
 }
 .sub-plan:hover { border-color: var(--p); box-shadow: var(--sh-md); }
+.sub-plan-selected,
+.sub-plan-suggested { border-color: var(--p); box-shadow: 0 0 0 2px var(--p-l); }
 .sub-plan-name {
   font-size: 13px; font-weight: 800; display: flex;
   align-items: center; gap: 8px; margin-bottom: 8px; color: var(--text);
@@ -2579,6 +2581,7 @@ select.form-control { cursor: pointer; }
   .field-grid { grid-template-columns: repeat(auto-fill, minmax(110px,1fr)); }
   .svc-grid-2 { grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); }
   .topbar-actions .btn:not(.btn-primary) { display: none; }
+  .topbar-actions #langBtn { display: inline-flex; }
   .account-card { padding: 16px; }
   .account-hero { align-items: flex-start; flex-wrap: wrap; }
   .account-admin-note { width: 100%; margin: 2px 0 0; }
