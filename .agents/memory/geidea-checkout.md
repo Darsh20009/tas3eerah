@@ -13,4 +13,6 @@ The hosted form may redirect directly to the configured return URL with `orderId
 
 **Why:** a real sandbox order succeeded while the first transaction was Authentication, and an earlier parser marked it failed despite the order and Pay transaction succeeding.
 
-**How to apply:** test the complete HPP return and server-side confirmation, not only session creation. The KSA sandbox's declined-card response may leave the HPP open without posting an error callback to the parent, so do not infer activation from browser state or assume the callback fires on every decline.
+**How to apply:** test the complete HPP return and server-side confirmation, not only session creation. A declined attempt can leave the HPP open without an error callback. Query the KSA order endpoint by the stored `MerchantReferenceId` while checkout is open; show a decline only for a final failed order, and still verify successful orders by order ID before activation.
+
+**Why:** the KSA sandbox returned a final Failed order with a Pay transaction by merchant-reference lookup even though the hosted iframe had sent no error callback to its parent.

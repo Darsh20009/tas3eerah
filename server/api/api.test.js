@@ -200,6 +200,7 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
   const originalDateNow = Date.now;
   const originalCreateSession = geidea.createSession;
   const originalGetOrder = geidea.getOrder;
+  const originalGetOrdersByReference = geidea.getOrdersByReference;
   const originalDomain = process.env.REPLIT_DEV_DOMAIN;
   let createdSession;
   let sessionCount = 0;
@@ -221,6 +222,18 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
         { type: 'Pay', status: approvedOrder ? 'Success' : 'Declined', amount: 49, currency: 'SAR' },
       ],
     },
+  });
+  geidea.getOrdersByReference = async reference => ({
+    responseCode: '000',
+    orders: [{
+      orderId: approvedOrder ? 'approved-order' : 'declined-order',
+      status: approvedOrder ? 'Success' : 'Failed',
+      merchantReferenceId: reference,
+      transactions: [
+        { type: 'Authentication', status: 'Success' },
+        { type: 'Pay', status: approvedOrder ? 'Success' : 'Failed', responseCode: approvedOrder ? '000' : '700' },
+      ],
+    }],
   });
   process.env.REPLIT_DEV_DOMAIN = 'test.example.replit.dev';
   try {
@@ -291,15 +304,28 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
     });
     assert.equal(declined.response.status, 409);
     assert.equal((await db.findOne('users', { id: clientId })).plan, 'free', 'declined payment cannot activate a plan');
+    const declinedStatus = await request('/api/payments', {
+      jar: clientJar, method: 'POST', token: csrfToken,
+      body: { action: 'status', session_id: pending.json.data.sessionId },
+    });
+    assert.equal(declinedStatus.response.status, 200);
+    assert.equal(declinedStatus.json.data.status, 'failed');
+    assert.equal((await db.findOne('payment_transactions', { id: pending.json.data.paymentId })).status, 'verification_failed');
+    assert.equal((await db.findOne('users', { id: clientId })).plan, 'free', 'polling a declined order cannot activate a plan');
 
     approvedOrder = true;
     const approvedSession = await request('/api/payments', {
       jar: clientJar, method: 'POST', token: csrfToken,
       body: { action: 'create_session', plan: 'plus' },
     });
+    const approvedStatus = await request('/api/payments', {
+      jar: clientJar, method: 'POST', token: csrfToken,
+      body: { action: 'status', session_id: approvedSession.json.data.sessionId },
+    });
+    assert.equal(approvedStatus.json.data.status, 'ready');
     const confirmedPayment = await request('/api/payments', {
       jar: clientJar, method: 'POST', token: csrfToken,
-      body: { action: 'confirm', session_id: approvedSession.json.data.sessionId, order_id: 'approved-order' },
+      body: { action: 'confirm', session_id: approvedSession.json.data.sessionId, order_id: approvedStatus.json.data.order_id },
     });
     assert.equal(confirmedPayment.response.status, 200);
     assert.equal((await db.findOne('users', { id: clientId })).plan, 'plus');
@@ -308,6 +334,7 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
     Date.now = originalDateNow;
     geidea.createSession = originalCreateSession;
     geidea.getOrder = originalGetOrder;
+    geidea.getOrdersByReference = originalGetOrdersByReference;
     if (originalDomain === undefined) delete process.env.REPLIT_DEV_DOMAIN;
     else process.env.REPLIT_DEV_DOMAIN = originalDomain;
   }

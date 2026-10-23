@@ -68,3 +68,31 @@ test('Geidea order lookup uses the KSA endpoint and reports provider failures wi
     else process.env.GEIDEA_TEST_API_PASSWORD = previous.password;
   }
 });
+
+test('Geidea looks up an order by merchant reference on the KSA endpoint', async () => {
+  const previous = {
+    publicKey: process.env.GEIDEA_TEST_PUBLIC_KEY,
+    password: process.env.GEIDEA_TEST_API_PASSWORD,
+    fetch: global.fetch,
+  };
+  process.env.GEIDEA_TEST_PUBLIC_KEY = 'public-test-key';
+  process.env.GEIDEA_TEST_API_PASSWORD = 'private-test-password';
+  let requestUrl;
+  global.fetch = async (url) => {
+    requestUrl = new URL(url);
+    return { ok: true, json: async () => ({ orders: [{ status: 'Failed' }] }) };
+  };
+  try {
+    const result = await geidea.getOrdersByReference('TESTREFERENCE123456');
+    assert.equal(requestUrl.host, 'api.ksamerchant.geidea.net');
+    assert.equal(requestUrl.pathname, '/pgw/api/v1/direct/order');
+    assert.equal(requestUrl.searchParams.get('MerchantReferenceId'), 'TESTREFERENCE123456');
+    assert.equal(result.orders[0].status, 'Failed');
+  } finally {
+    global.fetch = previous.fetch;
+    if (previous.publicKey === undefined) delete process.env.GEIDEA_TEST_PUBLIC_KEY;
+    else process.env.GEIDEA_TEST_PUBLIC_KEY = previous.publicKey;
+    if (previous.password === undefined) delete process.env.GEIDEA_TEST_API_PASSWORD;
+    else process.env.GEIDEA_TEST_API_PASSWORD = previous.password;
+  }
+});

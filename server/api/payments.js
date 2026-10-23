@@ -71,6 +71,46 @@ router.post('/', async (req, res) => {
       return sendOk(res, { paymentId, sessionId, publicKey, amount: selectedPlan.price });
     }
 
+    if (action === 'status') {
+      if (req.user.role !== 'client') return sendError(res, 'حالة الدفع متاحة لحسابات العملاء فقط', 403);
+      const sessionId = text(req.body?.session_id, 120);
+      if (!sessionId) return sendError(res, 'معرّف جلسة الدفع غير صالح');
+      const payment = await db.findOne('payment_transactions', {
+        geidea_session_id: sessionId,
+        user_id: Number(req.user.id),
+        status: { $in: ['pending', 'verification_failed'] },
+      });
+      if (!payment) return sendError(res, 'جلسة الدفع غير موجودة أو عولجت مسبقاً', 404);
+      let lookup;
+      try {
+        lookup = await geidea.getOrdersByReference(payment.merchant_reference_id);
+      } catch (error) {
+        if (error.status === 404) return sendOk(res, { status: 'pending' });
+        throw error;
+      }
+      const orders = Array.isArray(lookup.orders) ? lookup.orders : [];
+      const order = orders.find(item => String(item.merchantReferenceId || '') === payment.merchant_reference_id) || orders[0];
+      if (!order) return sendOk(res, { status: 'pending' });
+      const transactions = Array.isArray(order.transactions) ? order.transactions : [];
+      const transaction = transactions.find(item => String(item.type || '').toLowerCase() === 'pay') ||
+        transactions.at(-1) || {};
+      const status = String(transaction.status || order.status || order.orderStatus || '').toLowerCase();
+      const orderId = text(order.orderId || order.id, 80);
+      if (['failed', 'declined', 'cancelled', 'canceled'].includes(status)) {
+        await db.updateDoc('payment_transactions', { id: payment.id }, {
+          status: 'verification_failed',
+          geidea_order_id: orderId || null,
+          response_code: String(transaction.responseCode || order.responseCode || ''),
+          updated_at: new Date().toISOString(),
+        });
+        return sendOk(res, { status: 'failed' });
+      }
+      if (['success', 'paid', 'succeeded', 'completed'].includes(status) && orderId) {
+        return sendOk(res, { status: 'ready', order_id: orderId });
+      }
+      return sendOk(res, { status: 'pending' });
+    }
+
     if (action === 'confirm') {
       const paymentId = Number(req.body.payment_id);
       const sessionId = text(req.body.session_id, 120);
@@ -99,7 +139,7 @@ router.post('/', async (req, res) => {
         Math.abs(paidAmount - Number(payment.amount)) < 0.01 &&
         currency.toUpperCase() === payment.currency;
       if (!paid) {
-        await db.updateDoc('payment_transactions', { id: paymentId }, {
+        await db.updateDoc('payment_transactions', { id: payment.id }, {
           status: 'verification_failed', geidea_order_id: orderId, response_code: responseCode,
           updated_at: new Date().toISOString(),
         });
@@ -111,7 +151,7 @@ router.post('/', async (req, res) => {
         ? new Date(currentExpiry) : now;
       startsAt.setMonth(startsAt.getMonth() + 1);
       const expiresAt = startsAt.toISOString();
-      await db.updateDoc('payment_transactions', { id: paymentId }, {
+      await db.updateDoc('payment_transactions', { id: payment.id }, {
         status: 'paid', geidea_order_id: orderId, response_code: responseCode,
         paid_at: now.toISOString(), updated_at: now.toISOString(),
       });

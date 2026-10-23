@@ -4,6 +4,7 @@ const crypto = require('node:crypto');
 
 const SESSION_ENDPOINT = 'https://api.ksamerchant.geidea.net/payment-intent/api/v2/direct/session';
 const ORDER_ENDPOINT = 'https://api.ksamerchant.geidea.net/pgw/api/v1/direct/order/';
+const ORDERS_BY_REFERENCE_ENDPOINT = 'https://api.ksamerchant.geidea.net/pgw/api/v1/direct/order';
 
 function credentials() {
   const publicKey = String(process.env.GEIDEA_TEST_PUBLIC_KEY || '');
@@ -81,4 +82,14 @@ async function getOrder(orderId) {
   return readResponse(response);
 }
 
-module.exports = { createSession, getOrder };
+async function getOrdersByReference(reference) {
+  const { publicKey, password } = credentials();
+  const url = new URL(ORDERS_BY_REFERENCE_ENDPOINT);
+  url.searchParams.set('MerchantReferenceId', reference);
+  const response = await fetch(url, {
+    headers: { Authorization: authHeader(publicKey, password) },
+  });
+  return readResponse(response);
+}
+
+module.exports = { createSession, getOrder, getOrdersByReference };

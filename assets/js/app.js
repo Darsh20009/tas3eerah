@@ -1603,25 +1603,42 @@ async function confirmSubscriptionChoice() {
       return;
     }
     try {
+      let pollingTimer = null;
+      let pollInFlight = false;
+      let pollCount = 0;
+      let pollingActive = true;
+      const stopPaymentPolling = () => {
+        pollingActive = false;
+        if (pollingTimer) window.clearInterval(pollingTimer);
+      };
+      const confirmOrder = async orderId => {
+        setReviewStatus('info', 'جارٍ التحقق من الدفع لدى جيديا...', 'Verifying payment with Geidea...');
+        const confirmed = await api('payments', {
+          action: 'confirm',
+          session_id: result.data.sessionId,
+          order_id: orderId,
+        });
+        if (confirmed.success) {
+          stopPaymentPolling();
+          window.location.href = `${window.location.pathname}?panel=subscription&payment=success`;
+        } else {
+          stopPaymentPolling();
+          setReviewStatus('error', `${confirmed.error || 'لم تؤكد جيديا نجاح الدفع.'} لم يتم تفعيل الخطة. إذا خُصم المبلغ، تواصل مع الدعم.`, 'Geidea did not verify this payment. Your plan was not activated. Contact support if you were charged.');
+          if (confirmButton) confirmButton.disabled = false;
+        }
+      };
       const checkout = new window.GeideaCheckout(
         async data => {
+          stopPaymentPolling();
           if (!data?.orderId) {
             setReviewStatus('error', 'لم يصل رقم الطلب من جيديا. لم تتغير خطتك؛ تواصل مع الدعم قبل إعادة الدفع.', 'Geidea did not return an order ID. Your plan was not changed; contact support before trying again.');
             if (confirmButton) confirmButton.disabled = false;
             return;
           }
-          setReviewStatus('info', 'جارٍ التحقق من الدفع لدى جيديا...', 'Verifying payment with Geidea...');
-          const confirmed = await api('payments', {
-            action: 'confirm', payment_id: result.data.paymentId, order_id: data.orderId,
-          });
-          if (confirmed.success) {
-            window.location.href = `${window.location.pathname}?panel=subscription&payment=success`;
-          } else {
-            setReviewStatus('error', `${confirmed.error || 'لم تؤكد جيديا نجاح الدفع.'} لم يتم تفعيل الخطة. إذا خُصم المبلغ، تواصل مع الدعم.`, 'Geidea did not verify this payment. Your plan was not activated. Contact support if you were charged.');
-            if (confirmButton) confirmButton.disabled = false;
-          }
+          await confirmOrder(data.orderId);
         },
         data => {
+          stopPaymentPolling();
           const providerMessage = String(data?.responseMessage || '').trim().slice(0, 120);
           setReviewStatus(
             'error',
@@ -1635,6 +1652,7 @@ async function confirmSubscriptionChoice() {
           if (confirmButton) confirmButton.disabled = false;
         },
         () => {
+          stopPaymentPolling();
           setReviewStatus('info', 'ألغيت الدفع. لم تتغير خطتك؛ يمكنك اختيار الخطة لاحقاً.', 'You cancelled checkout. Your plan was not changed; you can choose a plan later.');
           if (confirmButton) confirmButton.disabled = false;
         },
@@ -1645,6 +1663,39 @@ async function confirmSubscriptionChoice() {
         'Complete checkout in the Geidea window; your plan will not change until payment is verified.',
       );
       checkout.startPayment(result.data.sessionId);
+      pollingTimer = window.setInterval(async () => {
+        if (!pollingActive || pollInFlight) return;
+        if (pollCount >= 60) {
+          stopPaymentPolling();
+          setReviewStatus(
+            'info',
+            'ما زالت جيديا تعالج الطلب. لم تتغير خطتك؛ اترك نافذة الدفع مفتوحة أو ألغها.',
+            'Geidea is still processing the order. Your plan has not changed; keep checkout open or cancel it.',
+          );
+          return;
+        }
+        pollInFlight = true;
+        pollCount += 1;
+        try {
+          const polled = await api('payments', { action: 'status', session_id: result.data.sessionId });
+          if (!polled.success) return;
+          if (polled.data?.status === 'failed') {
+            stopPaymentPolling();
+            checkout.iframe?.remove();
+            setReviewStatus(
+              'error',
+              'رفضت جيديا عملية الدفع. لم تتغير خطتك؛ يمكنك المحاولة مجدداً أو إلغاء الدفع.',
+              'Geidea declined the payment. Your plan was not changed; you can retry or cancel checkout.',
+            );
+            if (confirmButton) confirmButton.disabled = false;
+          } else if (polled.data?.status === 'ready' && polled.data.order_id) {
+            stopPaymentPolling();
+            await confirmOrder(polled.data.order_id);
+          }
+        } finally {
+          pollInFlight = false;
+        }
+      }, 3000);
     } catch {
       setReviewStatus('error', 'تعذر بدء واجهة دفع جيديا. لم تتغير خطتك؛ أعد المحاولة.', 'Could not start Geidea checkout. Your plan was not changed; retry.');
       if (confirmButton) confirmButton.disabled = false;
