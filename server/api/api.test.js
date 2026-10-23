@@ -194,6 +194,53 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
   assert.equal(adminStats.json.data.quotes_total, 1);
   assert.equal(adminStats.json.data.rating_count, 1);
 
+  const originalVerifySend = email.verifySend;
+  const originalVerifyReceive = email.verifyReceive;
+  email.verifySend = async () => true;
+  email.verifyReceive = async () => true;
+  try {
+    for (const channel of ['smtp', 'imap']) {
+      const check = await request('/api/admin', {
+        jar: adminJar, method: 'POST', token: adminCsrf.json.data.csrf_token,
+        body: { action: 'mailbox_check', channel },
+      });
+      assert.equal(check.response.status, 200);
+      assert.equal(check.json.data.connected, true);
+      assert.equal(check.json.data.channel, channel);
+    }
+    const invalidChannel = await request('/api/admin', {
+      jar: adminJar, method: 'POST', token: adminCsrf.json.data.csrf_token,
+      body: { action: 'mailbox_check', channel: 'all' },
+    });
+    assert.equal(invalidChannel.response.status, 400);
+  } finally {
+    email.verifySend = originalVerifySend;
+    email.verifyReceive = originalVerifyReceive;
+  }
+
+  const testMailSent = [];
+  const originalTestSendHtml = email.sendHtml;
+  email.sendHtml = async (...args) => { testMailSent.push(args); return { messageId: 'private-provider-id' }; };
+  try {
+    const unconfirmedTest = await request('/api/admin', {
+      jar: adminJar, method: 'POST', token: adminCsrf.json.data.csrf_token,
+      body: { action: 'mailbox_test_send', to: 'admin@example.test' },
+    });
+    assert.equal(unconfirmedTest.response.status, 400);
+    assert.equal(testMailSent.length, 0);
+    const confirmedTest = await request('/api/admin', {
+      jar: adminJar, method: 'POST', token: adminCsrf.json.data.csrf_token,
+      body: { action: 'mailbox_test_send', to: 'admin@example.test', confirmed: true },
+    });
+    assert.equal(confirmedTest.response.status, 200);
+    assert.equal(confirmedTest.json.data.sent, true);
+    assert.doesNotMatch(JSON.stringify(confirmedTest.json), /private-provider-id/);
+    assert.equal(testMailSent.length, 1);
+    assert.equal(testMailSent[0][0], 'admin@example.test');
+  } finally {
+    email.sendHtml = originalTestSendHtml;
+  }
+
   const originalFolderMessages = email.folderMessages;
   email.folderMessages = async () => {
     throw Object.assign(new Error('private provider response'), { code: 'IMAP_AUTH_FAILED' });

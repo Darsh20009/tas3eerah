@@ -45,6 +45,8 @@ router.all('/', async (req, res) => {
       case 'mailbox_inbox': return await mailboxFolder(res, { folder: 'inbox' });
       case 'mailbox_folder': return await mailboxFolder(res, body);
       case 'mailbox_folders': return await mailboxFolders(res);
+      case 'mailbox_check': return await mailboxCheck(res, body);
+      case 'mailbox_test_send': return await mailboxTestSend(res, body);
       case 'mailbox_mark_read': return await mailboxMarkRead(res, body);
       case 'mailbox_move': return await mailboxMove(res, body);
       case 'mailbox_delete': return await mailboxDelete(res, body);
@@ -372,6 +374,40 @@ async function mailboxFolders(res) {
     });
   } catch (error) {
     return failMailboxOperation(res, 'folders', error, 'تعذر الاتصال بصندوق البريد. تحقق من الإعدادات وحاول مرة أخرى.');
+  }
+}
+
+async function mailboxCheck(res, body) {
+  const channel = text(body.channel, 10).toLowerCase();
+  if (!['smtp', 'imap'].includes(channel)) return sendError(res, 'نوع فحص البريد غير صحيح');
+  try {
+    const settings = await settingsMap();
+    if (channel === 'smtp') await mail.verifySend(settings);
+    else await mail.verifyReceive(settings);
+    return sendOk(res, { channel, connected: true }, channel === 'smtp'
+      ? 'نجح فحص اتصال الإرسال SMTP'
+      : 'نجح فحص اتصال الاستقبال IMAP');
+  } catch (error) {
+    return failMailboxOperation(res, `check-${channel}`, error, channel === 'smtp'
+      ? 'تعذر فحص اتصال الإرسال SMTP'
+      : 'تعذر فحص اتصال الاستقبال IMAP');
+  }
+}
+
+async function mailboxTestSend(res, body) {
+  const to = text(body.to, 254);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return sendError(res, 'أدخل عنوان بريد إلكتروني صحيحاً للمستلم');
+  if (body.confirmed !== true) return sendError(res, 'أكد إرسال رسالة الاختبار أولاً');
+  try {
+    await mail.sendHtml(
+      to,
+      'اختبار اتصال البريد الإلكتروني',
+      mail.simpleMessage('هذه رسالة اختبار للتأكد من عمل إرسال البريد في منصة تسعيرة.', 'اختبار البريد'),
+      await settingsMap(),
+    );
+    return sendOk(res, { sent: true }, 'تم إرسال رسالة الاختبار');
+  } catch (error) {
+    return failMailboxOperation(res, 'test-send', error, 'تعذر إرسال رسالة الاختبار');
   }
 }
 

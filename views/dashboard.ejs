@@ -956,6 +956,22 @@
         <div class="mailbox-note">
           هذا هو صندوق البريد الرسمي للمنصة. الرسائل الداخلية بين المستخدمين موجودة في قسم مستقل باسم «الرسائل الداخلية».
         </div>
+        <div class="mailbox-note" style="margin-top:12px">
+          <strong>تشخيص الاتصال</strong>
+          <div class="flex gap-8" style="flex-wrap:wrap;align-items:center;margin-top:8px">
+            <button id="mailboxCheckSmtpBtn" class="btn btn-outline btn-sm" onclick="checkMailboxConnection('smtp')">فحص إرسال البريد (SMTP)</button>
+            <span id="mailboxSmtpCheck" role="status" aria-live="polite">لم يتم الفحص بعد</span>
+            <button id="mailboxCheckImapBtn" class="btn btn-outline btn-sm" onclick="checkMailboxConnection('imap')">فحص استقبال البريد (IMAP)</button>
+            <span id="mailboxImapCheck" role="status" aria-live="polite">لم يتم الفحص بعد</span>
+          </div>
+          <div class="flex gap-8" style="flex-wrap:wrap;align-items:end;margin-top:12px">
+            <label for="mailboxTestRecipient">عنوان المستلم لرسالة الاختبار</label>
+            <input id="mailboxTestRecipient" type="email" maxlength="254" autocomplete="email" placeholder="you@example.com" style="max-width:300px">
+            <button id="mailboxTestSendBtn" class="btn btn-outline btn-sm" onclick="sendMailboxTestEmail()">إرسال رسالة اختبار</button>
+            <span id="mailboxTestSendStatus" role="status" aria-live="polite"></span>
+          </div>
+          <small style="display:block;margin-top:6px;color:var(--muted)">لن تُرسل رسالة الاختبار إلا بعد تأكيدك، وإلى العنوان الذي تدخله هنا.</small>
+        </div>
         <div id="mailboxStatus" class="hidden mb-8"></div>
         <div class="mailbox-folders" id="mailboxFolders" role="tablist" aria-label="مجلدات البريد">
           <button class="mailbox-folder active" data-folder="inbox" onclick="selectMailboxFolder('inbox')">الوارد <span>0</span></button>

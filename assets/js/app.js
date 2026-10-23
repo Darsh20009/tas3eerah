@@ -2187,6 +2187,62 @@ async function loadMailbox(folder = mailboxFolder) {
   }).join('');
 }
 
+async function checkMailboxConnection(channel) {
+  if (!['smtp', 'imap'].includes(channel)) return;
+  const button = document.getElementById(channel === 'smtp' ? 'mailboxCheckSmtpBtn' : 'mailboxCheckImapBtn');
+  const status = document.getElementById(channel === 'smtp' ? 'mailboxSmtpCheck' : 'mailboxImapCheck');
+  if (!status) return;
+  if (button) button.disabled = true;
+  status.textContent = channel === 'smtp' ? 'جارٍ فحص اتصال الإرسال...' : 'جارٍ فحص اتصال الاستقبال...';
+  try {
+    const result = await api('admin', { action: 'mailbox_check', channel });
+    status.textContent = result.success
+      ? (channel === 'smtp' ? 'اتصال الإرسال يعمل' : 'اتصال الاستقبال يعمل')
+      : (result.error || 'فشل الفحص');
+    status.style.color = result.success ? 'var(--green,#18864b)' : 'var(--red,#e53e3e)';
+  } catch {
+    status.textContent = 'تعذر إكمال الفحص. حاول مرة أخرى.';
+    status.style.color = 'var(--red,#e53e3e)';
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
+async function sendMailboxTestEmail() {
+  const input = document.getElementById('mailboxTestRecipient');
+  const status = document.getElementById('mailboxTestSendStatus');
+  const button = document.getElementById('mailboxTestSendBtn');
+  const to = input?.value.trim() || '';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
+    if (status) {
+      status.textContent = 'أدخل عنوان بريد إلكتروني صحيحاً';
+      status.style.color = 'var(--red,#e53e3e)';
+    }
+    input?.focus();
+    return;
+  }
+  if (!confirm(`سيتم إرسال رسالة اختبار واحدة إلى ${to}. هل تؤكد الإرسال؟`)) return;
+  if (button) button.disabled = true;
+  if (status) {
+    status.textContent = 'جارٍ إرسال رسالة الاختبار...';
+    status.style.color = 'var(--muted)';
+  }
+  try {
+    const result = await api('admin', { action: 'mailbox_test_send', to, confirmed: true });
+    if (status) {
+      status.textContent = result.success ? 'تم إرسال رسالة الاختبار' : (result.error || 'تعذر إرسال رسالة الاختبار');
+      status.style.color = result.success ? 'var(--green,#18864b)' : 'var(--red,#e53e3e)';
+    }
+  } catch {
+    if (status) {
+      status.textContent = 'تعذر إرسال رسالة الاختبار. حاول مرة أخرى.';
+      status.style.color = 'var(--red,#e53e3e)';
+    }
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
 function mailboxActionMarkup(message) {
   const moveOptions = Object.entries(MAILBOX_FOLDER_LABELS)
     .filter(([key]) => key !== mailboxFolder)
