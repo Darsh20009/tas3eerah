@@ -1893,13 +1893,20 @@ async function loadSubscriptions() {
   const r2 = await api('admin?action=users');
   const tb = document.getElementById('subsTbody');
   if (!tb || !r2.success) return;
+  const paid = r2.data.filter(u => u.role === 'client' && u.is_active && u.plan !== 'free' && u.subscription_status === 'active');
+  const expired = r2.data.filter(u => u.subscription_status === 'expired');
+  const monthlyValue = paid.reduce((sum, u) => sum + Number(u.monthly_plan_value || 0), 0);
+  setText('activeSubscriptionCount', paid.length);
+  setText('expiredSubscriptionCount', expired.length);
+  setText('subscriptionMonthlyValue', `${new Intl.NumberFormat('ar-SA').format(monthlyValue)} ر.س`);
   tb.innerHTML = r2.data.map(u => `
     <tr>
        <td class="user-content">${esc(u.name)}</td>
        <td class="user-content" style="direction:ltr;text-align:right;font-size:12px">${esc(u.email)}</td>
-      <td><span class="badge badge-${u.role}">${roleLabel(u.role)}</span></td>
+      <td><span class="badge" style="${u.subscription_status === 'active' ? 'background:rgba(92,186,150,.12);color:#2a8a60' : u.subscription_status === 'expired' || u.subscription_status === 'inactive' ? 'background:rgba(216,107,114,.1);color:var(--danger)' : ''}">${u.subscription_status === 'active' ? 'فعّال' : u.subscription_status === 'expired' ? 'منتهي' : u.subscription_status === 'inactive' ? 'حساب معطّل' : 'مجاني'}</span></td>
       <td><span class="badge badge-${u.plan}">${planLabel(u.plan)}</span></td>
-      <td style="font-size:12px;color:var(--muted)">${u.plan_expires_at || ''}</td>
+      <td style="font-size:12px">${new Intl.NumberFormat('ar-SA').format(Number(u.monthly_plan_value || 0))} ر.س</td>
+      <td style="font-size:12px;color:var(--muted)">${u.plan_expires_at ? `${esc(u.plan_expires_at)}${u.days_remaining !== null ? ` · ${u.days_remaining > 0 ? `باقي ${u.days_remaining} يوم` : 'انتهى'}` : ''}` : '—'}</td>
       <td>
         <select class="form-control" style="width:110px" onchange="quickPlan(${u.id},this.value)">
           <option value="free"       ${u.plan==='free'       ?'selected':''}>مجاني</option>
@@ -2197,6 +2204,8 @@ async function loadSettings() {
   if (f('setMailboxEmail'))   f('setMailboxEmail').value   = s.mailbox_email   || 'info@tas3eerah.com';
   if (f('setMailboxReceiveEmail')) f('setMailboxReceiveEmail').value = s.mailbox_receive_email || s.mailbox_email || 'info@tas3eerah.com';
   if (f('setMailboxName'))    f('setMailboxName').value    = s.mailbox_name    || 'تسعيرة';
+  if (f('setCommunityCount')) f('setCommunityCount').value = s.community_count ?? 300;
+  if (f('setSatisfactionRate')) f('setSatisfactionRate').value = s.satisfaction_rate ?? 85;
 }
 async function saveSettings() {
   const val = id => (document.getElementById(id)||{}).value || '';
@@ -2209,6 +2218,8 @@ async function saveSettings() {
     mailbox_email:   val('setMailboxEmail'),
     mailbox_receive_email: val('setMailboxReceiveEmail'),
     mailbox_name:    val('setMailboxName'),
+    community_count: val('setCommunityCount'),
+    satisfaction_rate: val('setSatisfactionRate'),
   };
   const r = await api('admin', payload);
   const msg = document.getElementById('settingsMsg');

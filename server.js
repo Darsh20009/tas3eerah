@@ -88,10 +88,19 @@ app.get('/help', (req, res) => res.render('help', {
   tools,
   assetVersion: assetVersion(),
 }));
-app.get('/', (req, res) => {
+app.get('/', async (req, res, next) => {
   if (req.user) return res.redirect('/dashboard');
-  return res.render('landing', {
+  try {
+    const [communitySetting, satisfactionSetting] = await Promise.all([
+      db.findOne('settings', { key: 'community_count' }),
+      db.findOne('settings', { key: 'satisfaction_rate' }),
+    ]);
+    const communityCount = Math.max(0, Math.min(1000000, Math.floor(Number(communitySetting?.value) || 300)));
+    const satisfactionRate = Math.max(0, Math.min(100, Math.floor(Number(satisfactionSetting?.value) || 85)));
+    return res.render('landing', {
     plans: config.PLANS,
+      communityCount,
+      satisfactionRate,
     csrfToken: auth.csrfToken(req),
     openAccessMode: false,
     googleEnabled: config.isOAuthRedirectConfigured() &&
@@ -101,6 +110,9 @@ app.get('/', (req, res) => {
     oauthError: String(req.query.oauth_error || ''),
     assetVersion: assetVersion(),
   });
+  } catch (error) {
+    return next(error);
+  }
 });
 
 function requirePage(req, res, next) {

@@ -103,7 +103,18 @@ async function users(req, res) {
       plan_expires_at: 1, is_active: 1, created_at: 1,
     },
   });
-  return sendOk(res, results);
+  const now = Date.now();
+  return sendOk(res, results.map((user) => {
+    const expiry = user.plan_expires_at ? Date.parse(user.plan_expires_at) : NaN;
+    const daysRemaining = Number.isFinite(expiry) ? Math.ceil((expiry - now) / 86400000) : null;
+    const expired = Number.isFinite(expiry) && expiry <= now && user.plan !== 'free';
+    return {
+      ...user,
+      subscription_status: !user.is_active ? 'inactive' : user.plan === 'free' ? 'free' : expired ? 'expired' : 'active',
+      days_remaining: daysRemaining,
+      monthly_plan_value: Number(PLANS[user.plan]?.price || 0),
+    };
+  }));
 }
 
 async function userCreate(req, res, body) {
@@ -423,9 +434,25 @@ async function saveSettings(req, res, body) {
     'contact_email', 'whatsapp', 'site_name', 'welcome_message',
     'mailbox_email', 'mailbox_receive_email', 'mailbox_name',
   ];
+  let communityValue;
+  let satisfactionValue;
+  if (Object.hasOwn(body, 'community_count')) {
+    communityValue = Number(body.community_count);
+    if (!Number.isInteger(communityValue) || communityValue < 0 || communityValue > 1000000) {
+      return sendError(res, 'عدد المجتمع يجب أن يكون بين 0 و1,000,000');
+    }
+  }
+  if (Object.hasOwn(body, 'satisfaction_rate')) {
+    satisfactionValue = Number(body.satisfaction_rate);
+    if (!Number.isInteger(satisfactionValue) || satisfactionValue < 0 || satisfactionValue > 100) {
+      return sendError(res, 'نسبة الرضا يجب أن تكون بين 0 و100');
+    }
+  }
   for (const key of allowed) {
     if (Object.hasOwn(body, key)) await upsertSetting(key, text(body[key], 1000));
   }
+  if (communityValue !== undefined) await upsertSetting('community_count', String(communityValue));
+  if (satisfactionValue !== undefined) await upsertSetting('satisfaction_rate', String(satisfactionValue));
   await db.insertDoc('activity_log', {
     user_id: Number(req.user.id),
     action: 'settings_saved',

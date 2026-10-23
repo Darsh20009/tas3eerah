@@ -700,7 +700,15 @@
     <div class="section-panel" id="panel-subscriptions">
       <div style="margin-bottom:20px">
         <h2 style="font-size:20px;font-weight:900">إدارة الاشتراكات</h2>
-        <p style="color:var(--muted);font-size:13px;margin-top:5px">تحكم في خطة كل مستخدم وتواريخ الانتهاء</p>
+        <p style="color:var(--muted);font-size:13px;margin-top:5px">حالة كل اشتراك، الخطة، ومدة الصلاحية المتبقية</p>
+      </div>
+      <div class="stats-grid" style="margin-bottom:18px">
+        <div class="stat-card"><span>اشتراكات فعالة</span><strong id="activeSubscriptionCount">—</strong></div>
+        <div class="stat-card"><span>اشتراكات منتهية</span><strong id="expiredSubscriptionCount">—</strong></div>
+        <div class="stat-card"><span>قيمة الخطط النشطة (تقديرية)</span><strong id="subscriptionMonthlyValue">—</strong></div>
+      </div>
+      <div class="card" style="padding:14px 18px;margin-bottom:18px;color:var(--muted);font-size:12px">
+        الإيرادات المحصلة لا يمكن تأكيدها حالياً لعدم وجود سجل معاملات دفع. ستظهر هنا بعد تفعيل جيديا وتسجيل عمليات الدفع الناجحة.
       </div>
 
       <div class="sub-plan-cards">
@@ -719,8 +727,8 @@
       <div class="card">
         <div class="card-header"><h3>المستخدمون والخطط</h3></div>
         <table class="data-table">
-          <thead><tr><th>الاسم</th><th>البريد</th><th>الدور</th><th>الخطة الحالية</th><th>تنتهي في</th><th>تغيير الخطة</th></tr></thead>
-          <tbody id="subsTbody"><tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">جارٍ التحميل...</td></tr></tbody>
+          <thead><tr><th>الاسم</th><th>البريد</th><th>الحالة</th><th>الخطة</th><th>القيمة الشهرية</th><th>تنتهي في / المتبقي</th><th>تغيير الخطة</th></tr></thead>
+          <tbody id="subsTbody"><tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">جارٍ التحميل...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -917,6 +925,14 @@
           <div class="form-group">
             <label>رسالة الترحيب للمستخدمين الجدد</label>
             <textarea class="form-control" id="setWelcomeMsg" placeholder="مرحباً بك في تسعيرة..." style="height:80px"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="setCommunityCount">عدد المجتمع الداعم</label>
+            <input type="number" class="form-control" id="setCommunityCount" min="0" max="1000000" value="300">
+          </div>
+          <div class="form-group">
+            <label for="setSatisfactionRate">نسبة رضا العملاء (%)</label>
+            <input type="number" class="form-control" id="setSatisfactionRate" min="0" max="100" value="85">
           </div>
         </div>
         <div id="settingsMsg" class="hidden"></div>
