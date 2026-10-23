@@ -205,6 +205,7 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
   let createdSession;
   let sessionCount = 0;
   let approvedOrder = false;
+  let orderOverrides = {};
   geidea.createSession = async (input) => {
     createdSession = input;
     sessionCount += 1;
@@ -214,9 +215,9 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
     responseCode: approvedOrder ? '000' : '123',
     order: {
       status: approvedOrder ? 'Success' : 'Declined',
-      merchantReferenceId: createdSession.reference,
-      amount: 49,
-      currency: 'SAR',
+      merchantReferenceId: orderOverrides.reference ?? createdSession.reference,
+      amount: orderOverrides.amount ?? 49,
+      currency: orderOverrides.currency ?? 'SAR',
       transactions: [
         { type: 'Authentication', status: 'Success', amount: 49, currency: 'SAR' },
         { type: 'Pay', status: approvedOrder ? 'Success' : 'Declined', amount: 49, currency: 'SAR' },
@@ -314,6 +315,30 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
     assert.equal((await db.findOne('users', { id: clientId })).plan, 'free', 'polling a declined order cannot activate a plan');
 
     approvedOrder = true;
+    for (const [label, override] of [
+      ['amount', { amount: 50 }],
+      ['currency', { currency: 'USD' }],
+      ['merchant reference', { reference: 'MISMATCHED-REFERENCE' }],
+    ]) {
+      orderOverrides = override;
+      const mismatchedSession = await request('/api/payments', {
+        jar: clientJar, method: 'POST', token: csrfToken,
+        body: { action: 'create_session', plan: 'plus' },
+      });
+      const rejectedMismatch = await request('/api/payments', {
+        jar: clientJar, method: 'POST', token: csrfToken,
+        body: { action: 'confirm', session_id: mismatchedSession.json.data.sessionId, order_id: 'mismatched-order' },
+      });
+      assert.equal(rejectedMismatch.response.status, 409, `${label} mismatch must fail verification`);
+      assert.equal((await db.findOne('users', { id: clientId })).plan, 'free', `${label} mismatch must not change the plan`);
+      assert.equal(
+        (await db.findOne('payment_transactions', { id: mismatchedSession.json.data.paymentId })).status,
+        'verification_failed',
+        `${label} mismatch must not be recorded as paid`,
+      );
+    }
+
+    orderOverrides = {};
     const approvedSession = await request('/api/payments', {
       jar: clientJar, method: 'POST', token: csrfToken,
       body: { action: 'create_session', plan: 'plus' },
