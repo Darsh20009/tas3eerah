@@ -2033,6 +2033,34 @@ select.form-control { cursor: pointer; }
   background: var(--card);
   box-shadow: var(--sh);
 }
+.role-next-step {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 22px;
+  margin-top: 18px;
+  border-inline-start: 3px solid var(--p);
+}
+.role-next-step-copy { min-width: 0; }
+.role-next-step-copy h2 { margin: 4px 0 5px; font-size: 17px; }
+.role-next-step-copy p { margin-bottom: 12px; color: var(--muted); font-size: 12px; }
+.role-next-step-metrics { display: flex; align-items: stretch; gap: 8px; }
+.role-next-step-metrics span {
+  min-width: 94px;
+  padding: 10px 12px;
+  border: 1px solid var(--line2);
+  border-radius: var(--r);
+  background: var(--card-warm);
+}
+.role-next-step-metrics b { display: block; color: var(--p); font-size: 20px; line-height: 1.2; }
+.role-next-step-metrics small { color: var(--muted); font-size: 10px; }
+.quote-empty-state { display: grid; justify-items: center; gap: 10px; }
+.quote-empty-state p { margin: 0; }
+@media (max-width: 640px) {
+  .role-next-step { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .role-next-step-metrics { width: 100%; }
+  .role-next-step-metrics span { flex: 1; min-width: 0; }
+}
 .overview-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
 .overview-card-heading h2 { margin-top: 2px; font-size: 17px; }
 .overview-card-mark {

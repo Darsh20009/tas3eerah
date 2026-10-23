@@ -2,6 +2,11 @@
 <!DOCTYPE html>
 <% if (typeof locals.csrfToken !== 'string') throw new Error('Dashboard route must provide csrfToken'); if (typeof locals.openAccessMode !== 'boolean') throw new Error('Dashboard route must provide openAccessMode'); if (!Array.isArray(stats)) throw new Error('Dashboard route must provide stats cards'); if (!locals.overview) throw new Error('Dashboard route must provide overview metrics'); if (!Number.isFinite(Number(locals.quotesUsedThisMonth))) throw new Error('Dashboard route must provide quotesUsedThisMonth'); if (typeof locals.showExpiryBanner !== 'boolean') throw new Error('Dashboard route must provide expiry-banner state'); const csrfToken = locals.csrfToken; const role = user.role; const openAccessMode = locals.openAccessMode; const roleLabel = ({admin:'مدير النظام',employee:'موظف',client:'عميل'})[role] || role; const planName = plan.name_ar; const userTools = (isAdmin || openAccessMode) ? ['all'] : (plan.tools || []); const quickTools = [['services','01','الخدمات','تسعير الخدمات','calc_basic','/assets/landing/sector-services-icon-transparent.png'],['packages','02','الباقات','الباقات والاشتراكات','calc_pkg','/assets/landing/empty-box-transparent.png'],['menu','03','القائمة','المطاعم والكافيهات','calc_menu','/assets/landing/sector-restaurants-icon-transparent.png'],['retail','04','التجزئة','التجزئة والجملة','calc_store','/assets/landing/sector-retail-icon-transparent.png'],['tech','05','التقنية','المشاريع التقنية','calc_labor','/assets/landing/sector-technology-icon-transparent.png'],['saas','06','الاشتراكات','الخدمات المتكررة','calc_custom','/assets/landing/sector-technology-icon-transparent.png'],['design','07','التصميم','التصميم والمعمار','calc_office','/assets/landing/sector-design-icon-transparent.png']]; const maxQuotesThisMonth = isAdmin ? -1 : Number(locals.maxQuotesThisMonth ?? plan.max_quotes); const quotesUsedThisMonth = Number(locals.quotesUsedThisMonth); const quotesRemaining = maxQuotesThisMonth === -1 ? null : Math.max(0,maxQuotesThisMonth-quotesUsedThisMonth); const quotaLabel = locals.quotaLabel || (maxQuotesThisMonth===-1?'تسعير غير محدود':'متبقي '+quotesRemaining+' من '+maxQuotesThisMonth+' هذا الشهر'); const showExpiryBanner = locals.showExpiryBanner; const expiryBannerMsg = locals.expiryBannerMsg || ''; const expiryExpired = Boolean(locals.expiryExpired); const overview = locals.overview; const appData = locals.appData || {role,isAdmin,uid:Number(user.id),plan:user.plan,effectivePlan,isPaid:true,name:user.name,maxQuotes:maxQuotesThisMonth,quotesUsed:quotesUsedThisMonth,quotesRemaining}; const assetVersion = locals.assetVersion || 1; const currentYear = new Date().getFullYear(); const formatNumber=(value,decimals=0)=>Number(value||0).toLocaleString('en-US',{minimumFractionDigits:decimals,maximumFractionDigits:decimals}); const count=value=>Array.isArray(value)?value.length:Object.keys(value||{}).length; const escapeHtml=value=>value; %>
 <% const freeTrialAvailable = Date.now() >= Date.parse('2026-10-25T00:00:00+03:00'); %>
+<% const workspaceCopy = {
+  client: { welcome: 'مرحباً بك', welcomeEn: 'Welcome', intro: 'ابدأ طلب تسعيرتك، تابع رد الموظف، وتأكد من خطتك من مكان واحد.' },
+  employee: { welcome: 'مساحة عملك', welcomeEn: 'Your workspace', intro: 'ابدأ بعرض يحتاج إلى متابعة، أو أنشئ عرضاً جديداً لعميلك.' },
+  admin: { welcome: 'إدارة المنصة', welcomeEn: 'Platform management', intro: 'تابع المستخدمين والاشتراكات والعروض، ثم انتقل مباشرة إلى الإجراء المطلوب.' },
+}; const currentWorkspaceCopy = workspaceCopy[role] || workspaceCopy.client; %>
 <% const effectiveUserTools = !isAdmin && !openAccessMode && plan.tool_limit && Array.isArray(user.selected_tools)
   ? user.selected_tools.slice(0, plan.tool_limit).map(slug => quickTools.find(tool => tool[0] === slug)?.[4]).filter(Boolean)
   : userTools; %>
@@ -63,7 +68,7 @@
     </button>
 
     <% if (role === 'employee' || role === 'admin') { %>
-    <div class="sb-section">عروض الأسعار</div>
+    <div class="sb-section" data-ar="<%= role === 'admin' ? 'إدارة العروض' : 'عروض العملاء' %>" data-en="<%= role === 'admin' ? 'Quote management' : 'Client quotes' %>"><%= role === 'admin' ? 'إدارة العروض' : 'عروض العملاء' %></div>
     <% if (role === 'employee') { %>
     <button class="sb-item" data-panel="quote-new" onclick="nav(this)">
       <span class="sb-icon">✦</span> عرض سعر جديد
@@ -78,7 +83,7 @@
     <% } %>
 
     <% if (role === 'client' && !openAccessMode) { %>
-    <div class="sb-section">عروض الأسعار</div>
+    <div class="sb-section" data-ar="طلبات التسعير" data-en="Pricing requests">طلبات التسعير</div>
     <button class="sb-item" data-panel="quote-new" onclick="nav(this)">
       <span class="sb-icon">✦</span> طلب تسعيرة جديدة
     </button>
@@ -105,9 +110,9 @@
       <span class="sb-badge hidden" id="unreadBadge">0</span>
     </button>
 
-    <div class="sb-section">التسعيرات</div>
+    <div class="sb-section" data-ar="أدوات التسعير" data-en="Pricing tools">أدوات التسعير</div>
     <button class="sb-item" data-panel="tools" onclick="nav(this)">
-      <span class="sb-icon">◈</span> التسعيرات
+      <span class="sb-icon">◈</span> الحاسبات
     </button>
     <button class="sb-item" data-panel="project-log" onclick="nav(this)">
       <span class="sb-icon">▤</span> سجل المشاريع
@@ -175,13 +180,13 @@
         <strong>الخطة: <%= planName %></strong>
         <span id="topbarPlanQuota"><%= quotaLabel %></span>
       </div>
-      <% if (role === 'employee' || role === 'admin') { %>
-      <button class="btn btn-primary btn-sm" onclick="navDirect('tools')">
-        + عرض سعر
+    <% if (role === 'employee' || role === 'admin') { %>
+      <button class="btn btn-primary btn-sm" onclick="navDirect('quote-new')">
+        + إنشاء عرض
       </button>
       <% } else if (role === 'client') { %>
-      <button class="btn btn-primary btn-sm" onclick="navDirect('tools')">
-        + تسعيرة جديدة
+      <button class="btn btn-primary btn-sm" onclick="navDirect('<%= openAccessMode ? 'tools' : 'quote-new' %>')">
+        + طلب تسعيرة
       </button>
       <% } %>
     </div>
@@ -194,10 +199,10 @@
   </div>
   <% } %>
   
-  <nav class="quick-tools-bar" id="quickToolsBar" aria-label="الوصول السريع إلى التسعيرات">
+  <nav class="quick-tools-bar" id="quickToolsBar" aria-label="الوصول السريع إلى أدوات حساب الأسعار">
     <div class="quick-tools-label">
-      <span class="quick-tools-overline">وصول سريع</span>
-      <strong>التسعيرات السبع</strong>
+      <span class="quick-tools-overline" data-ar="حاسبات الأسعار" data-en="Pricing calculators">حاسبات الأسعار</span>
+      <strong data-ar="أدوات التسعير" data-en="Pricing tools">أدوات التسعير</strong>
     </div>
     <div class="quick-tools-list">
       <% for (const [slug, mark, short, name, legacySlug, image] of quickTools) {
@@ -221,8 +226,8 @@
       <div class="dashboard-welcome">
         <div>
           <span class="dashboard-welcome-kicker">لوحة العمل</span>
-          <h1>مرحباً بك، <%= user['name'] %></h1>
-          <p>كل ما تحتاجه لتسعير مشاريعك بوضوح، في مساحة واحدة هادئة ومنظمة.</p>
+          <h1><span data-ar="<%= currentWorkspaceCopy.welcome %>" data-en="<%= currentWorkspaceCopy.welcomeEn %>"><%= currentWorkspaceCopy.welcome %></span>، <span class="user-content"><%= user['name'] %></span></h1>
+          <p data-ar="<%= currentWorkspaceCopy.intro %>" data-en="<%= role === 'client' ? 'Start a pricing request, follow the employee reply, and check your plan in one place.' : role === 'employee' ? 'Start with a quote that needs attention, or create a new quote for a client.' : 'Review users, subscriptions and quotes, then go straight to the action you need.' %>"><%= currentWorkspaceCopy.intro %></p>
           <button type="button" class="tour-hero-link" onclick="document.getElementById('dashboardTour').scrollIntoView({behavior:'smooth',block:'center'})">شاهد دليل لوحة التحكم</button>
         </div>
         <div class="dashboard-welcome-mark">
@@ -269,38 +274,120 @@
         </div>
         <% } %>
       </div>
+      <section class="role-next-step overview-card" data-role="<%= role %>" aria-labelledby="nextStepTitle">
+        <div class="role-next-step-copy">
+          <span class="section-eyebrow" data-ar="الخطوة التالية" data-en="Next step">الخطوة التالية</span>
+          <% if (role === 'client') { %>
+            <% if (overview.sent > 0) { %>
+              <h2 id="nextStepTitle">هناك <%= formatNumber(overview.sent) %> تسعيرات بانتظار ردك</h2>
+              <p>افتح طلباتك لمراجعة العروض المرسلة ثم اقبل العرض أو ارفضه.</p>
+            <% } else if (overview.quoteCount === 0) { %>
+              <h2 id="nextStepTitle">ابدأ بأول طلب تسعيرة</h2>
+              <p>أضف تفاصيل احتياجك، ثم تابع حالة الطلب والرد من صفحة تسعيراتي.</p>
+            <% } else { %>
+              <h2 id="nextStepTitle">لا توجد تسعيرات تنتظر ردك</h2>
+              <p>يمكنك مراجعة طلباتك السابقة أو بدء طلب جديد متى احتجت.</p>
+            <% } %>
+            <button type="button" class="btn btn-primary btn-sm" onclick="<%= overview.sent > 0 ? `openQuoteQueue('sent')` : overview.quoteCount === 0 ? `navDirect('quote-new')` : `navDirect('quotes')` %>">
+              <%= overview.sent > 0 ? 'مراجعة التسعيرات' : overview.quoteCount === 0 ? 'طلب تسعيرة' : 'عرض تسعيراتي' %>
+            </button>
+          <% } else if (role === 'employee') { %>
+            <% if (overview.statusCounts.draft > 0) { %>
+              <h2 id="nextStepTitle">لديك <%= formatNumber(overview.statusCounts.draft) %> عروض تحتاج إلى إكمال أو إرسال</h2>
+              <p>راجع المسودات وتأكد من تفاصيل العميل والبنود قبل إرسالها.</p>
+              <button type="button" class="btn btn-primary btn-sm" onclick="openQuoteQueue('draft')">مراجعة المسودات</button>
+            <% } else if (overview.sent > 0) { %>
+              <h2 id="nextStepTitle"><%= formatNumber(overview.sent) %> عروض بانتظار رد العملاء</h2>
+              <p>تابع حالة العروض المرسلة، وتواصل مع العميل عند الحاجة.</p>
+              <button type="button" class="btn btn-primary btn-sm" onclick="openQuoteQueue('sent')">متابعة العروض</button>
+            <% } else { %>
+              <h2 id="nextStepTitle">ابدأ عرضاً جديداً لأحد عملائك</h2>
+              <p>اختر العميل، أضف البنود، ثم أرسل العرض من صفحة العروض.</p>
+              <button type="button" class="btn btn-primary btn-sm" onclick="navDirect('quote-new')">إنشاء عرض</button>
+            <% } %>
+          <% } else { %>
+            <h2 id="nextStepTitle">ابدأ بإدارة المستخدمين والاشتراكات</h2>
+            <p>راجع الحسابات النشطة وحالات الاشتراك، ثم افتح العروض أو سجل النشاط عند الحاجة.</p>
+            <button type="button" class="btn btn-primary btn-sm" onclick="navDirect('subscriptions')">متابعة الاشتراكات</button>
+          <% } %>
+        </div>
+        <div class="role-next-step-metrics" aria-label="ملخص الحالات">
+          <% if (role === 'client') { %>
+            <span><b><%= formatNumber(overview.sent) %></b><small>بانتظار ردك</small></span>
+            <span><b><%= formatNumber(overview.accepted) %></b><small>مقبولة</small></span>
+          <% } else if (role === 'employee') { %>
+            <span><b><%= formatNumber(overview.statusCounts.draft) %></b><small>مسودات</small></span>
+            <span><b><%= formatNumber(overview.sent) %></b><small>بانتظار العميل</small></span>
+          <% } else { %>
+            <span><b><%= formatNumber(overview.statusCounts.draft) %></b><small>مسودات</small></span>
+            <span><b><%= formatNumber(overview.sent) %></b><small>بانتظار الرد</small></span>
+          <% } %>
+        </div>
+      </section>
       <% /* Overview aggregates are supplied by the Node route. */ %>
       <div class="overview-lower-grid">
         <section class="overview-card quick-actions-card">
           <div class="overview-card-heading">
             <div>
               <span class="section-eyebrow">مساحة العمل</span>
-              <h2>اختصاراتك اليومية</h2>
+              <h2 data-ar="<%= role === 'client' ? 'إجراءات حسابك' : role === 'employee' ? 'إجراءات العمل' : 'إجراءات الإدارة' %>"
+                  data-en="<%= role === 'client' ? 'Your account actions' : role === 'employee' ? 'Work actions' : 'Admin actions' %>">
+                <%= role === 'client' ? 'إجراءات حسابك' : role === 'employee' ? 'إجراءات العمل' : 'إجراءات الإدارة' %>
+              </h2>
             </div>
             <span class="overview-card-mark" aria-hidden="true">↗</span>
           </div>
           <div class="quick-actions-grid">
-            <button type="button" class="quick-action" onclick="navToQuickTool('services')">
-              <span class="quick-action-icon ui-icon ui-icon-calculator" aria-hidden="true"></span>
-              <span><b>ابدأ تسعيرة</b><small>اختر التسعيرة المناسبة</small></span>
+            <% if (role === 'client') { %>
+            <button type="button" class="quick-action" onclick="navDirect('quote-new')">
+              <span class="quick-action-icon ui-icon ui-icon-document" aria-hidden="true"></span>
+              <span><b>طلب تسعيرة</b><small>أرسل تفاصيل احتياجك</small></span>
             </button>
             <button type="button" class="quick-action" onclick="navDirect('quotes')">
               <span class="quick-action-icon ui-icon ui-icon-document" aria-hidden="true"></span>
-              <span><b>مراجعة العروض</b><small>تابع الحالات والردود</small></span>
+              <span><b>تسعيراتي</b><small>راجع الحالة واتخذ قرارك</small></span>
             </button>
             <button type="button" class="quick-action" onclick="navDirect('messages')">
               <span class="quick-action-icon ui-icon ui-icon-message" aria-hidden="true"></span>
-              <span><b>التواصل</b><small>افتح الرسائل الداخلية</small></span>
+              <span><b>رسائلي</b><small>تواصل مع فريق العمل</small></span>
             </button>
-            <% if (role === 'client') { %>
             <button type="button" class="quick-action" onclick="navDirect('subscription')">
               <span class="quick-action-icon ui-icon ui-icon-plan" aria-hidden="true"></span>
-              <span><b>خطتك الحالية</b><small>راجع الاستخدام والمزايا</small></span>
+              <span><b>خطتي واستخدامي</b><small>اعرف حدود خطتك ومزاياها</small></span>
             </button>
-            <% } else { %>
+            <% } else if (role === 'employee') { %>
+            <button type="button" class="quick-action" onclick="navDirect('quote-new')">
+              <span class="quick-action-icon ui-icon ui-icon-document" aria-hidden="true"></span>
+              <span><b>إنشاء عرض</b><small>اختر العميل وأضف البنود</small></span>
+            </button>
+            <button type="button" class="quick-action" onclick="openQuoteQueue('draft')">
+              <span class="quick-action-icon ui-icon ui-icon-document" aria-hidden="true"></span>
+              <span><b>مسودات العروض</b><small>أكملها أو أرسلها للعميل</small></span>
+            </button>
             <button type="button" class="quick-action" onclick="navDirect('clients')">
               <span class="quick-action-icon ui-icon ui-icon-users" aria-hidden="true"></span>
-              <span><b>دليل العملاء</b><small>اختر عميلاً بسرعة</small></span>
+              <span><b>العملاء</b><small>اختر عميلاً لإنشاء عرض</small></span>
+            </button>
+            <button type="button" class="quick-action" onclick="navDirect('tools')">
+              <span class="quick-action-icon ui-icon ui-icon-calculator" aria-hidden="true"></span>
+              <span><b>أدوات التسعير</b><small>احسب التكلفة قبل إعداد العرض</small></span>
+            </button>
+            <% } else { %>
+            <button type="button" class="quick-action" onclick="navDirect('subscriptions')">
+              <span class="quick-action-icon ui-icon ui-icon-plan" aria-hidden="true"></span>
+              <span><b>الاشتراكات</b><small>راجع الحالة والتحصيل</small></span>
+            </button>
+            <button type="button" class="quick-action" onclick="navDirect('users')">
+              <span class="quick-action-icon ui-icon ui-icon-users" aria-hidden="true"></span>
+              <span><b>المستخدمون</b><small>أدر العملاء والموظفين</small></span>
+            </button>
+            <button type="button" class="quick-action" onclick="navDirect('quotes')">
+              <span class="quick-action-icon ui-icon ui-icon-document" aria-hidden="true"></span>
+              <span><b>كل العروض</b><small>تابع الحالات والتقييمات</small></span>
+            </button>
+            <button type="button" class="quick-action" onclick="navDirect('settings')">
+              <span class="quick-action-icon ui-icon ui-icon-plan" aria-hidden="true"></span>
+              <span><b>إعدادات النظام</b><small>حدّث إعدادات المنصة</small></span>
             </button>
             <% } %>
           </div>
@@ -314,15 +401,21 @@
             <span class="insight-status"><i></i> محدث الآن</span>
           </div>
           <div class="insight-metrics">
+            <% if (role === 'client') { %>
+            <div><b><%= formatNumber(overview.quoteCount) %></b><span>إجمالي تسعيراتي</span></div>
+            <div><b><%= formatNumber(overview.sent) %></b><span>بانتظار قراري</span></div>
+            <div><b><%= formatNumber(overview.accepted) %></b><span>وافقت عليها</span></div>
+            <% } else { %>
             <div><b><% Object.entries(overview.currencyTotals).forEach(([code, group]) => { %><span><%= formatNumber(group.total, 0) %> <small><%= code %></small></span><% }); %></b><span>قيمة العروض حسب العملة</span></div>
             <div><b><% Object.entries(overview.currencyTotals).forEach(([code, group]) => { %><span><%= formatNumber(group.total / group.count, 0) %> <small><%= code %></small></span><% }); %></b><span>متوسط العرض حسب العملة</span></div>
             <div><b><%= overview.sent %></b><span>بانتظار الرد</span></div>
+            <% } %>
           </div>
-          <div class="conversion-line">
+          <% if (role !== 'client') { %><div class="conversion-line">
             <div class="conversion-label"><span>معدل القبول</span><strong><%= overview.conversion %>%</strong></div>
             <div class="conversion-track"><span style="width:<%= overview.conversion %>%"></span></div>
             <small><%= overview.accepted %> عروض مقبولة من أصل <%= overview.quoteCount %></small>
-          </div>
+          </div><% } %>
         </section>
       </div>
       <% if (role === 'admin') { %>
@@ -718,7 +811,7 @@
         <div class="stat-card"><span>مدفوعات اختبار ناجحة</span><strong id="testPaymentCount">—</strong></div>
       </div>
       <div class="card" style="padding:14px 18px;margin-bottom:18px;color:var(--muted);font-size:12px">
-        الإيرادات المحصلة لا يمكن تأكيدها حالياً لعدم وجود سجل معاملات دفع. ستظهر هنا بعد تفعيل جيديا وتسجيل عمليات الدفع الناجحة.
+        الإيرادات الفعلية تشمل معاملات الإنتاج المؤكدة فقط. عمليات جيديا التجريبية تُعرض منفصلة ولا تدخل في إجمالي التحصيل.
       </div>
 
       <div class="sub-plan-cards">

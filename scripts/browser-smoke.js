@@ -126,6 +126,18 @@ async function main() {
           failures.push(`${role}: show guide action failed`);
         }
       }
+      const nextStep = page.locator('.role-next-step');
+      const topAction = page.locator('.topbar-actions button.btn-primary').first();
+      if (await nextStep.count() !== 1 || await nextStep.getAttribute('data-role') !== role ||
+          !await page.locator('#nextStepTitle').isVisible()) {
+        failures.push(`${role}: role-specific next-step panel is missing`);
+      }
+      if ((await page.locator('.quick-actions-grid .quick-action').count()) !== 4) {
+        failures.push(`${role}: role-specific quick actions are incomplete`);
+      }
+      if (!(await topAction.getAttribute('onclick') || '').includes("navDirect('quote-new')")) {
+        failures.push(`${role}: primary action does not open the quote workflow`);
+      }
       const managementPanels = ['users', 'subscriptions', 'mailbox', 'contact-inbox', 'activity', 'settings'];
       const exposedManagementPanels = await page.locator('.sb-item[data-panel]').evaluateAll((elements, allowedPanels) =>
         elements.map(element => element.dataset.panel).filter(panel => allowedPanels.includes(panel)), managementPanels);

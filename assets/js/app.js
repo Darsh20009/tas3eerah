@@ -151,6 +151,40 @@ const UI_TRANSLATIONS = {
   'تم حفظ العرض كمسودة بنجاح':'Quote saved as draft successfully', 'حفظ كعرض سعر':'Save as quote',
   'حفظ كعرض سعر يتطلب ترقية':'Saving as a quote requires an upgrade',
   'حفظ':'Save', 'رقم':'Number', 'شهر':'month', 'عرض/شهر':'quotes/month',
+  'إجراءات حسابك':'Your account actions', 'إجراءات العمل':'Work actions', 'إجراءات الإدارة':'Admin actions',
+  'طلب تسعيرة جديدة':'Request a quote',
+  'طلب تسعيرة':'Request a quote', 'تسعيراتي':'My quotes', 'رسائلي':'My messages',
+  'خطتي واستخدامي':'My plan & usage', 'إنشاء عرض':'Create a quote', 'مسودات العروض':'Quote drafts',
+  'العملاء':'Clients', 'أدوات التسعير':'Pricing tools', 'مراجعة التسعيرات':'Review requests',
+  'عرض تسعيراتي':'View my requests', 'ابدأ طلب تسعيرة أولى':'Start your first request',
+  'لا توجد تسعيرات تنتظر ردك':'No requests are waiting for you',
+  'أرسل تفاصيل احتياجك':'Share what you need', 'راجع الحالة واتخذ قرارك':'Check status and respond',
+  'تواصل مع فريق العمل':'Contact the team', 'اعرف حدود خطتك ومزاياها':'See your plan limits and benefits',
+  'اختر العميل وأضف البنود':'Select a client and add items', 'أكملها أو أرسلها للعميل':'Complete or send them to clients',
+  'اختر عميلاً لعرضه أو تسعيره':'Choose a client to prepare a quote', 'احسب التكلفة قبل إعداد العرض':'Calculate costs before preparing a quote',
+  'راجع الحالة والتحصيل':'Review subscription status and payments', 'أدر العملاء والموظفين':'Manage clients and employees',
+  'تابع الحالات والتقييمات':'Monitor statuses and ratings', 'حدّث إعدادات المنصة':'Update platform settings',
+  'أدوات حساب الأسعار':'Pricing calculators', 'حاسبات الأسعار':'Pricing calculators',
+  'إجمالي تسعيراتي':'Total requests', 'بانتظار قراري':'Awaiting my decision', 'وافقت عليها':'Accepted',
+  'بانتظار العميل':'Awaiting the client', 'متابعة الاشتراكات':'Manage subscriptions',
+  'راجع المسودات وتأكد من تفاصيل العميل والبنود قبل إرسالها.':'Review drafts and confirm client and item details before sending.',
+  'تابع حالة العروض المرسلة، وتواصل مع العميل عند الحاجة.':'Follow sent quotes and contact clients when needed.',
+  'اختر العميل، أضف البنود، ثم أرسل العرض من صفحة العروض.':'Select a client, add items, then send the quote from the quotes page.',
+  'راجع الحسابات النشطة وحالات الاشتراك، ثم افتح العروض أو سجل النشاط عند الحاجة.':'Review active accounts and subscription statuses, then open quotes or the activity log as needed.',
+  'هناك':'You have', 'لديك':'You have', 'تسعيرات بانتظار ردك':'requests awaiting your response',
+  'عروض تحتاج إلى إكمال أو إرسال':'quotes to complete or send',
+  'ابدأ بأول طلب تسعيرة':'Start your first pricing request',
+  'أفتح طلباتك لمراجعة العروض المرسلة ثم اقبل العرض أو ارفضه.':'Open your requests to review sent quotes, then accept or decline.',
+  'افتح طلباتك لمراجعة العروض المرسلة ثم اقبل العرض أو ارفضه.':'Open your requests to review sent quotes, then accept or decline.',
+  'أضف تفاصيل احتياجك، ثم تابع حالة الطلب والرد من صفحة تسعيراتي.':'Add your requirements, then follow the request and reply from My Quotes.',
+  'يمكنك مراجعة طلباتك السابقة أو بدء طلب جديد متى احتجت.':'Review previous requests or start a new one whenever you need.',
+  'الخطوة التالية':'Next step', 'لديك عروض تنتظر الإرسال':'You have quotes waiting to be sent',
+  'مراجعة المسودات':'Review drafts', 'متابعة العروض':'Follow quotes',
+  'لا توجد عروض أسعار':'No quotes yet', 'لا توجد مسودات تحتاج إلى الإرسال':'No drafts need to be sent',
+  'لا توجد عروض بانتظار رد العميل':'No quotes are waiting for a client response',
+  'لا توجد حسابات عملاء نشطة. اطلب من مدير النظام إضافتها.':'There are no active client accounts. Ask an administrator to add one.',
+  'أضف حساب عميل أولاً، ثم أنشئ عرض السعر له.':'Add a client account first, then create a quote for them.',
+  'إضافة عميل':'Add a client',
   'إجراءات':'Actions', 'الاسم *':'Name *', 'المستلم':'Recipient', 'الموضوع':'Subject',
   'كل الخطط':'All plans', 'نظام ERP':'ERP system', 'حفظ كمسودة':'Save draft',
   'هامش الربح':'Profit margin', 'مدير النظام':'System administrator',
@@ -292,6 +326,14 @@ const panelTitles = {
 };
 
 function panelTitle(panel) {
+  const role = document.getElementById('dashboardTour')?.dataset.role;
+  if (panel === 'quote-new' && role === 'client') return L.current === 'en' ? 'Request a Quote' : 'طلب تسعيرة جديدة';
+  if (panel === 'quotes') {
+    const title = role === 'client' ? ['تسعيراتي', 'My requests']
+      : role === 'employee' ? ['عروضي', 'My quotes'] : ['كل عروض الأسعار', 'All quotes'];
+    return title[L.current === 'en' ? 1 : 0];
+  }
+  if (panel === 'messages' && role === 'client') return L.current === 'en' ? 'My messages' : 'رسائلي';
   const pair = panelTitles[panel];
   return pair ? pair[L.current === 'en' ? 1 : 0] : '';
 }
@@ -446,6 +488,12 @@ function navDirect(panelId) {
   if (panelId === 'tools' && typeof goHome === 'function') goHome();
 }
 
+function openQuoteQueue(status = '') {
+  const filter = document.getElementById('qStatusFilter');
+  if (filter) filter.value = status;
+  navDirect('quotes');
+}
+
 function readLocalProjects(key) {
   try {
     const value = JSON.parse(localStorage.getItem(key) || '[]');
@@ -568,7 +616,19 @@ function renderQuotes() {
   const tb = document.getElementById('quotesTbody');
   if (!tb) return;
   if (!quotes.length) {
-    tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted)">لا توجد عروض أسعار</td></tr>';
+    const status = document.getElementById('qStatusFilter')?.value || '';
+    const isDraftQueue = APP.role === 'employee' && status === 'draft';
+    const isSentQueue = APP.role === 'employee' && status === 'sent';
+    const message = isDraftQueue ? 'لا توجد مسودات تحتاج إلى الإرسال'
+      : isSentQueue ? 'لا توجد عروض بانتظار رد العميل' : 'لا توجد عروض أسعار';
+    const action = APP.role === 'client'
+      ? `<button class="btn btn-primary btn-sm" onclick="navDirect('quote-new')">طلب تسعيرة</button>`
+      : APP.role === 'employee' && (isDraftQueue || !status)
+        ? `<button class="btn btn-primary btn-sm" onclick="navDirect('quote-new')">إنشاء عرض</button>` : '';
+    const columns = APP.role === 'admin' ? 9 : 8;
+    tb.innerHTML = `<tr><td colspan="${columns}" style="text-align:center;padding:24px;color:var(--muted)">
+      <div class="quote-empty-state"><p>${translateString(message)}</p>${action}</div>
+    </td></tr>`;
     return;
   }
   tb.innerHTML = quotes.map(q => `
@@ -1021,7 +1081,7 @@ async function saveQuote() {
 
 function resetQuoteForm() {
   document.getElementById('qEditId').value = '';
-  document.getElementById('qFormTitle').textContent = 'عرض سعر جديد';
+  document.getElementById('qFormTitle').textContent = APP.role === 'client' ? 'طلب تسعيرة جديدة' : 'عرض سعر جديد';
   ['qTitle','qNotes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.getElementById('qTax').value = '15';
   document.getElementById('qCurrency').value = 'SAR';
@@ -1040,7 +1100,12 @@ async function loadClients() {
   if (!r.success) { tb.innerHTML = `<tr><td colspan="5">${r.error}</td></tr>`; return; }
   const clients = r.data;
   if (!clients.length) {
-    tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--muted)">لا يوجد عملاء بعد</td></tr>';
+    const emptyCopy = APP.role === 'admin'
+      ? 'أضف حساب عميل أولاً، ثم أنشئ عرض السعر له.'
+      : 'لا توجد حسابات عملاء نشطة. اطلب من مدير النظام إضافتها.';
+    const action = APP.role === 'admin'
+      ? '<button class="btn btn-primary btn-sm" onclick="navDirect(&quot;users&quot;);openUserModal()">إضافة عميل</button>' : '';
+    tb.innerHTML = `<tr><td colspan="5"><div class="quote-empty-state"><p>${translateString(emptyCopy)}</p>${action}</div></td></tr>`;
     return;
   }
   tb.innerHTML = clients.map(c => `
