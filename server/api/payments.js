@@ -50,7 +50,8 @@ router.post('/', async (req, res) => {
       const selectedPlan = PLANS[plan];
       if (!selectedPlan || selectedPlan.price <= 0) return sendError(res, 'الخطة المطلوبة غير صالحة');
       const origin = siteUrl();
-      const reference = `TAS-${Number(req.user.id)}-${crypto.randomUUID()}`;
+      // Acquiring providers can reject long or punctuated merchant references.
+      const reference = `T${crypto.randomBytes(9).toString('hex').toUpperCase()}`;
       const { sessionId, publicKey } = await geidea.createSession({
         amount: selectedPlan.price,
         reference,
@@ -72,16 +73,22 @@ router.post('/', async (req, res) => {
 
     if (action === 'confirm') {
       const paymentId = Number(req.body.payment_id);
+      const sessionId = text(req.body.session_id, 120);
       const orderId = text(req.body.order_id, 80);
-      if (!Number.isInteger(paymentId) || paymentId < 1 || !orderId) return sendError(res, 'بيانات الدفع غير مكتملة');
-      const payment = await db.findOne('payment_transactions', {
-        id: paymentId, user_id: Number(req.user.id), status: 'pending',
-      });
+      if ((!Number.isInteger(paymentId) || paymentId < 1) && !sessionId || !orderId) {
+        return sendError(res, 'بيانات الدفع غير مكتملة');
+      }
+      const paymentFilter = sessionId
+        ? { geidea_session_id: sessionId, user_id: Number(req.user.id), status: { $in: ['pending', 'verification_failed'] } }
+        : { id: paymentId, user_id: Number(req.user.id), status: { $in: ['pending', 'verification_failed'] } };
+      const payment = await db.findOne('payment_transactions', paymentFilter);
       if (!payment) return sendError(res, 'عملية الدفع غير موجودة أو عولجت مسبقاً', 404);
       const response = await geidea.getOrder(orderId);
       const order = response.order || response;
-      const transaction = Array.isArray(order.transactions) ? order.transactions[0] || {} : {};
-      const responseCode = String(transaction.responseCode || order.responseCode || '');
+      const transactions = Array.isArray(order.transactions) ? order.transactions : [];
+      const transaction = transactions.find(item => String(item.type || '').toLowerCase() === 'pay') ||
+        transactions.at(-1) || {};
+      const responseCode = String(transaction.responseCode || order.responseCode || response.responseCode || '');
       const merchantReference = String(order.merchantReferenceId || order.merchantReference || '');
       const paidAmount = Number(order.amount ?? transaction.amount);
       const currency = String(order.currency || transaction.currency || '');

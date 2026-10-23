@@ -202,18 +202,24 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
   const originalGetOrder = geidea.getOrder;
   const originalDomain = process.env.REPLIT_DEV_DOMAIN;
   let createdSession;
+  let sessionCount = 0;
   let approvedOrder = false;
   geidea.createSession = async (input) => {
     createdSession = input;
-    return { sessionId: 'test-session', publicKey: 'public-test-key' };
+    sessionCount += 1;
+    return { sessionId: `test-session-${sessionCount}`, publicKey: 'public-test-key' };
   };
   geidea.getOrder = async () => ({
+    responseCode: approvedOrder ? '000' : '123',
     order: {
-      responseCode: approvedOrder ? '000' : '123',
-      status: approvedOrder ? 'Paid' : 'Declined',
+      status: approvedOrder ? 'Success' : 'Declined',
       merchantReferenceId: createdSession.reference,
       amount: 49,
       currency: 'SAR',
+      transactions: [
+        { type: 'Authentication', status: 'Success', amount: 49, currency: 'SAR' },
+        { type: 'Pay', status: approvedOrder ? 'Success' : 'Declined', amount: 49, currency: 'SAR' },
+      ],
     },
   });
   process.env.REPLIT_DEV_DOMAIN = 'test.example.replit.dev';
@@ -274,7 +280,8 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
       body: { action: 'create_session', plan: 'plus' },
     });
     assert.equal(pending.response.status, 200);
-    assert.equal(pending.json.data.sessionId, 'test-session');
+    assert.equal(pending.json.data.sessionId, 'test-session-1');
+    assert.match(createdSession.reference, /^[A-Z0-9]{19}$/);
     assert.equal((await db.findOne('users', { id: clientId })).plan, 'free', 'creating checkout cannot activate a plan');
     assert.equal((await db.findOne('payment_transactions', { id: pending.json.data.paymentId })).status, 'pending');
 
@@ -292,7 +299,7 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
     });
     const confirmedPayment = await request('/api/payments', {
       jar: clientJar, method: 'POST', token: csrfToken,
-      body: { action: 'confirm', payment_id: approvedSession.json.data.paymentId, order_id: 'approved-order' },
+      body: { action: 'confirm', session_id: approvedSession.json.data.sessionId, order_id: 'approved-order' },
     });
     assert.equal(confirmedPayment.response.status, 200);
     assert.equal((await db.findOne('users', { id: clientId })).plan, 'plus');

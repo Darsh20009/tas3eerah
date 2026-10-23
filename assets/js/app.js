@@ -381,6 +381,36 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (paymentState === 'failed') {
       showSubscriptionStatus('error', 'لم تكتمل عملية الدفع ولم تتغير خطتك. حاول مجدداً أو تواصل مع الدعم إذا خُصم المبلغ.', 'Payment did not complete and your plan was not changed. Retry or contact support if you were charged.');
       window.history.replaceState({}, '', `${window.location.pathname}?panel=subscription`);
+    } else if (params.get('orderId') && params.get('sessionId')) {
+      const orderId = params.get('orderId');
+      const sessionId = params.get('sessionId');
+      showSubscriptionStatus(
+        'info',
+        'نتحقق من الدفع لدى جيديا قبل تحديث خطتك...',
+        'Verifying your payment with Geidea before updating your plan...',
+      );
+      window.history.replaceState({}, '', `${window.location.pathname}?panel=subscription`);
+      void api('payments', { action: 'confirm', session_id: sessionId, order_id: orderId })
+        .then(result => {
+          if (result.success) {
+            showSubscriptionStatus(
+              'success',
+              'تم التحقق من الدفع وتفعيل الخطة. راجع تاريخ الانتهاء واستخدام الشهر في هذه الصفحة.',
+              'Payment verified and plan activated. Review your expiry date and monthly usage here.',
+            );
+          } else {
+            showSubscriptionStatus(
+              'error',
+              `${result.error || 'لم تؤكد جيديا نجاح الدفع.'} لم يتم تفعيل الخطة.`,
+              'Geidea did not verify this payment. Your plan was not activated.',
+            );
+          }
+        })
+        .catch(() => showSubscriptionStatus(
+          'error',
+          'تعذر التحقق من الدفع الآن. لم تتغير خطتك؛ أعد تحميل الصفحة أو تواصل مع الدعم.',
+          'Could not verify the payment yet. Your plan was not changed; reload the page or contact support.',
+        ));
     }
   }
   languageObserver = new MutationObserver(() => {
@@ -1591,14 +1621,28 @@ async function confirmSubscriptionChoice() {
             if (confirmButton) confirmButton.disabled = false;
           }
         },
-        () => {
-          setReviewStatus('error', 'لم تكتمل عملية الدفع. لم تتغير خطتك؛ يمكنك المحاولة مجدداً.', 'Payment did not complete. Your plan was not changed; you can try again.');
+        data => {
+          const providerMessage = String(data?.responseMessage || '').trim().slice(0, 120);
+          setReviewStatus(
+            'error',
+            providerMessage
+              ? `لم تكتمل عملية الدفع لدى جيديا: ${providerMessage}. لم تتغير خطتك.`
+              : 'لم تكتمل عملية الدفع. لم تتغير خطتك؛ يمكنك المحاولة مجدداً.',
+            providerMessage
+              ? `Geidea could not complete the payment: ${providerMessage}. Your plan was not changed.`
+              : 'Payment did not complete. Your plan was not changed; you can try again.',
+          );
           if (confirmButton) confirmButton.disabled = false;
         },
         () => {
           setReviewStatus('info', 'ألغيت الدفع. لم تتغير خطتك؛ يمكنك اختيار الخطة لاحقاً.', 'You cancelled checkout. Your plan was not changed; you can choose a plan later.');
           if (confirmButton) confirmButton.disabled = false;
         },
+      );
+      setReviewStatus(
+        'info',
+        'أكمل الدفع في نافذة جيديا؛ لن تتغير خطتك حتى نتحقق من نجاح الدفع.',
+        'Complete checkout in the Geidea window; your plan will not change until payment is verified.',
       );
       checkout.startPayment(result.data.sessionId);
     } catch {

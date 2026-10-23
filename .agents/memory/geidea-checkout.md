@@ -3,14 +3,14 @@ name: Geidea test checkout
 description: Verified KSA test endpoints and a request-field constraint discovered while integrating Geidea Checkout.
 ---
 
-For the KSA Geidea test flow, create sessions through `api.ksamerchant.geidea.net` and load hosted checkout from `www.ksamerchant.geidea.net`. Use a short ASCII order description; Arabic text caused the session API to reject the request with response code 110.
+For the KSA Geidea test flow, create sessions through `api.ksamerchant.geidea.net` and load hosted checkout from `www.ksamerchant.geidea.net`. Use a short ASCII order description; Arabic text caused the session API to reject the request with response code 110. Merchant references must also be short alphanumeric values: a longer punctuated reference was rejected with detailed response 035.
 
-**Why:** the provider accepted the server-signed test request after the description was changed to ASCII; the Arabic description returned an invalid-character response.
+**Why:** Geidea's KSA sandbox rejects some otherwise reasonable merchant-reference formats and Arabic order descriptions.
 
-**How to apply:** keep API credentials server-side, use the KSA test hosts for test MID credentials, and retain server-side order verification before granting a plan.
+**How to apply:** keep API credentials server-side, use KSA test hosts with test credentials, use a short ASCII description and alphanumeric reference, and retain server-side order verification before granting a plan.
 
-End-to-end payment verification requires more than creating a session: confirm the hosted checkout's submit control actually becomes interactive and that the server verifies the returned order before calling the test successful. In Replit preview, the hosted HPP rendered but its pay control remained non-interactive after entering Geidea's documented test-card fields.
+The hosted form may redirect directly to the configured return URL with `orderId` and `sessionId`; verify the order on the server and bind it to the authenticated user's stored session before granting a plan. Geidea order lookups can contain both Authentication and Pay transactions; use the Pay transaction and the provider's top-level response code rather than treating the first transaction as the payment result.
 
-**Why:** a valid session and visible hosted form did not prove that a test payment could be submitted; treating that as a successful checkout would overstate coverage.
+**Why:** a real sandbox order succeeded while the first transaction was Authentication, and an earlier parser marked it failed despite the order and Pay transaction succeeding.
 
-**How to apply:** record session creation, checkout rendering, cancellation, and completed payment as separate outcomes. If the HPP submit control stays disabled, stop and resolve the test merchant or hosted-frame issue with Geidea before claiming end-to-end payment success.
+**How to apply:** test the complete HPP return and server-side confirmation, not only session creation. The KSA sandbox's declined-card response may leave the HPP open without posting an error callback to the parent, so do not infer activation from browser state or assume the callback fires on every decline.
