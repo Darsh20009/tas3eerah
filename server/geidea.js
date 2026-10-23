@@ -2,7 +2,7 @@
 
 const crypto = require('node:crypto');
 
-const SESSION_ENDPOINT = 'https://api.merchant.geidea.net/payment-intent/api/v2/direct/session';
+const SESSION_ENDPOINT = 'https://api.ksamerchant.geidea.net/payment-intent/api/v2/direct/session';
 const ORDER_ENDPOINT = 'https://api.ksamerchant.geidea.net/pgw/api/v1/direct/order/';
 
 function credentials() {
@@ -46,7 +46,7 @@ async function createSession({ amount, reference, returnUrl, customer }) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      amount: Number(amount).toFixed(2),
+      amount: Number(Number(amount).toFixed(2)),
       currency,
       timestamp,
       merchantReferenceId: reference,
@@ -58,13 +58,17 @@ async function createSession({ amount, reference, returnUrl, customer }) {
         email: customer.email,
         firstName: String(customer.name || 'Customer').slice(0, 80),
       },
-      order: { description: 'اشتراك منصة تسعيرة' },
+      order: { description: 'Tas3eerah monthly subscription' },
     }),
   });
   const body = await readResponse(response);
   const sessionId = body.session?.id || body.sessionId;
   if (typeof sessionId !== 'string' || !sessionId) {
-    throw new Error('لم تُرجع جيديا معرّف جلسة دفع صالحاً.');
+    const fields = Object.keys(body).join(', ') || 'none';
+    const code = String(body.responseCode || body.code || 'unknown');
+    const detail = String(body.detailedResponseMessage || body.responseMessage || '')
+      .replace(/[A-Za-z0-9_-]{24,}/g, '[redacted]').slice(0, 120);
+    throw new Error(`لم تُرجع جيديا معرّف جلسة دفع صالحاً (response code: ${code}; fields: ${fields}; detail: ${detail}).`);
   }
   return { sessionId, publicKey };
 }

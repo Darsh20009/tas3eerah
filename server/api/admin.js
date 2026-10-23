@@ -68,7 +68,8 @@ async function ratingStats() {
 async function stats(res) {
   const month = new Date().toISOString().slice(0, 7);
   const rating = await ratingStats();
-  const paidTransactions = await db.findAll('payment_transactions', { status: 'paid' });
+  const paidTransactions = await db.findAll('payment_transactions', { status: 'paid', environment: 'live' });
+  const testTransactions = await db.findAll('payment_transactions', { status: 'paid', environment: 'test' });
   return sendOk(res, {
     users_total: await db.count('users'),
     users_active: await db.count('users', { is_active: 1 }),
@@ -84,6 +85,8 @@ async function stats(res) {
     rating_count: rating.count,
     paid_transactions_count: paidTransactions.length,
     collected_revenue_sar: paidTransactions.reduce((sum, payment) => sum + Number(payment.amount || 0), 0),
+    paid_test_transactions_count: testTransactions.length,
+    test_revenue_sar: testTransactions.reduce((sum, payment) => sum + Number(payment.amount || 0), 0),
   });
 }
 
@@ -107,7 +110,7 @@ async function users(req, res) {
       trial_used_at: 1, trial_plan: 1, trial_ends_at: 1,
     },
   });
-  const paidTransactions = await db.findAll('payment_transactions', { status: 'paid' });
+  const paidTransactions = await db.findAll('payment_transactions', { status: 'paid', environment: 'live' });
   const collectedByUser = new Map();
   for (const payment of paidTransactions) {
     const id = Number(payment.user_id);

@@ -63,6 +63,7 @@ router.post('/', async (req, res) => {
         amount: selectedPlan.price,
         currency: 'SAR',
         status: 'pending',
+        environment: 'test',
         merchant_reference_id: reference,
         geidea_session_id: sessionId,
       });
@@ -109,6 +110,7 @@ router.post('/', async (req, res) => {
       });
       await db.updateDoc('users', { id: Number(req.user.id) }, {
         plan: payment.plan, plan_expires_at: expiresAt,
+        trial_plan: null, trial_ends_at: null,
       });
       return sendOk(res, { plan: payment.plan, expires_at: expiresAt }, 'تم تأكيد الدفع وتفعيل الاشتراك');
     }

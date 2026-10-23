@@ -186,7 +186,8 @@ async function main() {
           if (await numberInput.count()) {
             // Package prices are rounded to five currency units; a small
             // capital-cost input can legitimately leave the rendered output unchanged.
-            const values = { packages: '123000', menu: '100', design: '1000' };
+            const currentMenuCost = slug === 'menu' ? Number(await numberInput.inputValue()) : 0;
+            const values = { packages: '123000', menu: currentMenuCost === 1000 ? '2000' : '1000', design: '1000' };
             await numberInput.fill(values[slug] || '123');
             await numberInput.dispatchEvent('input');
             await numberInput.dispatchEvent('change');

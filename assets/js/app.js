@@ -1935,6 +1935,7 @@ async function loadSubscriptions() {
     setText('planCount_plus',       r.data.plan_plus);
     setText('planCount_pro',        r.data.plan_pro);
     setText('subscriptionRevenue', `${new Intl.NumberFormat('ar-SA').format(Number(r.data.collected_revenue_sar || 0))} ر.س`);
+    setText('testPaymentCount', `${Number(r.data.paid_test_transactions_count || 0)} · ${new Intl.NumberFormat('ar-SA').format(Number(r.data.test_revenue_sar || 0))} ر.س`);
   }
 
   const r2 = await api('admin?action=users');

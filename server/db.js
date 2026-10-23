@@ -30,7 +30,7 @@ const COLLECTION_FIELDS = Object.freeze({
   ]),
   settings: new Set(['key', 'value']),
   payment_transactions: new Set([
-    'id', 'user_id', 'plan', 'amount', 'currency', 'status', 'merchant_reference_id',
+    'id', 'user_id', 'plan', 'amount', 'currency', 'status', 'environment', 'merchant_reference_id',
     'geidea_session_id', 'geidea_order_id', 'response_code', 'created_at', 'updated_at', 'paid_at',
   ]),
   calculator_results: new Set(['id', 'user_id', 'tool', 'title', 'price', 'currency_code', 'state', 'created_at']),
@@ -514,6 +514,7 @@ function createSqliteSchema() {
       amount REAL NOT NULL,
       currency TEXT NOT NULL,
       status TEXT NOT NULL,
+      environment TEXT NOT NULL DEFAULT 'test',
       merchant_reference_id TEXT NOT NULL UNIQUE,
       geidea_session_id TEXT,
       geidea_order_id TEXT,

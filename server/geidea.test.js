@@ -26,9 +26,9 @@ test('Geidea session creation signs the server-side amount and returns only the 
     });
     assert.equal(result.sessionId, 'session-test-id');
     assert.equal(result.publicKey, 'public-test-key');
-    assert.match(received.url, /payment-intent\/api\/v2\/direct\/session$/);
+    assert.match(received.url, /api\.ksamerchant\.geidea\.net\/payment-intent\/api\/v2\/direct\/session$/);
     const payload = JSON.parse(received.options.body);
-    assert.equal(payload.amount, '49.00');
+    assert.equal(payload.amount, 49);
     assert.equal(payload.currency, 'SAR');
     const signed = `public-test-key49.00SARTAS-test-reference${payload.timestamp}`;
     assert.equal(
