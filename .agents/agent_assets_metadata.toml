@@ -1,0 +1,16 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "Y2Vj8US_cX_zmFTWt9roI"
+uri = "file://generated-artifacts/tas3eerah-market-gap-deck.html"
+type = "html"
+title = "تدقيق تسعيرة والفجوات السوقية"
+description = "عرض عربي من 10 شرائح: جرد قدرات النظام، مقارنة موثقة بخدمات مجاورة، فجوات مرتبة حسب الأولوية، وخارطة طريق."
+logical_id = "991f93a6-e040-404a-8d45-8855ab7a1451"
+content_hash = "sha256:82dc56b1aba878101bb8339a0fc0db2c8337a924621ee00e7dd1b6554605c6bd"
+size = 35238
+mtime_ms = 1792809362838
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:d9a1199c-a7cb-4b39-8c7b-27d6f2c32e6d/991f93a6-e040-404a-8d45-8855ab7a1451/cbad2da9-8bf2-4080-bd46-fc71e75b30c5"
+storage_version_token = "1792809415491502"
+content_type = "text/html"
