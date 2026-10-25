@@ -1203,12 +1203,12 @@ select.form-control { cursor: pointer; }
 .footer-grid { display: grid; grid-template-columns: 1.8fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 44px; }
 .footer-brand { display: flex; align-items: center; margin-bottom: 16px; }
 .footer-brand-logo {
-  width: 104px; height: 92px; display: flex; align-items: center; justify-content: flex-start;
+  width: 148px; height: 90px; display: flex; align-items: center; justify-content: flex-start;
 }
 .footer-brand-logo img {
-  width: auto; max-width: 100%; height: 100%;
-  object-fit: contain; object-position: right center;
-  background: #F8F5ED; padding: 8px; border-radius: 4px;
+  width: 138px; max-width: 100%; height: 78px;
+  object-fit: contain; object-position: center;
+  background: #f7f4ec; padding: 7px 10px; border-radius: 2px;
 }
 .footer-col-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: rgba(255,255,255,.5); margin-bottom: 16px; }
 .footer-links { display: flex; flex-direction: column; gap: 10px; }
@@ -1221,6 +1221,40 @@ select.form-control { cursor: pointer; }
   border-top: 1px solid rgba(255,255,255,.1); padding-top: 22px;
   display: flex; justify-content: space-between; align-items: center;
   flex-wrap: wrap; gap: 10px; font-size: 12px; color: rgba(255,255,255,.4);
+}
+
+/* Refined public brand: keep the established green, ivory and gold identity. */
+.land-footer {
+  border-top: 1px solid rgba(198, 166, 82, .55);
+}
+.footer-inner {
+  max-width: 1220px;
+  padding-top: 62px;
+}
+.footer-grid {
+  gap: clamp(24px, 4vw, 54px);
+  padding-bottom: 6px;
+}
+.footer-col-title {
+  color: #d9c47f;
+  font-size: 12px;
+  letter-spacing: normal;
+}
+.footer-links a,
+.footer-links span {
+  transition: color .16s ease;
+}
+.footer-links a:hover,
+.footer-links span:hover {
+  color: #fff;
+}
+.footer-gold-line {
+  width: 44px;
+  height: 1px;
+}
+.footer-bottom {
+  border-top-color: rgba(255,255,255,.18);
+  color: rgba(255,255,255,.62);
 }
 
 
@@ -3229,6 +3263,27 @@ button, input, textarea, select { letter-spacing: normal; }
 .land-nav { box-shadow: none; }
 .land-nav-links a:hover,
 .lang-toggle:hover { background: var(--p-l); }
+.hero-content {
+  position: relative;
+}
+.hero-content::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: clamp(24px, 6vw, 88px);
+  top: 18%;
+  width: 46px;
+  height: 2px;
+  background: #c5a34c;
+}
+.hero-trust-stats strong {
+  color: #173f32;
+}
+
+@media (max-width: 768px) {
+  .hero-content::before { display: none; }
+  .hero-visual { border-inline-start: 0; }
+  .footer-inner { padding: 44px 20px 22px; }
+}
 
 /* Dashboard overview: give the welcome and work panels a single readable flow */
 .app-shell {

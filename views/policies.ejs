@@ -6,27 +6,43 @@
   <title><%= title %></title>
   <link rel="stylesheet" href="/assets/css/app.css?v=<%= assetVersion %>">
   <style>
-    body { background: #f8f6f0; }
-    .policies-shell { max-width: 920px; margin: 0 auto; padding: 28px clamp(16px, 4vw, 40px) 72px; }
-    .policies-top { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
-    .policies-top img { width: 145px; max-width: 40vw; height: auto; }
+    body { background: #f4f3ed; }
+    .policies-shell { max-width: 1180px; margin: 0 auto; padding: 28px clamp(16px, 4vw, 44px) 44px; }
+    .policies-top { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 22px; }
+    .policies-top img { width: 132px; max-width: 40vw; height: auto; }
     .policies-top a { color: var(--p); font-weight: 700; text-decoration: none; }
-    .policies-header { margin: 40px 0 24px; }
-    .policies-header h1 { margin: 0 0 10px; font-size: clamp(27px, 4vw, 37px); color: var(--p); }
-    .policies-header p { margin: 5px 0; color: var(--muted); }
-    .policies-nav { background: #fffefa; border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
-    .policies-nav h2 { margin: 0 0 14px; color: var(--p); font-size: 18px; }
-    .policies-nav ul { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; list-style: none; }
-    .policies-nav a { display: inline-block; padding: 9px 12px; border: 1px solid var(--line); border-radius: 7px; color: var(--p); text-decoration: none; font-size: 14px; }
-    .policies-nav a:hover, .policies-nav a:focus-visible { border-color: var(--gold); background: #faf4e2; }
-    .policies-section { margin-top: 18px; padding: 25px; background: #fffefa; border: 1px solid var(--line); border-radius: 12px; scroll-margin-top: 20px; }
-    .policies-section h2 { margin: 0 0 17px; color: var(--p); font-size: 22px; }
-    .policies-body { white-space: pre-wrap; overflow-wrap: anywhere; font-family: inherit; font-size: 15px; line-height: 2.05; color: var(--text); }
+    .policies-top a:last-child { padding: 10px 15px; border: 1px solid rgba(23,63,50,.18); }
+    .policies-top a:last-child:hover { background: #fff; border-color: var(--gold); }
+    .policies-header { position: relative; overflow: hidden; margin: 0 0 28px; padding: clamp(28px, 5vw, 54px); color: #fff; background: #123b30; }
+    .policies-header::after { content: ""; position: absolute; inset-inline-end: 0; top: 0; width: 4px; height: 100%; background: #c5a34c; }
+    .policies-header h1 { position: relative; margin: 0 0 14px; font-size: clamp(29px, 4vw, 43px); line-height: 1.35; color: #fff; }
+    .policies-header p { position: relative; margin: 5px 0; color: rgba(255,255,255,.72); }
+    .policies-header p:last-child { margin-top: 20px; color: #e1c978; font-size: 13px; }
+    .policies-layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); align-items: start; gap: 22px; }
+    .policies-nav { position: sticky; top: 20px; background: #fff; border: 1px solid #e5e6df; padding: 21px; }
+    .policies-nav h2 { margin: 0 0 15px; color: var(--p); font-size: 16px; }
+    .policies-nav ul { display: flex; flex-direction: column; gap: 5px; margin: 0; padding: 0; list-style: none; }
+    .policies-nav a { display: block; padding: 11px 12px; border-inline-start: 2px solid transparent; color: #55635c; text-decoration: none; font-size: 13px; line-height: 1.6; }
+    .policies-nav a:hover, .policies-nav a:focus-visible { color: var(--p); border-inline-start-color: var(--gold); background: #f7f7f2; outline: none; }
+    .policies-documents { min-width: 0; }
+    .policies-section { margin-bottom: 15px; padding: clamp(20px, 3vw, 30px); background: #fff; border: 1px solid #e5e6df; scroll-margin-top: 20px; }
+    .policies-section h2 { margin: 0 0 19px; padding-bottom: 14px; border-bottom: 1px solid #e9ebe5; color: var(--p); font-size: 21px; line-height: 1.6; }
+    .policies-body { white-space: pre-wrap; overflow-wrap: anywhere; font-family: inherit; font-size: 15px; line-height: 2.1; color: #364740; }
+    .policies-footer { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #dcded6; color: #727b74; font-size: 12px; }
+    .policies-footer a { color: var(--p); text-decoration: none; font-weight: 700; }
     @media (max-width: 600px) {
-      .policies-shell { padding-top: 20px; }
-      .policies-header { margin-top: 30px; }
-      .policies-section { padding: 18px; }
-      .policies-nav ul { display: grid; }
+      .policies-shell { padding: 16px 14px 28px; }
+      .policies-top { margin-bottom: 16px; }
+      .policies-top img { width: 112px; }
+      .policies-header { margin-bottom: 16px; padding: 28px 22px; }
+      .policies-layout { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+      .policies-nav { position: static; padding: 16px; }
+      .policies-nav ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+      .policies-nav a { height: 100%; padding: 9px; font-size: 12px; }
+      .policies-section { padding: 19px 16px; margin-bottom: 12px; }
+      .policies-section h2 { font-size: 18px; }
+      .policies-body { font-size: 14px; line-height: 2; }
+      .policies-footer { align-items: flex-start; flex-direction: column; }
     }
   </style>
 </head>
@@ -41,20 +57,28 @@
       <p><%= site %></p>
       <p><%= updated %></p>
     </header>
-    <nav class="policies-nav" aria-label="<%= contentsTitle %>">
-      <h2><%= contentsTitle %></h2>
-      <ul>
+    <div class="policies-layout">
+      <nav class="policies-nav" aria-label="<%= contentsTitle %>">
+        <h2><%= contentsTitle %></h2>
+        <ul>
+          <% for (const section of sections) { %>
+            <li><a href="#<%= section.id %>"><%= section.title.slice(3) %></a></li>
+          <% } %>
+        </ul>
+      </nav>
+      <div class="policies-documents">
         <% for (const section of sections) { %>
-          <li><a href="#<%= section.id %>"><%= section.title.slice(3) %></a></li>
+          <section class="policies-section" id="<%= section.id %>" aria-labelledby="<%= section.id %>-title">
+            <h2 id="<%= section.id %>-title"><%= section.title %></h2>
+            <div class="policies-body"><%= section.body %></div>
+          </section>
         <% } %>
-      </ul>
-    </nav>
-    <% for (const section of sections) { %>
-      <section class="policies-section" id="<%= section.id %>" aria-labelledby="<%= section.id %>-title">
-        <h2 id="<%= section.id %>-title"><%= section.title %></h2>
-        <div class="policies-body"><%= section.body %></div>
-      </section>
-    <% } %>
+      </div>
+    </div>
+    <footer class="policies-footer">
+      <span>© <%= new Date().getFullYear() %> تسعيرة — جميع الحقوق محفوظة</span>
+      <a href="/">العودة إلى تسعيرة</a>
+    </footer>
   </main>
 </body>
 </html>
