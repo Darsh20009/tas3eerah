@@ -64,3 +64,24 @@ test('SMTP verification requires encryption and closes the transport on auth rej
   assert.equal(options.secure, true);
   assert.equal(closes, 2);
 });
+
+test('branded Arabic emails embed the logo instead of relying on a public image URL', async () => {
+  const html = mail.simpleMessage('تم إرسال رسالة اختبار.', 'اختبار البريد');
+  assert.match(html, /dir="rtl"/);
+  assert.match(html, /cid:tas3eerah-logo/);
+  assert.match(html, /© تسعيرة/);
+  assert.doesNotMatch(html, /localhost:5000|\/assets\/logo\.png/);
+  assert.match(mail.simpleMessage('<script>alert(1)</script>'), /&lt;script&gt;/);
+
+  let sent;
+  nodemailer.createTransport = () => ({
+    sendMail: async (message) => { sent = message; return { messageId: 'mail-test' }; },
+    close() {},
+  });
+  ImapFlow.prototype.connect = async () => { throw new Error('offline archive in isolated test'); };
+  await mail.sendHtml('recipient@example.invalid', 'اختبار', html, settings);
+  assert.equal(sent.attachments.length, 1);
+  assert.equal(sent.attachments[0].cid, 'tas3eerah-logo');
+  assert.equal(sent.attachments[0].contentDisposition, 'inline');
+  assert.match(sent.attachments[0].path, /assets[\\/]logo\.png$/);
+});

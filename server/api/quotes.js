@@ -2,7 +2,7 @@
 
 const express = require('express');
 const db = require('../db');
-const { APP_URL, PLANS } = require('../config');
+const { PLANS } = require('../config');
 const auth = require('../auth');
 const email = require('../email');
 const notifications = require('../notification-email');
@@ -389,7 +389,7 @@ async function deliverQuote(req, quote) {
     const employee = Number(quote.employee_id)
       ? await db.findOne('users', { id: Number(quote.employee_id) })
       : null;
-    const html = quoteEmailHtml(quote, client, employee, APP_URL);
+    const html = quoteEmailHtml(quote, client, employee);
     try {
       await email.sendHtml(client.email, `عرض سعر جديد: ${quote.title} — رقم ${quote.number}`, html, await settingsMap(), req.user.email);
     } catch (error) {
@@ -422,7 +422,7 @@ async function deliverQuote(req, quote) {
   }
 }
 
-function quoteEmailHtml(quote, client, employee, appUrl) {
+function quoteEmailHtml(quote, client, employee) {
   const money = (value) => formatMoney(value, quote.currency_code || 'SAR');
   const rows = (Array.isArray(quote.items) ? quote.items : []).map((item) => `
     <tr>
@@ -434,20 +434,27 @@ function quoteEmailHtml(quote, client, employee, appUrl) {
   const subtotal = Number(quote.subtotal || 0);
   const discount = Number(quote.discount || 0);
   const tax = (subtotal - discount) * Number(quote.tax_rate || 0) / 100;
-  return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"></head>
-    <body style="margin:0;padding:24px;background:#f8f5ed;color:#17352a;font-family:Arial,Tahoma,sans-serif">
-      <main style="max-width:640px;margin:auto;padding:24px;background:#fff;border-radius:12px">
-      <img src="${escapeHtml(`${String(appUrl || '').replace(/\/$/, '')}/assets/logo.png?v=20261006`)}" width="140" alt="تسعيرة">
-      <h2>عرض سعر جديد</h2>
-      <p>مرحباً ${escapeHtml(client.name || 'العميل')}، أُعدّ لك عرض السعر التالي${employee?.name ? ` من ${escapeHtml(employee.name)}` : ''}.</p>
-      <p><strong>رقم العرض:</strong> ${escapeHtml(quote.number)}<br><strong>العنوان:</strong> ${escapeHtml(quote.title)}</p>
-      <table style="width:100%;border-collapse:collapse"><thead><tr style="background:#1a4b33;color:#fff">
-      <th style="padding:10px;text-align:right">الوصف</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr></thead>
-      <tbody>${rows}</tbody></table>
-      <p>المجموع الفرعي: ${money(subtotal)}<br>الخصم: ${money(discount)}<br>
-      الضريبة (${Number(quote.tax_rate || 0)}%): ${money(tax)}<br>
-      <strong>الإجمالي: ${money(quote.total)}</strong></p>
-      <p>يمكنك تسجيل الدخول إلى المنصة لقبول العرض أو رفضه.</p></main></body></html>`;
+  const content = `
+    <p style="margin:0 0 18px">مرحباً ${escapeHtml(client.name || 'العميل')}، أُعدّ لك عرض السعر التالي${employee?.name ? ` من ${escapeHtml(employee.name)}` : ''}.</p>
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width:100%;margin:0 0 20px;border-collapse:collapse">
+      <tr><td style="padding:7px 0;color:#6c7972;width:105px">رقم العرض</td><td style="padding:7px 0;font-weight:700">${escapeHtml(quote.number)}</td></tr>
+      <tr><td style="padding:7px 0;color:#6c7972">العنوان</td><td style="padding:7px 0;font-weight:700">${escapeHtml(quote.title)}</td></tr>
+    </table>
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr style="background-color:#173f32;color:#ffffff">
+        <th style="padding:11px 9px;text-align:right">الوصف</th><th style="padding:11px 6px;text-align:center">الكمية</th>
+        <th style="padding:11px 6px;text-align:left">سعر الوحدة</th><th style="padding:11px 9px;text-align:left">الإجمالي</th>
+      </tr></thead><tbody>${rows}</tbody>
+    </table>
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width:100%;margin-top:18px">
+      <tr><td style="padding:5px 0;color:#6c7972">المجموع الفرعي</td><td style="padding:5px 0;text-align:left">${money(subtotal)}</td></tr>
+      <tr><td style="padding:5px 0;color:#6c7972">الخصم</td><td style="padding:5px 0;text-align:left">${money(discount)}</td></tr>
+      <tr><td style="padding:5px 0;color:#6c7972">الضريبة (${Number(quote.tax_rate || 0)}%)</td><td style="padding:5px 0;text-align:left">${money(tax)}</td></tr>
+      <tr><td style="padding:12px 0;border-top:1px solid #dce4dd;font-size:16px;font-weight:700;color:#173f32">الإجمالي</td>
+        <td style="padding:12px 0;border-top:1px solid #dce4dd;text-align:left;font-size:16px;font-weight:700;color:#173f32">${money(quote.total)}</td></tr>
+    </table>
+    <p style="margin:22px 0 0;color:#596a62">يمكنك تسجيل الدخول إلى المنصة لقبول العرض أو رفضه.</p>`;
+  return email.brandedEmail('عرض سعر جديد', content);
 }
 
 async function settingsMap() {

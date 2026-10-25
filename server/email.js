@@ -2,7 +2,7 @@
 
 const nodemailer = require('nodemailer');
 const { ImapFlow } = require('imapflow');
-const { APP_URL } = require('./config');
+const path = require('node:path');
 
 const HOST = process.env.PRIVATE_EMAIL_HOST || 'mail.privateemail.com';
 const SMTP_PORT = Number(process.env.PRIVATE_EMAIL_SMTP_PORT || 465);
@@ -96,7 +96,17 @@ async function sendHtml(to, subject, html, settings = {}, replyTo = null, inline
   if (!emailLooksValid(recipient)) throw new Error('البريد المستلم غير صحيح');
   const from = address(settings);
   const transporter = smtpTransport(settings);
-  const attachments = (Array.isArray(inlineImages) ? inlineImages : [])
+  const imageAssets = Array.isArray(inlineImages) ? [...inlineImages] : [];
+  if (String(html || '').includes('cid:tas3eerah-logo') &&
+      !imageAssets.some((asset) => asset?.cid === 'tas3eerah-logo')) {
+    imageAssets.push({
+      name: 'tas3eerah-logo.png',
+      path: path.join(__dirname, '..', 'assets', 'logo.png'),
+      type: 'image/png',
+      cid: 'tas3eerah-logo',
+    });
+  }
+  const attachments = imageAssets
     .filter((asset) => asset?.path && asset?.cid)
     .map((asset) => ({
       filename: asset.name || 'asset',
@@ -379,12 +389,42 @@ async function saveDraft(to, subject, html, settings = {}) {
   await appendMessage('drafts', raw, settings, false);
 }
 
+function brandedEmail(title, contentHtml) {
+  const safeTitle = String(title || 'رسالة جديدة').replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })[char]);
+  return `<!doctype html>
+  <html lang="ar" dir="rtl">
+    <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+    <body dir="rtl" style="margin:0;padding:0;background-color:#f4f6f4;color:#18382f;font-family:Arial,Tahoma,sans-serif">
+      <div style="display:none;font-size:1px;color:#f4f6f4;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden">${safeTitle}</div>
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f4f6f4">
+        <tr><td align="center" style="padding:32px 14px">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:620px;background-color:#ffffff;border:1px solid #e4e9e5">
+            <tr><td align="center" style="padding:26px 24px 20px;border-bottom:1px solid #edf0ed">
+              <img src="cid:tas3eerah-logo" width="112" alt="تسعيرة" style="display:block;width:112px;height:auto;border:0;outline:none;text-decoration:none">
+            </td></tr>
+            <tr><td style="padding:30px 32px 34px">
+              <h1 style="margin:0 0 20px;font-size:22px;line-height:1.5;font-weight:700;color:#173f32">${safeTitle}</h1>
+              <div style="font-size:15px;line-height:1.9;color:#35463f">${contentHtml}</div>
+            </td></tr>
+            <tr><td style="padding:18px 24px;background-color:#f8faf8;border-top:1px solid #edf0ed;text-align:center">
+              <p style="margin:0;font-size:12px;line-height:1.8;color:#6c7972">هذه رسالة آلية من منصة تسعيرة. يرجى عدم الرد عليها إذا لم يكن الرد مطلوباً.</p>
+              <p style="margin:5px 0 0;font-size:12px;color:#6c7972">© تسعيرة</p>
+            </td></tr>
+          </table>
+        </td></tr>
+      </table>
+    </body>
+  </html>`;
+}
+
 function simpleMessage(message, title = 'رسالة جديدة') {
   const safe = (value) => String(value || '').replace(/[&<>"']/g, (char) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
   })[char]);
-  const logo = `${String(APP_URL || '').replace(/\/$/, '')}/assets/logo.png?v=20261006`;
-  return `<!doctype html><html lang="ar" dir="rtl"><meta charset="UTF-8"><body style="margin:0;padding:24px;background:#f8f5ed;color:#17352a;font-family:Arial,Tahoma,sans-serif"><main style="max-width:640px;margin:auto;padding:24px;background:white;border-radius:12px"><img src="${logo}" width="140" alt="تسعيرة"><h1>${safe(title)}</h1><div style="line-height:2">${safe(message).replace(/\n/g, '<br>')}</div></main></body></html>`;
+  const body = `<p style="margin:0;white-space:normal">${safe(message).replace(/\n/g, '<br>')}</p>`;
+  return brandedEmail(title, body);
 }
 
 module.exports = {
@@ -403,5 +443,6 @@ module.exports = {
   move,
   delete: remove,
   saveDraft,
+  brandedEmail,
   simpleMessage,
 };
