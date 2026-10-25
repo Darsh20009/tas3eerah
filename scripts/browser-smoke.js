@@ -149,7 +149,7 @@ async function main() {
         for (const slug of slugs) {
           currentPath = `/calculator/${slug}`;
           const response = await page.goto(`${baseUrl}${currentPath}`, { waitUntil: 'load' });
-          await page.waitForTimeout(350);
+          await page.waitForFunction(() => window.CalculatorCloud?.ready === true, undefined, { timeout: 10000 });
           const calculator = page.locator('#integrated-tools .tool-screen.active');
           const count = await calculator.count();
           if (slug !== 'services' && await page.evaluate(() => window.ToolCurrency?.current?.code) !== 'USD') {
@@ -183,6 +183,14 @@ async function main() {
             numberInput = page.locator('#mcost-1');
             output = page.locator('#mprice-1');
           }
+          if (slug === 'packages') {
+            // The current packages calculator distributes monthly fixed costs
+            // across tiers. Use that input and its result cards directly;
+            // the first number field is a one-time setup cost and may round
+            // to the same displayed price for small test values.
+            numberInput = page.locator('#pkg-fix-1');
+            output = page.locator('#pkg-results');
+          }
           if (slug === 'design') {
             await page.locator('#ds-type-villa').click();
             await page.locator('#ds-scope-design').click();
@@ -196,10 +204,8 @@ async function main() {
           const before = count ? await output.innerText() : '';
           let recalculated = null;
           if (await numberInput.count()) {
-            // Package prices are rounded to five currency units; a small
-            // capital-cost input can legitimately leave the rendered output unchanged.
             const currentMenuCost = slug === 'menu' ? Number(await numberInput.inputValue()) : 0;
-            const values = { packages: '123000', menu: currentMenuCost === 1000 ? '2000' : '1000', design: '1000' };
+            const values = { packages: '12000', menu: currentMenuCost === 1000 ? '2000' : '1000', design: '1000' };
             await numberInput.fill(values[slug] || '123');
             await numberInput.dispatchEvent('input');
             await numberInput.dispatchEvent('change');

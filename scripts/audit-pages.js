@@ -62,6 +62,25 @@ async function main() {
       const page = await context.newPage();
       let label = `${role}/login`;
       track(page, () => label);
+      const mockedMailboxCalls = [];
+      if (role === 'admin') {
+        await page.route('**/api/admin*', async route => {
+          const request = route.request();
+          const url = new URL(request.url());
+          let body = {};
+          try { body = request.postDataJSON() || {}; } catch {}
+          const action = body.action || url.searchParams.get('action');
+          if (action === 'mailbox_check' || action === 'mailbox_test_send') {
+            mockedMailboxCalls.push({ action, channel: body.channel || null, to: body.to || null });
+            return route.fulfill({
+              status: 200,
+              contentType: 'application/json',
+              body: JSON.stringify({ success: true, data: { checked: true, sent: true } }),
+            });
+          }
+          return route.continue();
+        });
+      }
       await page.goto(base);
       const loggedIn = await page.evaluate(async role => {
         const token = (await (await fetch('/api/auth?action=csrf')).json()).data.csrf_token;
@@ -83,9 +102,48 @@ async function main() {
           } : { statusUnavailable: true };
         });
         console.log('Mailbox configuration flags:', JSON.stringify(mailboxState));
+        label = 'admin/mailbox-diagnostics';
+        await page.evaluate(() => nav(document.querySelector('.sb-item[data-panel="mailbox"]')));
+        await page.waitForFunction(() =>
+          document.getElementById('mailboxCheckSmtpBtn') &&
+          document.getElementById('mailboxCheckImapBtn') &&
+          document.getElementById('mailboxTestSendBtn'));
+        await page.locator('#mailboxCheckSmtpBtn').click();
+        await page.getByText('اتصال الإرسال يعمل', { exact: true }).waitFor();
+        await page.locator('#mailboxCheckImapBtn').click();
+        await page.getByText('اتصال الاستقبال يعمل', { exact: true }).waitFor();
+        const recipient = page.locator('#mailboxTestRecipient');
+        await recipient.fill('not-an-email');
+        await page.locator('#mailboxTestSendBtn').click();
+        await page.getByText('أدخل عنوان بريد إلكتروني صحيحاً', { exact: true }).waitFor();
+        if (mockedMailboxCalls.some(call => call.action === 'mailbox_test_send')) {
+          failures.push(`${label}: invalid recipient reached the send endpoint`);
+        }
+        await recipient.fill('smoke@example.com');
+        page.once('dialog', dialog => dialog.dismiss());
+        await page.locator('#mailboxTestSendBtn').click();
+        await page.waitForTimeout(100);
+        if (mockedMailboxCalls.some(call => call.action === 'mailbox_test_send')) {
+          failures.push(`${label}: cancelling confirmation still sent a request`);
+        }
+        page.once('dialog', dialog => dialog.accept());
+        await page.locator('#mailboxTestSendBtn').click();
+        await page.getByText('تم إرسال رسالة الاختبار', { exact: true }).waitFor();
+        if (!mockedMailboxCalls.some(call =>
+          call.action === 'mailbox_check' && call.channel === 'smtp') ||
+          !mockedMailboxCalls.some(call =>
+            call.action === 'mailbox_check' && call.channel === 'imap') ||
+          mockedMailboxCalls.filter(call => call.action === 'mailbox_test_send').length !== 1) {
+          failures.push(`${label}: SMTP/IMAP checks or confirmed mock send were not recorded`);
+        }
+        console.log('Mailbox diagnostic UI verified with mocked network responses; no email was sent.');
       }
       const panels = await page.locator('.sb-item[data-panel]').evaluateAll(elements =>
         [...new Set(elements.map(element => element.dataset.panel))]);
+      if (role !== 'admin' &&
+          await page.locator('#mailboxCheckSmtpBtn, #mailboxCheckImapBtn, #mailboxTestSendBtn').count()) {
+        failures.push(`${role}: mailbox diagnostic controls are visible outside admin access`);
+      }
       for (const width of [1280, 390]) {
         await page.setViewportSize({ width, height: 844 });
         for (const panel of panels) {

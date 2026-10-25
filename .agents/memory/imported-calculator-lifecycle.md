@@ -20,3 +20,9 @@ When renaming imported globals, preserve local bindings and their calls consiste
 **Why:** Replacing calls to a formatter without renaming its local declaration can bind an object-formatting call to a different scalar formatter, producing NaN only in reports while calculations remain correct.
 
 **How to apply:** Review both declarations and references when adapting newly uploaded scripts, and assert that every report contains finite displayed prices.
+
+Browser checks must wait for the calculator's asynchronous cloud restore to finish before editing inputs; a fixed sleep can leave the calculator inert and create false calculation failures.
+
+**Why:** The interface remains inert until its state and history requests finish. A short fixed delay raced on some calculators even though the calculations themselves worked.
+
+**How to apply:** In browser tests, wait for `window.CalculatorCloud.ready` before changing calculator fields, then assert the relevant result for that calculator.
