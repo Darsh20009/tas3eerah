@@ -682,6 +682,7 @@
         </div>
         <button type="submit" class="btn btn-primary w-full" data-ar="دخول" data-en="Sign in">دخول</button>
       </form>
+      <button type="button" class="auth-link" onclick="showResetPassword()">نسيت كلمة المرور؟</button>
 
     </div>
 
@@ -738,6 +739,34 @@
         <button type="submit" class="btn btn-primary w-full" data-ar="إنشاء الحساب" data-en="Create Account">إنشاء الحساب</button>
       </form>
     </div>
+
+    <div id="verifyEmailForm" class="hidden">
+      <h3>توثيق البريد الإلكتروني</h3>
+      <p>أدخل الرمز المكوّن من 6 أرقام المرسل إلى بريدك. صلاحية الرمز 10 دقائق.</p>
+      <form onsubmit="verifyEmailCode();return false;">
+        <input id="verifyEmailAddress" type="email" class="form-control" placeholder="you@example.com" dir="ltr" autocomplete="email">
+        <input id="verifyEmailCode" type="text" inputmode="numeric" maxlength="6" class="form-control" placeholder="000000" dir="ltr" autocomplete="one-time-code" style="margin-top:10px">
+        <button class="btn btn-primary w-full" type="submit">توثيق البريد</button>
+      </form>
+      <button class="auth-link" type="button" onclick="resendVerificationCode()">إعادة إرسال الرمز</button>
+      <button class="auth-link" type="button" onclick="showAuth('login')">العودة لتسجيل الدخول</button>
+    </div>
+
+    <div id="resetPasswordForm" class="hidden">
+      <h3>استعادة كلمة المرور</h3>
+      <p id="resetPasswordHint">أدخل بريدك لإرسال رمز الاستعادة.</p>
+      <input id="resetEmailAddress" type="email" class="form-control" placeholder="you@example.com" dir="ltr" autocomplete="email">
+      <button id="requestResetCodeButton" class="btn btn-primary w-full" type="button" onclick="requestResetCode()">إرسال رمز الاستعادة</button>
+      <div id="resetCodeFields" class="hidden">
+        <form onsubmit="submitPasswordReset();return false;">
+          <input id="resetEmailCode" type="text" inputmode="numeric" maxlength="6" class="form-control" placeholder="رمز التحقق" dir="ltr" autocomplete="one-time-code">
+          <input id="resetNewPassword" type="password" class="form-control" placeholder="كلمة المرور الجديدة (8 أحرف على الأقل)" autocomplete="new-password" style="margin-top:10px">
+          <button class="btn btn-primary w-full" type="submit">حفظ كلمة المرور الجديدة</button>
+        </form>
+      </div>
+      <button class="auth-link" type="button" onclick="showAuth('login')">العودة لتسجيل الدخول</button>
+    </div>
+    <div id="authFlowStatus" class="auth-error hidden" role="status" aria-live="polite"></div>
   </div>
 </div>
 
@@ -917,6 +946,7 @@ function showAuth(tab) {
   document.getElementById('authOverlay').classList.remove('hidden');
   document.getElementById('authError').classList.add('hidden');
   const isReg = tab === 'register';
+  ['verifyEmailForm', 'resetPasswordForm', 'authFlowStatus'].forEach(id => document.getElementById(id)?.classList.add('hidden'));
   document.getElementById('loginForm').classList.toggle('hidden', isReg);
   document.getElementById('registerForm').classList.toggle('hidden', !isReg);
   document.body.style.overflow = 'hidden';
@@ -1005,7 +1035,11 @@ async function doLogin() {
   if (!email || !pass) { showErr('يرجى إدخال البريد وكلمة المرور'); return; }
   const res = await apiPost('/api/auth', { action: 'login', email, password: pass });
   if (res.success) location.href = '/dashboard';
-  else showErr(res.error || 'بيانات غير صحيحة');
+  else if (res.code === 'EMAIL_NOT_VERIFIED') {
+    document.getElementById('verifyEmailAddress').value = email;
+    showAuthFlow('verifyEmailForm');
+    showFlowStatus(res.error, true);
+  } else showErr(res.error || 'بيانات غير صحيحة');
 }
 
 async function doRegister() {
@@ -1016,17 +1050,65 @@ async function doRegister() {
   if (pass.length < 8) { showErr('كلمة المرور يجب أن تكون ٨ أحرف على الأقل'); return; }
   const res = await apiPost('/api/auth', { action: 'register', name, email, password: pass });
   if (res.success) {
-    if (res.data?.email_sent === false) sessionStorage.setItem('tas3-mail-notice', res.message);
-    location.href = '/dashboard';
+    document.getElementById('verifyEmailAddress').value = email;
+    showAuthFlow('verifyEmailForm');
+    showFlowStatus(res.message, !res.data?.email_sent);
   }
   else showErr(res.error || 'خطأ في إنشاء الحساب');
 }
 
+function showAuthFlow(id) {
+  document.getElementById('loginForm').classList.add('hidden');
+  document.getElementById('registerForm').classList.add('hidden');
+  document.getElementById('verifyEmailForm').classList.toggle('hidden', id !== 'verifyEmailForm');
+  document.getElementById('resetPasswordForm').classList.toggle('hidden', id !== 'resetPasswordForm');
+  document.getElementById('authError').classList.add('hidden');
+  document.getElementById('authFlowStatus').classList.add('hidden');
+}
+function showFlowStatus(message, isError = false) {
+  const status = document.getElementById('authFlowStatus');
+  status.textContent = message;
+  status.style.color = isError ? 'var(--red,#e53e3e)' : 'var(--green,#18864b)';
+  status.classList.remove('hidden');
+}
+function showResetPassword() {
+  document.getElementById('resetEmailAddress').value = document.getElementById('loginEmail').value.trim();
+  document.getElementById('resetCodeFields').classList.add('hidden');
+  showAuthFlow('resetPasswordForm');
+}
+async function verifyEmailCode() {
+  const email = document.getElementById('verifyEmailAddress').value.trim();
+  const code = document.getElementById('verifyEmailCode').value.trim();
+  const result = await apiPost('/api/auth', { action: 'verify_email', email, code });
+  if (result.success) location.href = '/dashboard';
+  else showFlowStatus(result.error || 'تعذر توثيق البريد', true);
+}
+async function resendVerificationCode() {
+  const email = document.getElementById('verifyEmailAddress').value.trim();
+  const result = await apiPost('/api/auth', { action: 'resend_verification', email });
+  showFlowStatus(result.message || result.error || 'تعذر إرسال الرمز', !result.success);
+}
+async function requestResetCode() {
+  const email = document.getElementById('resetEmailAddress').value.trim();
+  const result = await apiPost('/api/auth', { action: 'forgot_password', email });
+  if (result.success) {
+    document.getElementById('resetCodeFields').classList.remove('hidden');
+    showFlowStatus(result.message);
+  } else showFlowStatus(result.error || 'تعذر إرسال رمز الاستعادة', true);
+}
+async function submitPasswordReset() {
+  const email = document.getElementById('resetEmailAddress').value.trim();
+  const code = document.getElementById('resetEmailCode').value.trim();
+  const password = document.getElementById('resetNewPassword').value;
+  const result = await apiPost('/api/auth', { action: 'reset_password', email, code, password });
+  if (result.success) {
+    showAuth('login');
+    showErr(result.message);
+  } else showFlowStatus(result.error || 'تعذر تغيير كلمة المرور', true);
+}
+
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { hideAuth(); return; }
-  if (e.key !== 'Enter') return;
-  if (!document.getElementById('registerForm').classList.contains('hidden')) doRegister();
-  else if (!document.getElementById('loginForm').classList.contains('hidden')) doLogin();
 });
 
 /* ══ نموذج التواصل ══ */

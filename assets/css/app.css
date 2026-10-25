@@ -1288,6 +1288,20 @@ select.form-control { cursor: pointer; }
   color: var(--red); border-radius: var(--r); padding: 10px 13px;
   font-size: 13px; margin-bottom: 12px;
 }
+.auth-link {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--p);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+#verifyEmailForm > input, #resetPasswordForm > input { margin-bottom: 10px; }
+#verifyEmailForm p, #resetPasswordForm p { color: var(--muted); line-height: 1.7; }
 .auth-demo { display: flex; gap: 7px; margin-top: 14px; }
 .auth-demo button {
   flex: 1; padding: 9px 4px; font-size: 11px; font-weight: 700;

@@ -452,7 +452,45 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
   assert.equal(registration.json.success, true);
   assert.equal(registration.json.data.email_sent, true);
   assert.equal(sentMail.at(-1)[0], 'new@example.test');
+  assert.match(sentMail.at(-1)[1], /رمز توثيق/);
+  const blockedLogin = await request('/api/auth', {
+    jar: registerJar, method: 'POST', token: registerCsrf.json.data.csrf_token,
+    body: { action: 'login', email: 'new@example.test', password: 'TestPassword@123' },
+  });
+  assert.equal(blockedLogin.json.code, 'EMAIL_NOT_VERIFIED');
+  const verificationCode = sentMail.at(-1)[2].match(/رمز توثيق بريدك الإلكتروني: (\d{6})/);
+  assert.ok(verificationCode, 'registration sends a six-digit verification code');
+  const verified = await request('/api/auth', {
+    jar: registerJar, method: 'POST', token: registerCsrf.json.data.csrf_token,
+    body: { action: 'verify_email', email: 'new@example.test', code: verificationCode[1] },
+  });
+  assert.equal(verified.json.success, true);
+  assert.equal(verified.json.data.email_verified, 1);
   assert.match(sentMail.at(-1)[1], /مرحباً بك/);
+  const passwordRecoveryJar = new Map();
+  const recoveryCsrf = await request('/api/auth?action=csrf', { jar: passwordRecoveryJar });
+  const recoveryRequest = await request('/api/auth', {
+    jar: passwordRecoveryJar, method: 'POST', token: recoveryCsrf.json.data.csrf_token,
+    body: { action: 'forgot_password', email: 'new@example.test' },
+  });
+  assert.equal(recoveryRequest.json.success, true);
+  const resetCode = sentMail.at(-1)[2].match(/رمز استعادة كلمة المرور: (\d{6})/);
+  assert.ok(resetCode, 'password recovery sends a six-digit code');
+  const passwordReset = await request('/api/auth', {
+    jar: passwordRecoveryJar, method: 'POST', token: recoveryCsrf.json.data.csrf_token,
+    body: { action: 'reset_password', email: 'new@example.test', code: resetCode[1], password: 'NewPassword@123' },
+  });
+  assert.equal(passwordReset.json.success, true);
+  const oldPasswordLogin = await request('/api/auth', {
+    jar: passwordRecoveryJar, method: 'POST', token: recoveryCsrf.json.data.csrf_token,
+    body: { action: 'login', email: 'new@example.test', password: 'TestPassword@123' },
+  });
+  assert.equal(oldPasswordLogin.json.success, false);
+  const newPasswordLogin = await request('/api/auth', {
+    jar: passwordRecoveryJar, method: 'POST', token: recoveryCsrf.json.data.csrf_token,
+    body: { action: 'login', email: 'new@example.test', password: 'NewPassword@123' },
+  });
+  assert.equal(newPasswordLogin.json.success, true);
 
   const adminQuote = await request('/api/quotes', {
     jar: adminJar, method: 'POST', token: adminCsrf.json.data.csrf_token,

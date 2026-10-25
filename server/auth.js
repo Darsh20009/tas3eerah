@@ -21,6 +21,8 @@ function safeUser(user) {
   if (!user) return null;
   const safe = { ...user };
   delete safe.password_hash;
+  for (const key of ['email_otp_hash', 'email_otp_expires_at', 'email_otp_attempts', 'email_otp_sent_at',
+    'reset_otp_hash', 'reset_otp_expires_at', 'reset_otp_attempts', 'reset_otp_sent_at']) delete safe[key];
   safe.plan_info = PLANS[safe.plan] || PLANS.free;
   return safe;
 }
@@ -140,7 +142,8 @@ async function login(email, password) {
   // PHP password_hash() produces the $2y$ bcrypt prefix; bcryptjs accepts $2a$.
   const hash = String(user.password_hash).replace(/^\$2y\$/, '$2a$');
   const matches = await bcrypt.compare(password, hash);
-  return matches ? user : false;
+  if (!matches) return false;
+  return user.email_verified === 0 ? { unverified: true, user } : user;
 }
 
 async function register(name, email, password, req) {
@@ -162,8 +165,8 @@ async function register(name, email, password, req) {
     plan: 'free',
     plan_expires_at: null,
     is_active: 1,
+    email_verified: 0,
   });
-  await setAuthenticatedUser(req, id);
   await db.insertDoc('activity_log', {
     user_id: Number(id),
     action: 'register',

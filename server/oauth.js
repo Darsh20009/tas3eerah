@@ -279,6 +279,7 @@ async function loginOrRegister(req, identity, provider) {
     plan: 'free',
     plan_expires_at: null,
     is_active: 1,
+    email_verified: 1,
   });
   await auth.setAuthenticatedUser(req, id);
   await db.insertDoc('activity_log', {
