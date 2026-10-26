@@ -496,6 +496,30 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
     body: { action: 'login', email: 'new@example.test', password: 'NewPassword@123' },
   });
   assert.equal(newPasswordLogin.json.success, true);
+  const codeLoginJar = new Map();
+  const codeLoginCsrf = await request('/api/auth?action=csrf', { jar: codeLoginJar });
+  const codeLoginRequested = await request('/api/auth', {
+    jar: codeLoginJar, method: 'POST', token: codeLoginCsrf.json.data.csrf_token,
+    body: { action: 'request_login_code', email: 'new@example.test' },
+  });
+  assert.equal(codeLoginRequested.json.success, true);
+  assert.match(sentMail.at(-1)[1], /رمز تسجيل الدخول/);
+  const loginCode = sentMail.at(-1)[2].match(/رمز تسجيل الدخول: (\d{6})/);
+  assert.ok(loginCode, 'email sign-in sends a six-digit code');
+  const codeLogin = await request('/api/auth', {
+    jar: codeLoginJar, method: 'POST', token: codeLoginCsrf.json.data.csrf_token,
+    body: { action: 'verify_login_code', email: 'new@example.test', code: loginCode[1] },
+  });
+  assert.equal(codeLogin.json.success, true);
+  assert.equal(codeLogin.json.data.email, 'new@example.test');
+  assert.equal(Object.hasOwn(codeLogin.json.data, 'login_otp_hash'), false);
+  const mailCountBeforeUnknownEmail = sentMail.length;
+  const unknownLoginCode = await request('/api/auth', {
+    jar: codeLoginJar, method: 'POST', token: codeLoginCsrf.json.data.csrf_token,
+    body: { action: 'request_login_code', email: 'unknown@example.test' },
+  });
+  assert.equal(unknownLoginCode.json.success, true);
+  assert.equal(sentMail.length, mailCountBeforeUnknownEmail);
 
   const adminQuote = await request('/api/quotes', {
     jar: adminJar, method: 'POST', token: adminCsrf.json.data.csrf_token,

@@ -1366,6 +1366,18 @@ select.form-control { cursor: pointer; }
 }
 .auth-signup-note .auth-link { margin: 0; }
 .auth-back-link { display: block; margin: 15px auto 0; }
+.login-stage { animation: auth-step-enter .24s ease both; }
+.login-email-summary {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--line2);
+  border-radius: 10px;
+  background: var(--card-warm);
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+.auth-method-secondary { margin-top: 10px; }
 @keyframes auth-step-enter {
   from { opacity: 0; transform: translateY(7px); }
   to { opacity: 1; transform: translateY(0); }

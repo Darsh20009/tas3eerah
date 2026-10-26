@@ -11,7 +11,8 @@ const COLLECTION_FIELDS = Object.freeze({
     'id', 'name', 'email', 'password_hash', 'role', 'plan', 'plan_expires_at',
     'is_active', 'email_verified', 'email_otp_hash', 'email_otp_expires_at', 'email_otp_attempts',
     'email_otp_sent_at', 'reset_otp_hash', 'reset_otp_expires_at', 'reset_otp_attempts',
-    'reset_otp_sent_at', 'created_at', 'selected_tools', 'trial_used_at', 'trial_plan', 'trial_ends_at',
+    'reset_otp_sent_at', 'login_otp_hash', 'login_otp_expires_at', 'login_otp_attempts',
+    'login_otp_sent_at', 'created_at', 'selected_tools', 'trial_used_at', 'trial_plan', 'trial_ends_at',
   ]),
   quotes: new Set([
     'id', 'number', 'client_id', 'employee_id', 'title', 'status', 'subtotal',
@@ -460,6 +461,10 @@ function createSqliteSchema() {
       reset_otp_expires_at TEXT,
       reset_otp_attempts INTEGER NOT NULL DEFAULT 0,
       reset_otp_sent_at TEXT,
+      login_otp_hash TEXT,
+      login_otp_expires_at TEXT,
+      login_otp_attempts INTEGER NOT NULL DEFAULT 0,
+      login_otp_sent_at TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
     CREATE TABLE IF NOT EXISTS quotes (
@@ -555,6 +560,8 @@ function createSqliteSchema() {
     email_otp_attempts: 'INTEGER NOT NULL DEFAULT 0', email_otp_sent_at: 'TEXT',
     reset_otp_hash: 'TEXT', reset_otp_expires_at: 'TEXT',
     reset_otp_attempts: 'INTEGER NOT NULL DEFAULT 0', reset_otp_sent_at: 'TEXT',
+    login_otp_hash: 'TEXT', login_otp_expires_at: 'TEXT',
+    login_otp_attempts: 'INTEGER NOT NULL DEFAULT 0', login_otp_sent_at: 'TEXT',
   });
   migrateColumns('quotes', { items: "TEXT NOT NULL DEFAULT '[]'", currency_code: "TEXT NOT NULL DEFAULT 'SAR'" });
   migrateColumns('sessions', {

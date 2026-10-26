@@ -15,7 +15,8 @@ const {
 const router = express.Router();
 
 async function sendCode(user, purpose) {
-  const prefix = purpose === 'verify' ? 'email_otp' : 'reset_otp';
+  const prefix = { verify: 'email_otp', reset: 'reset_otp', login: 'login_otp' }[purpose];
+  if (!prefix) throw new Error('Unsupported email code purpose');
   const sentAt = Date.parse(user[`${prefix}_sent_at`] || '');
   if (Number.isFinite(sentAt) && Date.now() - sentAt < 60_000) {
     return { sent: false, cooldown: true };
@@ -30,8 +31,16 @@ async function sendCode(user, purpose) {
     [`${prefix}_attempts`]: 0,
     [`${prefix}_sent_at`]: now.toISOString(),
   });
-  const subject = purpose === 'verify' ? 'رمز توثيق بريدك الإلكتروني' : 'رمز استعادة كلمة المرور';
-  const purposeText = purpose === 'verify' ? 'توثيق بريدك الإلكتروني' : 'استعادة كلمة المرور';
+  const subject = {
+    verify: 'رمز توثيق بريدك الإلكتروني',
+    reset: 'رمز استعادة كلمة المرور',
+    login: 'رمز تسجيل الدخول',
+  }[purpose];
+  const purposeText = {
+    verify: 'توثيق بريدك الإلكتروني',
+    reset: 'استعادة كلمة المرور',
+    login: 'تسجيل الدخول',
+  }[purpose];
   try {
     const settings = Object.fromEntries((await db.findAll('settings'))
       .filter(row => row.key).map(row => [row.key, row.value || '']));
@@ -41,7 +50,7 @@ async function sendCode(user, purpose) {
     return { sent: true };
   } catch (error) {
     await db.updateDoc('users', { id: Number(user.id) }, {
-      [`${prefix}_hash`]: null, [`${prefix}_expires_at`]: null,
+      [`${prefix}_hash`]: null, [`${prefix}_expires_at`]: null, [`${prefix}_sent_at`]: null,
     });
     console.error(`[${purpose} email failed]`, error.code || error.name || 'MAIL_ERROR');
     return { sent: false };
@@ -49,7 +58,8 @@ async function sendCode(user, purpose) {
 }
 
 async function checkCode(user, purpose, rawCode) {
-  const prefix = purpose === 'verify' ? 'email_otp' : 'reset_otp';
+  const prefix = { verify: 'email_otp', reset: 'reset_otp', login: 'login_otp' }[purpose];
+  if (!prefix) return false;
   const code = String(rawCode || '').trim();
   const expiresAt = Date.parse(user[`${prefix}_expires_at`] || '');
   if (!/^\d{6}$/.test(code) || !user[`${prefix}_hash`] ||
@@ -108,6 +118,40 @@ router.all('/', async (req, res) => {
         user_id: Number(user.id),
         action: 'login',
         ip: req.ip || '',
+      });
+      return sendOk(res, auth.safeUser(user), 'تم تسجيل الدخول');
+    }
+
+    if (action === 'request_login_code') {
+      const email = text(body.email, 254).toLowerCase();
+      const user = await db.findOne('users', { email, is_active: 1 });
+      if (!user) {
+        return sendOk(res, [], 'إذا كان البريد مرتبطاً بحساب فسيصلك رمز تسجيل الدخول.');
+      }
+      if (user.email_verified !== 1) {
+        const delivery = await sendCode(user, 'verify');
+        if (delivery.cooldown) return sendError(res, 'انتظر دقيقة قبل طلب رمز جديد', 429);
+        if (!delivery.sent) return sendError(res, 'تعذر إرسال رمز التوثيق. حاول لاحقاً.', 502);
+        return sendError(res, 'تحقق من بريدك الإلكتروني أولاً. أرسلنا رمز التوثيق.', 403, 'EMAIL_NOT_VERIFIED');
+      }
+      const delivery = await sendCode(user, 'login');
+      if (delivery.cooldown) return sendError(res, 'انتظر دقيقة قبل طلب رمز جديد', 429);
+      if (!delivery.sent) return sendError(res, 'تعذر إرسال رمز تسجيل الدخول. حاول لاحقاً.', 502);
+      return sendOk(res, [], 'إذا كان البريد مرتبطاً بحساب فسيصلك رمز تسجيل الدخول.');
+    }
+
+    if (action === 'verify_login_code') {
+      const email = text(body.email, 254).toLowerCase();
+      const user = await db.findOne('users', { email, is_active: 1, email_verified: 1 });
+      if (!user || !(await checkCode(user, 'login', body.code))) {
+        return sendError(res, 'الرمز غير صحيح أو منتهي الصلاحية');
+      }
+      await db.updateDoc('users', { id: Number(user.id) }, {
+        login_otp_hash: null, login_otp_expires_at: null, login_otp_attempts: 0,
+      });
+      await auth.setAuthenticatedUser(req, user.id);
+      await db.insertDoc('activity_log', {
+        user_id: Number(user.id), action: 'login', ip: req.ip || '',
       });
       return sendOk(res, auth.safeUser(user), 'تم تسجيل الدخول');
     }

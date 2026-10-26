@@ -671,18 +671,44 @@
 
       <div class="social-divider"><span data-ar="أو سجّل بالبريد" data-en="or use email">أو سجّل بالبريد</span></div>
 
-      <form onsubmit="doLogin();return false;" autocomplete="on">
+      <div id="loginEmailStage" class="login-stage">
         <div class="form-group">
-          <label data-ar="البريد الإلكتروني" data-en="Email">البريد الإلكتروني</label>
-          <input type="email" class="form-control" id="loginEmail" name="email" placeholder="you@example.com" dir="ltr" autocomplete="email">
+          <label for="loginEmail" data-ar="البريد الإلكتروني" data-en="Email">البريد الإلكتروني</label>
+          <input type="email" class="form-control" id="loginEmail" name="email" placeholder="you@example.com" dir="ltr" autocomplete="email" required>
         </div>
+        <button type="button" class="btn btn-primary w-full" onclick="chooseLoginMethod()">متابعة</button>
+      </div>
+      <div id="loginMethodStage" class="login-stage hidden">
+        <p class="login-email-summary" id="loginEmailSummary" dir="ltr"></p>
+        <button type="button" class="btn btn-primary w-full" onclick="requestLoginCode()">الدخول برمز عبر البريد</button>
+        <button type="button" class="btn btn-outline w-full auth-method-secondary" onclick="usePasswordLogin()">الدخول بكلمة المرور</button>
+        <div class="auth-signup-note">
+          <span>ليس لديك حساب؟</span>
+          <button class="auth-link" type="button" onclick="openRegisterFromLogin()">إنشاء حساب بالبريد</button>
+        </div>
+        <button class="auth-link auth-back-link" type="button" onclick="setLoginStage('email')">تغيير البريد</button>
+      </div>
+      <form id="loginPasswordStage" class="login-stage hidden" onsubmit="doLogin();return false;" autocomplete="on">
+        <p class="login-email-summary" id="loginPasswordEmail" dir="ltr"></p>
         <div class="form-group">
-          <label data-ar="كلمة المرور" data-en="Password">كلمة المرور</label>
-          <input type="password" class="form-control" id="loginPass" name="password" placeholder="••••••" dir="ltr" autocomplete="current-password">
+          <label for="loginPass" data-ar="كلمة المرور" data-en="Password">كلمة المرور</label>
+          <input type="password" class="form-control" id="loginPass" name="password" placeholder="••••••" dir="ltr" autocomplete="current-password" required>
         </div>
         <button type="submit" class="btn btn-primary w-full" data-ar="دخول" data-en="Sign in">دخول</button>
+        <button type="button" class="auth-link" onclick="showResetPassword()">نسيت كلمة المرور؟</button>
+        <button type="button" class="auth-link auth-back-link" onclick="setLoginStage('method')">طريقة دخول أخرى</button>
       </form>
-      <button type="button" class="auth-link" onclick="showResetPassword()">نسيت كلمة المرور؟</button>
+      <div id="loginCodeStage" class="login-stage hidden">
+        <p class="auth-step-helper">أدخل رمز الدخول المرسل إلى بريدك الإلكتروني.</p>
+        <p class="login-email-summary" id="loginCodeEmail" dir="ltr"></p>
+        <input id="loginEmailCode" type="text" inputmode="numeric" minlength="6" maxlength="6" pattern="[0-9]{6}" class="form-control auth-otp-input" placeholder="••••••" dir="ltr" autocomplete="one-time-code" required>
+        <button type="button" class="btn btn-primary w-full" onclick="verifyLoginCode()">تسجيل الدخول بالرمز</button>
+        <div class="auth-signup-note">
+          <button class="auth-link" type="button" onclick="requestLoginCode()">إعادة إرسال الرمز</button>
+          <button class="auth-link" type="button" onclick="openRegisterFromLogin()">إنشاء حساب بالبريد</button>
+        </div>
+        <button class="auth-link auth-back-link" type="button" onclick="setLoginStage('method')">طريقة دخول أخرى</button>
+      </div>
 
     </div>
 
@@ -802,6 +828,17 @@
 /* ══ حالة اللغة ══ */
 const LANG = { current: localStorage.getItem('tas3-lang') || 'ar' };
 const LANDING_TRANSLATIONS = {
+  'متابعة':'Continue',
+  'الدخول برمز عبر البريد':'Sign in with an email code',
+  'الدخول بكلمة المرور':'Sign in with a password',
+  'ليس لديك حساب؟':'New to Tas3eerah?',
+  'تغيير البريد':'Change email',
+  'طريقة دخول أخرى':'Another sign-in method',
+  'أدخل رمز الدخول المرسل إلى بريدك الإلكتروني.':'Enter the sign-in code sent to your email.',
+  'تسجيل الدخول بالرمز':'Sign in with code',
+  'إذا كان البريد مرتبطاً بحساب فسيصلك رمز تسجيل الدخول.':'If this email is linked to an account, a sign-in code will be sent.',
+  'تحقق من بريدك الإلكتروني أولاً. أرسلنا رمز التوثيق.':'Verify your email first. We sent a verification code.',
+  'تعذر إرسال رمز تسجيل الدخول. حاول لاحقاً.':'Unable to send a sign-in code. Try again later.',
   'استعد الوصول إلى حسابك بخطوات بسيطة وآمنة.':'Recover access to your account in a few secure steps.',
   'البريد':'Email', 'الرمز':'Code', 'كلمة المرور':'Password',
   'ليس لديك حساب بعد؟':'New to Tas3eerah?', 'ليس لديك حساب؟ إنشاء حساب بالبريد':'No account? Sign up with email',
@@ -989,6 +1026,7 @@ function showAuth(tab) {
   ['verifyEmailForm', 'resetPasswordForm', 'authFlowStatus'].forEach(id => document.getElementById(id)?.classList.add('hidden'));
   document.getElementById('loginForm').classList.toggle('hidden', isReg);
   document.getElementById('registerForm').classList.toggle('hidden', !isReg);
+  if (!isReg) setLoginStage('email');
   document.body.style.overflow = 'hidden';
   setTimeout(() => {
     const el = isReg
@@ -1082,6 +1120,58 @@ async function doLogin() {
   } else showErr(res.error || 'بيانات غير صحيحة');
 }
 
+function setLoginStage(stage) {
+  const ids = {
+    email: 'loginEmailStage',
+    method: 'loginMethodStage',
+    password: 'loginPasswordStage',
+    code: 'loginCodeStage',
+  };
+  Object.entries(ids).forEach(([name, id]) => {
+    document.getElementById(id)?.classList.toggle('hidden', name !== stage);
+  });
+  const email = document.getElementById('loginEmail')?.value.trim() || '';
+  ['loginEmailSummary', 'loginPasswordEmail', 'loginCodeEmail'].forEach(id => {
+    const summary = document.getElementById(id);
+    if (summary) summary.textContent = email;
+  });
+}
+function chooseLoginMethod() {
+  const email = document.getElementById('loginEmail');
+  if (!email.reportValidity()) return;
+  setLoginStage('method');
+}
+function usePasswordLogin() {
+  setLoginStage('password');
+  document.getElementById('loginPass').focus();
+}
+async function requestLoginCode() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const result = await apiPost('/api/auth', { action: 'request_login_code', email });
+  if (result.code === 'EMAIL_NOT_VERIFIED') {
+    document.getElementById('verifyEmailAddress').value = email;
+    showAuthFlow('verifyEmailForm');
+    showFlowStatus(result.error, true);
+  } else if (result.success) {
+    document.getElementById('loginEmailCode').value = '';
+    setLoginStage('code');
+    showFlowStatus(result.message);
+  } else showFlowStatus(result.error || 'تعذر إرسال رمز الدخول', true);
+}
+async function verifyLoginCode() {
+  const code = document.getElementById('loginEmailCode');
+  if (!code.reportValidity()) return;
+  const email = document.getElementById('loginEmail').value.trim();
+  const result = await apiPost('/api/auth', {
+    action: 'verify_login_code', email, code: code.value.trim(),
+  });
+  if (result.success) location.href = '/dashboard';
+  else showFlowStatus(result.error || 'تعذر تسجيل الدخول بالرمز', true);
+}
+function openRegisterFromLogin() {
+  openRegisterPrefilled(document.getElementById('loginEmail')?.value.trim() || '');
+}
+
 async function doRegister() {
   const name  = document.getElementById('regName').value.trim();
   const email = document.getElementById('regEmail').value.trim();
@@ -1132,6 +1222,9 @@ function setResetStep(step) {
 }
 function openRegisterWithEmail() {
   const email = document.getElementById('resetEmailAddress')?.value.trim() || '';
+  openRegisterPrefilled(email);
+}
+function openRegisterPrefilled(email) {
   showAuth('register');
   const registerEmail = document.getElementById('regEmail');
   if (registerEmail && email) registerEmail.value = email;
