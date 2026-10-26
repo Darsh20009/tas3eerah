@@ -620,7 +620,7 @@
     <div id="authError" class="auth-error hidden"></div>
     <% if (Boolean(oauthError)) { %>
     <div class="auth-error" style="display:block;margin-bottom:12px">
-      ⚠️ <%= oauthError %>
+      تنبيه: <%= oauthError %>
     </div>
     <% } %>
 
@@ -666,7 +666,7 @@
         <% } %>
       </div>
       <% if (!googleEnabled && !appleEnabled) { %>
-      <p class="social-config-note">⚙️ يحتاج الدخول الاجتماعي إلى إعداد — <a href="#" style="color:var(--p)">اطلع على الإعداد</a></p>
+      <p class="social-config-note">ملاحظة: يحتاج الدخول الاجتماعي إلى إعداد — <a href="#" style="color:var(--p)">اطلع على الإعداد</a></p>
       <% } %>
 
       <div class="social-divider"><span data-ar="أو سجّل بالبريد" data-en="or use email">أو سجّل بالبريد</span></div>
@@ -719,7 +719,7 @@
         <% } %>
       </div>
       <% if (!googleEnabled && !appleEnabled) { %>
-      <p class="social-config-note">⚙️ يحتاج إلى إعداد credentials</p>
+      <p class="social-config-note">ملاحظة: يحتاج إلى إعداد بيانات الدخول</p>
       <% } %>
       <div class="social-divider"><span data-ar="أو سجّل بالبريد" data-en="or use email">أو سجّل بالبريد</span></div>
 
@@ -741,11 +741,14 @@
     </div>
 
     <div id="verifyEmailForm" class="hidden">
-      <h3>توثيق البريد الإلكتروني</h3>
-      <p>أدخل الرمز المكوّن من 6 أرقام المرسل إلى بريدك. صلاحية الرمز 10 دقائق.</p>
+      <div class="auth-flow-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 6.5h16v11H4z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m5 7 7 6 7-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="m9 14 2 2 4-4" stroke="var(--gold-d)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <h3 class="auth-flow-title">توثيق البريد الإلكتروني</h3>
+      <p class="auth-flow-subtitle">أدخل الرمز المكوّن من 6 أرقام المرسل إلى بريدك. صلاحية الرمز 10 دقائق.</p>
       <form onsubmit="verifyEmailCode();return false;">
         <input id="verifyEmailAddress" type="email" class="form-control" placeholder="you@example.com" dir="ltr" autocomplete="email">
-        <input id="verifyEmailCode" type="text" inputmode="numeric" maxlength="6" class="form-control" placeholder="000000" dir="ltr" autocomplete="one-time-code" style="margin-top:10px">
+        <input id="verifyEmailCode" type="text" inputmode="numeric" maxlength="6" class="form-control auth-otp-input" placeholder="••••••" dir="ltr" autocomplete="one-time-code" style="margin-top:10px">
         <button class="btn btn-primary w-full" type="submit">توثيق البريد</button>
       </form>
       <button class="auth-link" type="button" onclick="resendVerificationCode()">إعادة إرسال الرمز</button>
@@ -753,18 +756,43 @@
     </div>
 
     <div id="resetPasswordForm" class="hidden">
-      <h3>استعادة كلمة المرور</h3>
-      <p id="resetPasswordHint">أدخل بريدك لإرسال رمز الاستعادة.</p>
-      <input id="resetEmailAddress" type="email" class="form-control" placeholder="you@example.com" dir="ltr" autocomplete="email">
-      <button id="requestResetCodeButton" class="btn btn-primary w-full" type="button" onclick="requestResetCode()">إرسال رمز الاستعادة</button>
-      <div id="resetCodeFields" class="hidden">
-        <form onsubmit="submitPasswordReset();return false;">
-          <input id="resetEmailCode" type="text" inputmode="numeric" maxlength="6" class="form-control" placeholder="رمز التحقق" dir="ltr" autocomplete="one-time-code">
-          <input id="resetNewPassword" type="password" class="form-control" placeholder="كلمة المرور الجديدة (8 أحرف على الأقل)" autocomplete="new-password" style="margin-top:10px">
-          <button class="btn btn-primary w-full" type="submit">حفظ كلمة المرور الجديدة</button>
-        </form>
+      <div class="auth-flow-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 6.5h16v11H4z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m5 7 7 6 7-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M17.5 3.5 20 4.5v2.2c0 1.6-1 3-2.5 3.8-1.5-.8-2.5-2.2-2.5-3.8V4.5l2.5-1Z" fill="var(--gold)" stroke="white" stroke-width="1.2"/></svg>
       </div>
-      <button class="auth-link" type="button" onclick="showAuth('login')">العودة لتسجيل الدخول</button>
+      <h3>استعادة كلمة المرور</h3>
+      <p id="resetPasswordHint" class="auth-flow-subtitle">استعد الوصول إلى حسابك بخطوات بسيطة وآمنة.</p>
+      <ol class="auth-stepper" aria-label="خطوات استعادة كلمة المرور">
+        <li class="active" data-reset-step="email"><span>١</span><b>البريد</b></li>
+        <li data-reset-step="code"><span>٢</span><b>الرمز</b></li>
+        <li data-reset-step="password"><span>٣</span><b>كلمة المرور</b></li>
+      </ol>
+      <div id="resetStepEmail" class="auth-step-screen">
+        <label class="auth-field-label" for="resetEmailAddress">البريد الإلكتروني</label>
+        <input id="resetEmailAddress" type="email" class="form-control" placeholder="you@example.com" dir="ltr" autocomplete="email" required>
+        <button id="requestResetCodeButton" class="btn btn-primary w-full" type="button" onclick="requestResetCode()">إرسال رمز الاستعادة</button>
+        <div class="auth-signup-note">
+          <span>ليس لديك حساب بعد؟</span>
+          <button class="auth-link" type="button" onclick="openRegisterWithEmail()">إنشاء حساب بالبريد</button>
+        </div>
+      </div>
+      <div id="resetStepCode" class="auth-step-screen hidden">
+        <p class="auth-step-helper">أدخل الرمز المكوّن من 6 أرقام الذي أرسلناه إلى بريدك.</p>
+        <label class="auth-field-label" for="resetEmailCode">رمز التحقق</label>
+        <input id="resetEmailCode" type="text" inputmode="numeric" minlength="6" maxlength="6" pattern="[0-9]{6}" class="form-control auth-otp-input" placeholder="••••••" dir="ltr" autocomplete="one-time-code" required>
+        <button class="btn btn-primary w-full" type="button" onclick="continuePasswordReset()">التحقق والمتابعة</button>
+        <div class="auth-signup-note">
+          <button class="auth-link" type="button" onclick="requestResetCode()">إعادة إرسال الرمز</button>
+          <button class="auth-link" type="button" onclick="openRegisterWithEmail()">إنشاء حساب بالبريد</button>
+        </div>
+      </div>
+      <form id="resetStepPassword" class="auth-step-screen hidden" onsubmit="submitPasswordReset();return false;">
+        <label class="auth-field-label" for="resetNewPassword">كلمة المرور الجديدة</label>
+        <input id="resetNewPassword" type="password" class="form-control" placeholder="8 أحرف على الأقل" autocomplete="new-password">
+        <label class="auth-field-label" for="resetConfirmPassword">تأكيد كلمة المرور</label>
+        <input id="resetConfirmPassword" type="password" class="form-control" placeholder="أعد كتابة كلمة المرور" autocomplete="new-password">
+        <button class="btn btn-primary w-full" type="submit">حفظ كلمة المرور</button>
+      </form>
+      <button class="auth-link auth-back-link" type="button" onclick="showAuth('login')">العودة لتسجيل الدخول</button>
     </div>
     <div id="authFlowStatus" class="auth-error hidden" role="status" aria-live="polite"></div>
   </div>
@@ -774,6 +802,18 @@
 /* ══ حالة اللغة ══ */
 const LANG = { current: localStorage.getItem('tas3-lang') || 'ar' };
 const LANDING_TRANSLATIONS = {
+  'استعد الوصول إلى حسابك بخطوات بسيطة وآمنة.':'Recover access to your account in a few secure steps.',
+  'البريد':'Email', 'الرمز':'Code', 'كلمة المرور':'Password',
+  'ليس لديك حساب بعد؟':'New to Tas3eerah?', 'ليس لديك حساب؟ إنشاء حساب بالبريد':'No account? Sign up with email',
+  'إنشاء حساب بالبريد':'Create an account with email',
+  'أدخل الرمز المكوّن من 6 أرقام الذي أرسلناه إلى بريدك.':'Enter the six-digit code sent to your email.',
+  'التحقق والمتابعة':'Verify and continue', 'إعادة إرسال الرمز':'Resend code',
+  'كلمة المرور الجديدة':'New password', 'تأكيد كلمة المرور':'Confirm password',
+  '8 أحرف على الأقل':'At least 8 characters', 'أعد كتابة كلمة المرور':'Enter your password again',
+  'حفظ كلمة المرور':'Save password',
+  'توثيق البريد الإلكتروني':'Verify your email',
+  'أدخل الرمز المكوّن من 6 أرقام المرسل إلى بريدك. صلاحية الرمز 10 دقائق.':'Enter the six-digit code sent to your email. The code expires in 10 minutes.',
+  '••••••':'••••••',
   'يرجى تعبئة جميع الحقول':'Please fill in all fields',
   'تم استلام رسالتك وسنرد خلال يوم عمل.':'Your message was received. We will reply within one business day.',
   'يرجى إدخال البريد وكلمة المرور':'Please enter your email and password',
@@ -1069,12 +1109,32 @@ function showFlowStatus(message, isError = false) {
   const status = document.getElementById('authFlowStatus');
   status.textContent = message;
   status.style.color = isError ? 'var(--red,#e53e3e)' : 'var(--green,#18864b)';
+  status.classList.toggle('is-error', isError);
+  status.classList.toggle('is-success', !isError);
   status.classList.remove('hidden');
 }
 function showResetPassword() {
   document.getElementById('resetEmailAddress').value = document.getElementById('loginEmail').value.trim();
-  document.getElementById('resetCodeFields').classList.add('hidden');
+  document.getElementById('resetEmailCode').value = '';
+  document.getElementById('resetNewPassword').value = '';
+  document.getElementById('resetConfirmPassword').value = '';
+  setResetStep('email');
   showAuthFlow('resetPasswordForm');
+}
+function setResetStep(step) {
+  ['email', 'code', 'password'].forEach(name => {
+    document.getElementById(`resetStep${name[0].toUpperCase()}${name.slice(1)}`)
+      ?.classList.toggle('hidden', name !== step);
+    const marker = document.querySelector(`[data-reset-step="${name}"]`);
+    marker?.classList.toggle('active', name === step);
+    marker?.classList.toggle('done', ['email', 'code', 'password'].indexOf(name) < ['email', 'code', 'password'].indexOf(step));
+  });
+}
+function openRegisterWithEmail() {
+  const email = document.getElementById('resetEmailAddress')?.value.trim() || '';
+  showAuth('register');
+  const registerEmail = document.getElementById('regEmail');
+  if (registerEmail && email) registerEmail.value = email;
 }
 async function verifyEmailCode() {
   const email = document.getElementById('verifyEmailAddress').value.trim();
@@ -1089,17 +1149,35 @@ async function resendVerificationCode() {
   showFlowStatus(result.message || result.error || 'تعذر إرسال الرمز', !result.success);
 }
 async function requestResetCode() {
-  const email = document.getElementById('resetEmailAddress').value.trim();
+  const emailInput = document.getElementById('resetEmailAddress');
+  if (!emailInput.reportValidity()) return;
+  const email = emailInput.value.trim();
   const result = await apiPost('/api/auth', { action: 'forgot_password', email });
   if (result.success) {
-    document.getElementById('resetCodeFields').classList.remove('hidden');
+    document.getElementById('resetEmailCode').value = '';
+    setResetStep('code');
     showFlowStatus(result.message);
   } else showFlowStatus(result.error || 'تعذر إرسال رمز الاستعادة', true);
+}
+async function continuePasswordReset() {
+  const email = document.getElementById('resetEmailAddress').value.trim();
+  const codeInput = document.getElementById('resetEmailCode');
+  if (!codeInput.reportValidity()) return;
+  const code = codeInput.value.trim();
+  const result = await apiPost('/api/auth', { action: 'validate_reset_code', email, code });
+  if (result.success) {
+    setResetStep('password');
+    document.getElementById('authFlowStatus').classList.add('hidden');
+    document.getElementById('resetNewPassword').focus();
+  } else showFlowStatus(result.error || 'تعذر التحقق من الرمز', true);
 }
 async function submitPasswordReset() {
   const email = document.getElementById('resetEmailAddress').value.trim();
   const code = document.getElementById('resetEmailCode').value.trim();
   const password = document.getElementById('resetNewPassword').value;
+  const confirmation = document.getElementById('resetConfirmPassword').value;
+  if (password.length < 8) return showFlowStatus('كلمة المرور يجب أن تكون 8 أحرف على الأقل', true);
+  if (password !== confirmation) return showFlowStatus('كلمتا المرور غير متطابقتين', true);
   const result = await apiPost('/api/auth', { action: 'reset_password', email, code, password });
   if (result.success) {
     showAuth('login');

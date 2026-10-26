@@ -476,6 +476,11 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
   assert.equal(recoveryRequest.json.success, true);
   const resetCode = sentMail.at(-1)[2].match(/رمز استعادة كلمة المرور: (\d{6})/);
   assert.ok(resetCode, 'password recovery sends a six-digit code');
+  const checkedResetCode = await request('/api/auth', {
+    jar: passwordRecoveryJar, method: 'POST', token: recoveryCsrf.json.data.csrf_token,
+    body: { action: 'validate_reset_code', email: 'new@example.test', code: resetCode[1] },
+  });
+  assert.equal(checkedResetCode.json.success, true);
   const passwordReset = await request('/api/auth', {
     jar: passwordRecoveryJar, method: 'POST', token: recoveryCsrf.json.data.csrf_token,
     body: { action: 'reset_password', email: 'new@example.test', code: resetCode[1], password: 'NewPassword@123' },

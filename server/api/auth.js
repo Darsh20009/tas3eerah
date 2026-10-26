@@ -157,6 +157,15 @@ router.all('/', async (req, res) => {
       return sendOk(res, [], 'إذا كان البريد مرتبطاً بحساب فعال فسيصلك رمز استعادة.');
     }
 
+    if (action === 'validate_reset_code') {
+      const email = text(body.email, 254).toLowerCase();
+      const user = await db.findOne('users', { email, is_active: 1 });
+      if (!user || !(await checkCode(user, 'reset', body.code))) {
+        return sendError(res, 'الرمز غير صحيح أو منتهي الصلاحية');
+      }
+      return sendOk(res, [], 'تم التحقق من الرمز');
+    }
+
     if (action === 'reset_password') {
       const email = text(body.email, 254).toLowerCase();
       const password = typeof body.password === 'string' ? body.password : '';
