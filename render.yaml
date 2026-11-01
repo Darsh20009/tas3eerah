@@ -11,6 +11,8 @@ services:
         sync: false
       - key: SESSION_SECRET
         sync: false
+      - key: QIROX_WHATSAPP_API_KEY
+        sync: false
       - key: INITIAL_ADMIN_EMAIL
         sync: false
       - key: INITIAL_ADMIN_PASSWORD
