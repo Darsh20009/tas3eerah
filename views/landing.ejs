@@ -669,7 +669,12 @@
       <p class="social-config-note">ملاحظة: يحتاج الدخول الاجتماعي إلى إعداد — <a href="#" style="color:var(--p)">اطلع على الإعداد</a></p>
       <% } %>
 
-      <div class="phone-auth-panel">
+      <div class="auth-method-switch" role="tablist" aria-label="طريقة تسجيل الدخول">
+        <button type="button" class="auth-method-tab active" data-auth-method="login-phone" onclick="setAuthMethod('login','phone')">رقم الجوال</button>
+        <button type="button" class="auth-method-tab" data-auth-method="login-email" onclick="setAuthMethod('login','email')">البريد الإلكتروني</button>
+      </div>
+      <div id="loginPhonePanel" class="phone-auth-panel">
+        <div id="phoneLoginEntry">
         <div class="form-group">
           <label for="phoneLoginNumber">رقم الجوال</label>
           <div class="phone-input-row">
@@ -684,20 +689,22 @@
           </div>
         </div>
         <button type="button" class="btn btn-primary w-full" onclick="requestPhoneCode('login')">الدخول برمز WhatsApp</button>
+        </div>
         <div id="phoneLoginCodePanel" class="hidden">
           <p class="auth-step-helper">أدخل الرمز الذي أرسلناه عبر WhatsApp.</p>
           <input id="phoneLoginCode" class="form-control auth-otp-input" inputmode="numeric" maxlength="6" placeholder="••••••" dir="ltr">
-          <button type="button" class="btn btn-primary w-full" onclick="verifyPhoneCode('login')">تحقق ودخول</button>
+          <button id="phoneLoginVerifyButton" type="button" class="btn btn-primary w-full" onclick="verifyPhoneCode('login')">تحقق ودخول</button>
           <button type="button" class="auth-link" onclick="showPhoneLink()">لدي حساب بالبريد؟ اربطه بهذا الرقم</button>
         </div>
         <div id="phoneLinkPanel" class="hidden">
           <input id="phoneLinkEmail" class="form-control" type="email" placeholder="البريد المسجل" dir="ltr">
           <input id="phoneLinkPassword" class="form-control" type="password" placeholder="كلمة المرور" dir="ltr" autocomplete="current-password">
           <button type="button" class="btn btn-primary w-full" onclick="requestPhoneLink()">تحقق من الحساب وأرسل الرمز</button>
-          <button type="button" class="btn btn-primary w-full hidden" id="phoneLinkVerifyBtn" onclick="verifyPhoneCode('link')">تحقق واربط الرقم</button>
+          <button type="button" class="auth-link" onclick="showPhoneCode()">العودة إلى رمز الدخول</button>
         </div>
       </div>
 
+      <div id="loginEmailPanel" class="hidden">
       <div class="social-divider"><span data-ar="أو سجّل بالبريد" data-en="or use email">أو سجّل بالبريد</span></div>
 
       <div id="loginEmailStage" class="login-stage">
@@ -738,6 +745,7 @@
         </div>
         <button class="auth-link auth-back-link" type="button" onclick="setLoginStage('method')">طريقة دخول أخرى</button>
       </div>
+      </div>
 
     </div>
 
@@ -776,7 +784,12 @@
       <% if (!googleEnabled && !appleEnabled) { %>
       <p class="social-config-note">ملاحظة: يحتاج إلى إعداد بيانات الدخول</p>
       <% } %>
-      <div class="phone-auth-panel">
+      <div class="auth-method-switch" role="tablist" aria-label="طريقة إنشاء الحساب">
+        <button type="button" class="auth-method-tab active" data-auth-method="register-phone" onclick="setAuthMethod('register','phone')">رقم الجوال</button>
+        <button type="button" class="auth-method-tab" data-auth-method="register-email" onclick="setAuthMethod('register','email')">البريد الإلكتروني</button>
+      </div>
+      <div id="registerPhonePanel" class="phone-auth-panel">
+        <div id="phoneSignupEntry">
         <div class="form-group">
           <label for="phoneSignupNumber">إنشاء حساب برقم الجوال</label>
           <div class="phone-input-row">
@@ -791,6 +804,7 @@
           </div>
         </div>
         <button type="button" class="btn btn-primary w-full" onclick="requestPhoneCode('signup')">إرسال رمز WhatsApp</button>
+        </div>
         <div id="phoneSignupCodePanel" class="hidden">
           <input id="phoneSignupCode" class="form-control auth-otp-input" inputmode="numeric" maxlength="6" placeholder="رمز التحقق" dir="ltr">
           <button type="button" class="btn btn-primary w-full" onclick="verifyPhoneCode('signup')">تحقق من الرقم</button>
@@ -803,6 +817,8 @@
           <button type="button" class="btn btn-primary w-full" onclick="completePhoneSignup()">إنشاء الحساب</button>
         </div>
       </div>
+      </div>
+      <div id="registerEmailPanel" class="hidden">
       <div class="social-divider"><span data-ar="أو سجّل بالبريد" data-en="or use email">أو سجّل بالبريد</span></div>
 
       <form onsubmit="doRegister();return false;" autocomplete="on">
@@ -820,6 +836,7 @@
         </div>
         <button type="submit" class="btn btn-primary w-full" data-ar="إنشاء الحساب" data-en="Create Account">إنشاء الحساب</button>
       </form>
+      </div>
     </div>
 
     <div id="verifyEmailForm" class="hidden">
@@ -1082,7 +1099,13 @@ function showAuth(tab) {
   ['verifyEmailForm', 'resetPasswordForm', 'authFlowStatus'].forEach(id => document.getElementById(id)?.classList.add('hidden'));
   document.getElementById('loginForm').classList.toggle('hidden', isReg);
   document.getElementById('registerForm').classList.toggle('hidden', !isReg);
-  if (!isReg) setLoginStage('email');
+  setAuthMethod(isReg ? 'register' : 'login', 'phone');
+  ['phoneLoginCodePanel', 'phoneLinkPanel', 'phoneSignupCodePanel', 'phoneSignupProfile']
+    .forEach(id => document.getElementById(id)?.classList.add('hidden'));
+  ['phoneLoginEntry', 'phoneSignupEntry'].forEach(id => document.getElementById(id)?.classList.remove('hidden'));
+  document.getElementById('phoneLoginVerifyButton').onclick = () => verifyPhoneCode('login');
+  document.getElementById('phoneLoginVerifyButton').textContent = 'تحقق ودخول';
+  setLoginStage('email');
   document.body.style.overflow = 'hidden';
   setTimeout(() => {
     const el = isReg
@@ -1090,6 +1113,18 @@ function showAuth(tab) {
       : document.getElementById('phoneLoginNumber');
     if (el) el.focus();
   }, 80);
+}
+function setAuthMethod(form, method) {
+  const phoneId = form === 'login' ? 'loginPhonePanel' : 'registerPhonePanel';
+  const emailId = form === 'login' ? 'loginEmailPanel' : 'registerEmailPanel';
+  document.getElementById(phoneId)?.classList.toggle('hidden', method !== 'phone');
+  document.getElementById(emailId)?.classList.toggle('hidden', method !== 'email');
+  document.querySelectorAll(`[data-auth-method^="${form}-"]`).forEach(button => {
+    const active = button.dataset.authMethod === `${form}-${method}`;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-selected', String(active));
+  });
+  if (form === 'login' && method === 'email') setLoginStage('email');
 }
 function hideAuth() {
   document.getElementById('authOverlay').classList.add('hidden');
@@ -1236,6 +1271,7 @@ async function requestPhoneCode(purpose) {
   const result = await apiPost('/api/auth', { action: 'request_phone_code', phone, purpose });
   if (!result.success) { showFlowStatus(result.error || 'تعذر إرسال الرمز', true); return; }
   const panel = document.getElementById(purpose === 'signup' ? 'phoneSignupCodePanel' : 'phoneLoginCodePanel');
+  document.getElementById(purpose === 'signup' ? 'phoneSignupEntry' : 'phoneLoginEntry')?.classList.add('hidden');
   panel?.classList.remove('hidden');
   showFlowStatus(result.message || 'أرسلنا رمز التحقق عبر WhatsApp.');
 }
@@ -1257,7 +1293,12 @@ async function verifyPhoneCode(purpose) {
   }
 }
 function showPhoneLink() {
+  document.getElementById('phoneLoginCodePanel')?.classList.add('hidden');
   document.getElementById('phoneLinkPanel')?.classList.remove('hidden');
+}
+function showPhoneCode() {
+  document.getElementById('phoneLinkPanel')?.classList.add('hidden');
+  document.getElementById('phoneLoginCodePanel')?.classList.remove('hidden');
 }
 async function requestPhoneLink() {
   const phone = phoneForFlow('login');
@@ -1265,7 +1306,10 @@ async function requestPhoneLink() {
   const password = document.getElementById('phoneLinkPassword').value;
   const result = await apiPost('/api/auth', { action: 'request_phone_link', phone, email, password });
   if (!result.success) { showFlowStatus(result.error || 'تعذر التحقق من الحساب', true); return; }
-  document.getElementById('phoneLinkVerifyBtn').classList.remove('hidden');
+  document.getElementById('phoneLinkPanel').classList.add('hidden');
+  document.getElementById('phoneLoginCodePanel').classList.remove('hidden');
+  document.getElementById('phoneLoginVerifyButton').onclick = () => verifyPhoneCode('link');
+  document.getElementById('phoneLoginVerifyButton').textContent = 'تحقق واربط الرقم';
   showFlowStatus(result.message || 'أدخل الرمز المرسل عبر WhatsApp لإكمال الربط.');
 }
 async function completePhoneSignup() {

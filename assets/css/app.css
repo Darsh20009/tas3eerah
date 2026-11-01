@@ -1267,15 +1267,15 @@ select.form-control { cursor: pointer; }
   display: flex; align-items: center; justify-content: center; padding: 16px;
 }
 .auth-box {
-  background: var(--card); border: 1px solid var(--line); border-radius: 20px;
-  padding: 28px 30px; width: 100%; max-width: 420px;
-  box-shadow: 0 18px 48px rgba(13,43,28,.16); position: relative;
+  background: var(--card); border: 1px solid var(--line); border-radius: 18px;
+  padding: 22px 26px; width: 100%; max-width: 410px;
+  box-shadow: 0 12px 32px rgba(13,43,28,.12); position: relative;
   max-height: calc(100dvh - 24px); overflow-y: auto;
 }
 .auth-overlay:not(.hidden) .auth-box { animation: auth-modal-enter .28s ease-out both; }
-.auth-logo { display: flex; align-items: center; justify-content: center; margin-bottom: 15px; }
+.auth-logo { display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
 .auth-logo-img {
-  width: auto; max-width: 100%; height: 78px; display: block;
+  width: auto; max-width: 100%; height: 62px; display: block;
   object-fit: contain;
 }
 .auth-tabs { display: flex; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
@@ -1399,6 +1399,35 @@ select.form-control { cursor: pointer; }
 .phone-auth-panel .form-control {
   margin-bottom: 8px;
 }
+.auth-method-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  margin: 12px 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--surface);
+}
+.auth-method-tab {
+  min-height: 38px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.auth-method-tab.active {
+  color: var(--p);
+  background: var(--card);
+  box-shadow: 0 1px 3px rgba(13,43,28,.08);
+  font-weight: 700;
+}
+.social-btns:empty,
+.social-not-configured,
+.social-config-note { display: none !important; }
 @keyframes auth-step-enter {
   from { opacity: 0; transform: translateY(7px); }
   to { opacity: 1; transform: translateY(0); }
@@ -1412,9 +1441,9 @@ select.form-control { cursor: pointer; }
   .auth-tab, .auth-link, .btn { transition: none !important; }
 }
 @media (max-width: 480px) {
-  .auth-overlay { padding: 12px; }
-  .auth-box { padding: 22px 20px; border-radius: 17px; }
-  .auth-logo-img { height: 68px; }
+  .auth-overlay { padding: 10px; }
+  .auth-box { padding: 18px 18px; border-radius: 16px; max-height: calc(100dvh - 20px); }
+  .auth-logo-img { height: 54px; }
 }
 .auth-demo { display: flex; gap: 7px; margin-top: 14px; }
 .auth-demo button {
