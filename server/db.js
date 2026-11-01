@@ -8,7 +8,9 @@ const config = require('./config');
 
 const COLLECTION_FIELDS = Object.freeze({
   users: new Set([
-    'id', 'name', 'email', 'password_hash', 'role', 'plan', 'plan_expires_at',
+    'id', 'name', 'email', 'password_hash', 'phone', 'phone_verified',
+    'phone_otp_hash', 'phone_otp_expires_at', 'phone_otp_attempts', 'phone_otp_sent_at',
+    'role', 'plan', 'plan_expires_at',
     'is_active', 'email_verified', 'email_otp_hash', 'email_otp_expires_at', 'email_otp_attempts',
     'email_otp_sent_at', 'reset_otp_hash', 'reset_otp_expires_at', 'reset_otp_attempts',
     'reset_otp_sent_at', 'login_otp_hash', 'login_otp_expires_at', 'login_otp_attempts',
@@ -443,8 +445,14 @@ function createSqliteSchema() {
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      email TEXT UNIQUE NOT NULL,
-      password_hash TEXT NOT NULL,
+      email TEXT UNIQUE,
+      password_hash TEXT,
+      phone TEXT,
+      phone_verified INTEGER NOT NULL DEFAULT 0,
+      phone_otp_hash TEXT,
+      phone_otp_expires_at TEXT,
+      phone_otp_attempts INTEGER NOT NULL DEFAULT 0,
+      phone_otp_sent_at TEXT,
       role TEXT NOT NULL DEFAULT 'client',
       plan TEXT NOT NULL DEFAULT 'free',
       plan_expires_at TEXT,
@@ -562,13 +570,51 @@ function createSqliteSchema() {
     reset_otp_attempts: 'INTEGER NOT NULL DEFAULT 0', reset_otp_sent_at: 'TEXT',
     login_otp_hash: 'TEXT', login_otp_expires_at: 'TEXT',
     login_otp_attempts: 'INTEGER NOT NULL DEFAULT 0', login_otp_sent_at: 'TEXT',
+    phone: 'TEXT', phone_verified: 'INTEGER NOT NULL DEFAULT 0',
+    phone_otp_hash: 'TEXT', phone_otp_expires_at: 'TEXT',
+    phone_otp_attempts: 'INTEGER NOT NULL DEFAULT 0', phone_otp_sent_at: 'TEXT',
   });
+  const userColumns = sqlite.prepare('PRAGMA table_info(users)').all();
+  if (userColumns.some(column => ['email', 'password_hash'].includes(column.name) && column.notnull)) {
+    sqlite.transaction(() => {
+      sqlite.exec(`CREATE TABLE users_phone_migration (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, email TEXT UNIQUE,
+        password_hash TEXT, phone TEXT, phone_verified INTEGER NOT NULL DEFAULT 0,
+        phone_otp_hash TEXT, phone_otp_expires_at TEXT,
+        phone_otp_attempts INTEGER NOT NULL DEFAULT 0, phone_otp_sent_at TEXT,
+        role TEXT NOT NULL DEFAULT 'client', plan TEXT NOT NULL DEFAULT 'free',
+        plan_expires_at TEXT, trial_used_at TEXT, trial_plan TEXT, trial_ends_at TEXT,
+        is_active INTEGER NOT NULL DEFAULT 1, email_verified INTEGER NOT NULL DEFAULT 1,
+        email_otp_hash TEXT, email_otp_expires_at TEXT, email_otp_attempts INTEGER NOT NULL DEFAULT 0,
+        email_otp_sent_at TEXT, reset_otp_hash TEXT, reset_otp_expires_at TEXT,
+        reset_otp_attempts INTEGER NOT NULL DEFAULT 0, reset_otp_sent_at TEXT,
+        login_otp_hash TEXT, login_otp_expires_at TEXT, login_otp_attempts INTEGER NOT NULL DEFAULT 0,
+        login_otp_sent_at TEXT, selected_tools TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+      INSERT INTO users_phone_migration
+      SELECT id,name,email,password_hash,NULL,0,NULL,NULL,0,NULL,role,plan,plan_expires_at,
+        trial_used_at,trial_plan,trial_ends_at,is_active,email_verified,email_otp_hash,
+        email_otp_expires_at,email_otp_attempts,email_otp_sent_at,reset_otp_hash,
+        reset_otp_expires_at,reset_otp_attempts,reset_otp_sent_at,login_otp_hash,
+        login_otp_expires_at,login_otp_attempts,login_otp_sent_at,selected_tools,created_at FROM users;
+      DROP TABLE users;
+      ALTER TABLE users_phone_migration RENAME TO users;
+      CREATE UNIQUE INDEX users_phone_unique ON users(phone) WHERE phone IS NOT NULL AND phone != '';
+      CREATE UNIQUE INDEX users_email_unique ON users(email)
+        WHERE email IS NOT NULL AND email != '';`);
+    })();
+  }
   migrateColumns('quotes', { items: "TEXT NOT NULL DEFAULT '[]'", currency_code: "TEXT NOT NULL DEFAULT 'SAR'" });
   migrateColumns('sessions', {
     expires_at: 'INTEGER',
     updated_at: "TEXT NOT NULL DEFAULT (datetime('now'))",
   });
   sqlite.exec(`
+    CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique
+      ON users (email) WHERE email IS NOT NULL AND email != '';
+    CREATE UNIQUE INDEX IF NOT EXISTS users_phone_unique
+      ON users (phone) WHERE phone IS NOT NULL AND phone != '';
     CREATE UNIQUE INDEX IF NOT EXISTS quote_ratings_quote_user
       ON quote_ratings (quote_id, user_id);
     CREATE INDEX IF NOT EXISTS quote_ratings_quote
@@ -719,8 +765,14 @@ async function initializeMongo() {
     await mongoClient.connect();
     mongoDatabase = mongoClient.db(config.MONGODB_DB_NAME);
     await mongoDatabase.command({ ping: 1 });
+    await mongoDatabase.collection('users').dropIndex('email_1').catch(() => {});
     await Promise.all([
-      mongoDatabase.collection('users').createIndex({ email: 1 }, { unique: true }),
+      mongoDatabase.collection('users').createIndex(
+        { email: 1 }, { unique: true, partialFilterExpression: { email: { $type: 'string' } } },
+      ),
+      mongoDatabase.collection('users').createIndex(
+        { phone: 1 }, { unique: true, partialFilterExpression: { phone: { $type: 'string' } } },
+      ),
       mongoDatabase.collection('users').createIndex({ id: 1 }, { unique: true }),
       mongoDatabase.collection('quotes').createIndex({ id: 1 }, { unique: true }),
       mongoDatabase.collection('quote_ratings').createIndex(

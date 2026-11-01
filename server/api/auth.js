@@ -8,11 +8,22 @@ const config = require('../config');
 const auth = require('../auth');
 const mail = require('../email');
 const notifications = require('../notification-email');
+const phoneAuth = require('../whatsapp-auth');
 const {
   actionOf, methodError, sendOk, sendError, failFromError, text,
 } = require('./_helpers');
 
 const router = express.Router();
+const phoneCodeCooldowns = new Map();
+
+function phoneCodeCooling(ip, phone) {
+  const now = Date.now();
+  for (const [key, sentAt] of phoneCodeCooldowns) {
+    if (now - sentAt > 10 * 60_000) phoneCodeCooldowns.delete(key);
+  }
+  const key = `${ip || 'unknown'}:${phone}`;
+  return now - Number(phoneCodeCooldowns.get(key) || 0) < 60_000;
+}
 
 async function sendCode(user, purpose) {
   const prefix = { verify: 'email_otp', reset: 'reset_otp', login: 'login_otp' }[purpose];
@@ -120,6 +131,128 @@ router.all('/', async (req, res) => {
         ip: req.ip || '',
       });
       return sendOk(res, auth.safeUser(user), 'تم تسجيل الدخول');
+    }
+
+    if (action === 'request_phone_code') {
+      const phone = phoneAuth.normalizePhone(body.phone);
+      const purpose = body.purpose === 'signup' ? 'signup' : 'login';
+      if (!phone) return sendError(res, 'أدخل رقم جوال دولياً صحيحاً');
+      const user = await db.findOne('users', { phone, is_active: 1, phone_verified: 1 });
+      if (purpose === 'signup' && user) return sendError(res, 'هذا الرقم مرتبط بحساب. سجّل الدخول أو اربط حسابك الحالي.');
+      if (purpose === 'login' && !user) {
+        return sendOk(res, [], 'إذا كان الرقم مرتبطاً بحساب فسيصلك رمز الدخول.');
+      }
+      const previous = req.session.phoneChallenge;
+      if (phoneCodeCooling(req.ip, phone) ||
+          (previous?.phone === phone && Date.now() - Number(previous.sentAt || 0) < 60_000)) {
+        return sendError(res, 'انتظر دقيقة قبل طلب رمز جديد', 429);
+      }
+      const code = String(crypto.randomInt(0, 1_000_000)).padStart(6, '0');
+      try {
+        await phoneAuth.sendCode(phone, code, user?.name || '');
+      } catch (error) {
+        console.error('[WhatsApp auth delivery failed]', error.message || 'WHATSAPP_ERROR');
+        return sendError(res, 'تعذر إرسال الرمز عبر WhatsApp. حاول لاحقاً.', 502);
+      }
+      phoneCodeCooldowns.set(`${req.ip || 'unknown'}:${phone}`, Date.now());
+      req.session.phoneChallenge = {
+        phone, purpose, userId: user ? Number(user.id) : null,
+        hash: phoneAuth.hashCode(code), expiresAt: Date.now() + 10 * 60_000,
+        sentAt: Date.now(), attempts: 0,
+      };
+      return sendOk(res, [], 'أرسلنا رمز التحقق عبر WhatsApp.');
+    }
+
+    if (action === 'request_phone_link') {
+      const phone = phoneAuth.normalizePhone(body.phone);
+      const email = text(body.email, 254).toLowerCase();
+      const user = await auth.login(email, typeof body.password === 'string' ? body.password : '');
+      if (!phone || !user || user.unverified || user.email_verified !== 1) {
+        return sendError(res, 'تعذر التحقق من الحساب أو رقم الجوال', 401);
+      }
+      const owner = await db.findOne('users', { phone, is_active: 1 });
+      if (owner && Number(owner.id) !== Number(user.id)) return sendError(res, 'رقم الجوال مرتبط بحساب آخر');
+      if (phoneCodeCooling(req.ip, phone)) return sendError(res, 'انتظر دقيقة قبل طلب رمز جديد', 429);
+      const code = String(crypto.randomInt(0, 1_000_000)).padStart(6, '0');
+      try {
+        await phoneAuth.sendCode(phone, code, user.name);
+      } catch (error) {
+        console.error('[WhatsApp link delivery failed]', error.message || 'WHATSAPP_ERROR');
+        return sendError(res, 'تعذر إرسال الرمز عبر WhatsApp. حاول لاحقاً.', 502);
+      }
+      phoneCodeCooldowns.set(`${req.ip || 'unknown'}:${phone}`, Date.now());
+      req.session.phoneChallenge = {
+        phone, purpose: 'link', userId: Number(user.id),
+        hash: phoneAuth.hashCode(code), expiresAt: Date.now() + 10 * 60_000,
+        sentAt: Date.now(), attempts: 0,
+      };
+      return sendOk(res, [], 'أرسلنا رمز ربط الرقم عبر WhatsApp.');
+    }
+
+    if (action === 'verify_phone_code') {
+      const phone = phoneAuth.normalizePhone(body.phone);
+      const challenge = req.session.phoneChallenge;
+      const supplied = phoneAuth.hashCode(String(body.code || '').trim());
+      if (!challenge || challenge.phone !== phone || challenge.expiresAt <= Date.now() ||
+          challenge.attempts >= 5 || !/^\d{6}$/.test(String(body.code || '').trim())) {
+        return sendError(res, 'الرمز غير صحيح أو منتهي الصلاحية');
+      }
+      const expected = Buffer.from(challenge.hash, 'hex');
+      const actual = Buffer.from(supplied, 'hex');
+      if (expected.length !== actual.length || !crypto.timingSafeEqual(expected, actual)) {
+        challenge.attempts += 1;
+        return sendError(res, 'الرمز غير صحيح أو منتهي الصلاحية');
+      }
+      if (challenge.purpose === 'signup') {
+        req.session.phoneSignupVerified = { phone, verifiedAt: Date.now() };
+        req.session.phoneChallenge = null;
+        return sendOk(res, [], 'تم التحقق من الرقم. أكمل اسمك لإنشاء الحساب.');
+      }
+      const user = await db.findOne('users', {
+        id: Number(challenge.userId), is_active: 1,
+      });
+      if (!user) return sendError(res, 'الحساب غير موجود', 404);
+      if (challenge.purpose === 'link') {
+        const owner = await db.findOne('users', { phone, is_active: 1 });
+        if (owner && Number(owner.id) !== Number(user.id)) return sendError(res, 'رقم الجوال مرتبط بحساب آخر');
+        await db.updateDoc('users', { id: Number(user.id) }, { phone, phone_verified: 1 });
+      } else if (user.phone !== phone || user.phone_verified !== 1) {
+        return sendError(res, 'الرمز غير صحيح أو منتهي الصلاحية');
+      }
+      req.session.phoneChallenge = null;
+      await auth.setAuthenticatedUser(req, user.id);
+      await db.insertDoc('activity_log', { user_id: Number(user.id), action: 'login', ip: req.ip || '' });
+      return sendOk(res, auth.safeUser({ ...user, phone, phone_verified: 1 }), 'تم تسجيل الدخول');
+    }
+
+    if (action === 'complete_phone_signup') {
+      const pending = req.session.phoneSignupVerified;
+      if (!pending || Date.now() - pending.verifiedAt > 10 * 60_000) {
+        return sendError(res, 'انتهت صلاحية التحقق. اطلب رمزاً جديداً.');
+      }
+      const name = text(body.name, 120);
+      const email = text(body.email, 254).toLowerCase() || null;
+      const password = typeof body.password === 'string' ? body.password : '';
+      if (name.length < 2) return sendError(res, 'الاسم قصير جداً');
+      if (!email && password) return sendError(res, 'أدخل البريد أيضاً لاستخدام كلمة المرور');
+      if (email && (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 8)) {
+        return sendError(res, 'أدخل بريداً صحيحاً وكلمة مرور من 8 أحرف على الأقل');
+      }
+      if (email && await db.findOne('users', { email })) return sendError(res, 'البريد مسجل مسبقاً');
+      if (await db.findOne('users', { phone: pending.phone })) return sendError(res, 'الرقم مرتبط بحساب آخر');
+      const newUser = {
+        name, password_hash: email ? await bcrypt.hash(password, 10) : null,
+        phone: pending.phone, phone_verified: 1, role: 'client', plan: 'free',
+        is_active: 1, email_verified: 0,
+      };
+      if (email) newUser.email = email;
+      const id = await db.insertDoc('users', newUser);
+      const user = await db.findOne('users', { id: Number(id) });
+      req.session.phoneSignupVerified = null;
+      await auth.setAuthenticatedUser(req, id);
+      await db.insertDoc('activity_log', { user_id: Number(id), action: 'register', ip: req.ip || '' });
+      if (email) await sendCode(user, 'verify');
+      return sendOk(res, auth.safeUser(user), 'تم إنشاء الحساب برقم الجوال.');
     }
 
     if (action === 'request_login_code') {

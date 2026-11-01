@@ -725,6 +725,66 @@ test('user management, quote lifecycle, messaging and settings are isolated and 
   assert.equal(await db.count('quotes', { id: quoteId }), 0);
 });
 
+test('WhatsApp phone signup and existing-account phone linking require a verified code', async () => {
+  const originalFetch = global.fetch;
+  const originalKey = process.env.QIROX_WHATSAPP_API_KEY;
+  let deliveredCode = '';
+  process.env.QIROX_WHATSAPP_API_KEY = 'test-only-whatsapp-secret';
+  global.fetch = async (url, options) => {
+    if (!String(url).includes('/api/v1/projects/')) return originalFetch(url, options);
+    const payload = JSON.parse(options.body);
+    deliveredCode = payload.code;
+    assert.match(payload.recipient.phone, /^\+\d{8,15}$/);
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200, headers: { 'Content-Type': 'application/json' },
+    });
+  };
+  try {
+    const signupJar = new Map();
+    const signupCsrf = (await request('/api/auth?action=csrf', { jar: signupJar })).json.data.csrf_token;
+    const phone = '+966512345678';
+    const requested = await request('/api/auth', {
+      jar: signupJar, method: 'POST', token: signupCsrf,
+      body: { action: 'request_phone_code', phone, purpose: 'signup' },
+    });
+    assert.equal(requested.json.success, true);
+    const verified = await request('/api/auth', {
+      jar: signupJar, method: 'POST', token: signupCsrf,
+      body: { action: 'verify_phone_code', phone, code: deliveredCode },
+    });
+    assert.equal(verified.json.success, true);
+    const created = await request('/api/auth', {
+      jar: signupJar, method: 'POST', token: signupCsrf,
+      body: { action: 'complete_phone_signup', name: 'مستخدم جوال' },
+    });
+    assert.equal(created.json.success, true);
+    assert.equal(created.json.data.phone_verified, 1);
+    assert.equal((await db.findOne('users', { phone })).email, null);
+
+    const linkJar = new Map();
+    const linkCsrf = (await request('/api/auth?action=csrf', { jar: linkJar })).json.data.csrf_token;
+    const linkedPhone = '+966512345679';
+    const linkRequested = await request('/api/auth', {
+      jar: linkJar, method: 'POST', token: linkCsrf,
+      body: {
+        action: 'request_phone_link', phone: linkedPhone,
+        email: 'client@example.test', password: 'TestPassword@123',
+      },
+    });
+    assert.equal(linkRequested.json.success, true);
+    const linkVerified = await request('/api/auth', {
+      jar: linkJar, method: 'POST', token: linkCsrf,
+      body: { action: 'verify_phone_code', phone: linkedPhone, code: deliveredCode },
+    });
+    assert.equal(linkVerified.json.success, true);
+    assert.equal((await db.findOne('users', { email: 'client@example.test' })).phone, linkedPhone);
+  } finally {
+    global.fetch = originalFetch;
+    if (originalKey === undefined) delete process.env.QIROX_WHATSAPP_API_KEY;
+    else process.env.QIROX_WHATSAPP_API_KEY = originalKey;
+  }
+});
+
 test('account-owned sector history, restore/delete, selected tools and atomic PDF quotas', async () => {
   async function login(emailAddress) {
     const jar = new Map();
