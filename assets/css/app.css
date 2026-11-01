@@ -1386,6 +1386,7 @@ select.form-control { cursor: pointer; }
 .phone-input-row {
   display: flex;
   gap: 8px;
+  direction: ltr;
 }
 .phone-input-row select {
   flex: 0 0 46%;
