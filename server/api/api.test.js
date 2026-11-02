@@ -728,7 +728,9 @@ test('user management, quote lifecycle, messaging and settings are isolated and 
 test('WhatsApp phone signup and existing-account phone linking require a verified code', async () => {
   const originalFetch = global.fetch;
   const originalKey = process.env.QIROX_WHATSAPP_API_KEY;
+  const originalSendHtml = email.sendHtml;
   let deliveredCode = '';
+  let emailCode = '';
   let deliveryResponse = 'root_reject';
   process.env.QIROX_WHATSAPP_API_KEY = 'test-only-whatsapp-secret';
   global.fetch = async (url, options) => {
@@ -749,6 +751,9 @@ test('WhatsApp phone signup and existing-account phone linking require a verifie
     return new Response(JSON.stringify({ ok: true, delivery: { status: 'queued', id: 'test-message' } }), {
       status: 202, headers: { 'Content-Type': 'application/json' },
     });
+  };
+  email.sendHtml = async (_to, _subject, html) => {
+    emailCode = html.match(/رمز تسجيل الدخول:\s*(\d{6})/)?.[1] || '';
   };
   try {
     const signupJar = new Map();
@@ -787,6 +792,35 @@ test('WhatsApp phone signup and existing-account phone linking require a verifie
     assert.equal(created.json.data.phone_verified, 1);
     assert.equal((await db.findOne('users', { phone })).email, null);
 
+    await db.updateDoc('users', { email: 'client@example.test' }, {
+      login_otp_hash: null, login_otp_expires_at: null, login_otp_sent_at: null,
+    });
+    const emailLinkJar = new Map();
+    const emailLinkCsrf = (await request('/api/auth?action=csrf', { jar: emailLinkJar })).json.data.csrf_token;
+    const emailLinkPhone = '+966512345680';
+    const emailLinkRequested = await request('/api/auth', {
+      jar: emailLinkJar, method: 'POST', token: emailLinkCsrf,
+      body: { action: 'request_phone_code', phone: emailLinkPhone, purpose: 'auto' },
+    });
+    assert.equal(emailLinkRequested.json.success, true);
+    const emailLinkPhoneVerified = await request('/api/auth', {
+      jar: emailLinkJar, method: 'POST', token: emailLinkCsrf,
+      body: { action: 'verify_phone_code', phone: emailLinkPhone, code: deliveredCode },
+    });
+    assert.equal(emailLinkPhoneVerified.json.data.flow, 'signup');
+    const emailLinkStarted = await request('/api/auth', {
+      jar: emailLinkJar, method: 'POST', token: emailLinkCsrf,
+      body: { action: 'complete_phone_signup', name: 'ربط البريد', email: 'client@example.test' },
+    });
+    assert.equal(emailLinkStarted.json.data.flow, 'link_existing_email');
+    assert.match(emailCode, /^\d{6}$/);
+    const emailLinkVerified = await request('/api/auth', {
+      jar: emailLinkJar, method: 'POST', token: emailLinkCsrf,
+      body: { action: 'verify_phone_email_link', email: 'client@example.test', code: emailCode },
+    });
+    assert.equal(emailLinkVerified.json.success, true);
+    assert.equal((await db.findOne('users', { email: 'client@example.test' })).phone, emailLinkPhone);
+
     const linkJar = new Map();
     const linkCsrf = (await request('/api/auth?action=csrf', { jar: linkJar })).json.data.csrf_token;
     const signedIn = await request('/api/auth', {
@@ -808,6 +842,7 @@ test('WhatsApp phone signup and existing-account phone linking require a verifie
     assert.equal((await db.findOne('users', { email: 'client@example.test' })).phone, linkedPhone);
   } finally {
     global.fetch = originalFetch;
+    email.sendHtml = originalSendHtml;
     if (originalKey === undefined) delete process.env.QIROX_WHATSAPP_API_KEY;
     else process.env.QIROX_WHATSAPP_API_KEY = originalKey;
   }

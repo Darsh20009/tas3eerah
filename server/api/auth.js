@@ -239,12 +239,29 @@ router.all('/', async (req, res) => {
       const name = text(body.name, 120);
       const email = text(body.email, 254).toLowerCase() || null;
       const password = typeof body.password === 'string' ? body.password : '';
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return sendError(res, 'أدخل بريداً صحيحاً');
+      const existingEmailUser = email ? await db.findOne('users', { email, is_active: 1 }) : null;
+      if (existingEmailUser) {
+        if (await db.findOne('users', { phone: pending.phone, is_active: 1 })) {
+          return sendError(res, 'رقم الجوال مرتبط بحساب آخر');
+        }
+        const purpose = Number(existingEmailUser.email_verified) === 1 ? 'login' : 'verify';
+        const delivery = await sendCode(existingEmailUser, purpose);
+        if (delivery.cooldown) return sendError(res, 'انتظر دقيقة قبل طلب رمز جديد', 429);
+        if (!delivery.sent) return sendError(res, 'تعذر إرسال رمز التحقق إلى البريد. حاول لاحقاً.', 502);
+        req.session.phoneEmailLinkPending = {
+          phone: pending.phone, userId: Number(existingEmailUser.id), email,
+          purpose, expiresAt: Date.now() + 10 * 60_000,
+        };
+        req.session.phoneSignupVerified = null;
+        return sendOk(res, { flow: 'link_existing_email', email },
+          'هذا البريد مرتبط بحساب سابق. أرسلنا رمزاً إليه لإثبات ملكيته وربط الجوال. لا تحتاج كلمة المرور القديمة.');
+      }
       if (name.length < 2) return sendError(res, 'الاسم قصير جداً');
       if (!email && password) return sendError(res, 'أدخل البريد أيضاً لاستخدام كلمة المرور');
-      if (email && (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 8)) {
+      if (email && password.length < 8) {
         return sendError(res, 'أدخل بريداً صحيحاً وكلمة مرور من 8 أحرف على الأقل');
       }
-      if (email && await db.findOne('users', { email })) return sendError(res, 'البريد مسجل مسبقاً');
       if (await db.findOne('users', { phone: pending.phone })) return sendError(res, 'الرقم مرتبط بحساب آخر');
       const newUser = {
         name, password_hash: email ? await bcrypt.hash(password, 10) : null,
@@ -259,6 +276,33 @@ router.all('/', async (req, res) => {
       await db.insertDoc('activity_log', { user_id: Number(id), action: 'register', ip: req.ip || '' });
       if (email) await sendCode(user, 'verify');
       return sendOk(res, auth.safeUser(user), 'تم إنشاء الحساب برقم الجوال.');
+    }
+
+    if (action === 'verify_phone_email_link') {
+      const pending = req.session.phoneEmailLinkPending;
+      const email = text(body.email, 254).toLowerCase();
+      if (!pending || pending.email !== email || pending.expiresAt <= Date.now()) {
+        return sendError(res, 'انتهت صلاحية الربط. تحقق من رقم الجوال مجدداً.');
+      }
+      const user = await db.findOne('users', { id: pending.userId, is_active: 1 });
+      if (!user || !(await checkCode(user, pending.purpose, body.code))) {
+        return sendError(res, 'رمز البريد غير صحيح أو منتهي الصلاحية');
+      }
+      const owner = await db.findOne('users', { phone: pending.phone, is_active: 1 });
+      if (owner && Number(owner.id) !== Number(user.id)) return sendError(res, 'رقم الجوال مرتبط بحساب آخر');
+      const emailCodePrefix = pending.purpose === 'verify' ? 'email_otp' : 'login_otp';
+      const update = {
+        phone: pending.phone, phone_verified: 1,
+        [`${emailCodePrefix}_hash`]: null, [`${emailCodePrefix}_expires_at`]: null,
+        [`${emailCodePrefix}_attempts`]: 0,
+      };
+      if (pending.purpose === 'verify') update.email_verified = 1;
+      await db.updateDoc('users', { id: Number(user.id) }, update);
+      req.session.phoneEmailLinkPending = null;
+      await auth.setAuthenticatedUser(req, user.id);
+      await db.insertDoc('activity_log', { user_id: Number(user.id), action: 'phone_link', ip: req.ip || '' });
+      return sendOk(res, auth.safeUser({ ...user, phone: pending.phone, phone_verified: 1, email_verified: 1 }),
+        'تم ربط رقم الجوال بالحساب');
     }
 
     if (action === 'request_login_code') {
