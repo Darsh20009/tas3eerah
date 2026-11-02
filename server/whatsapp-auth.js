@@ -34,11 +34,19 @@ async function sendCode(phone, code, name = '') {
     signal: AbortSignal.timeout(12_000),
   });
   let result = null;
+  let responseBodyType = 'empty';
   try {
     const body = await response.text();
-    if (body) result = JSON.parse(body);
+    if (body) {
+      try {
+        result = JSON.parse(body);
+        responseBodyType = result && typeof result === 'object' ? 'json_object' : 'json_value';
+      } catch {
+        responseBodyType = 'non_json';
+      }
+    }
   } catch {
-    // Some successful providers return an empty or non-JSON acknowledgement.
+    responseBodyType = 'unreadable';
   }
   const providerStatus = String(result?.status || '').toLowerCase();
   const providerRejected = result && (
@@ -53,7 +61,17 @@ async function sendCode(phone, code, name = '') {
   if (!response.ok || providerRejected) {
     throw new Error(`WHATSAPP_DELIVERY_${response.status}${providerCode}`);
   }
-  return true;
+  const status = typeof result?.status === 'string' ? result.status.toLowerCase() : '';
+  return {
+    httpStatus: response.status,
+    responseBodyType,
+    responseKeys: result && typeof result === 'object' ? Object.keys(result).slice(0, 12) : [],
+    providerStatus: /^[a-z_-]{1,24}$/.test(status) ? status : (status ? 'other' : 'not_provided'),
+    providerSuccess: typeof result?.success === 'boolean'
+      ? result.success
+      : typeof result?.ok === 'boolean' ? result.ok : 'not_provided',
+    hasMessageReference: Boolean(result?.messageId || result?.message_id || result?.id || result?.data?.id),
+  };
 }
 
 module.exports = { normalizePhone, hashCode, sendCode };

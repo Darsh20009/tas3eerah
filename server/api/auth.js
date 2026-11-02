@@ -149,7 +149,8 @@ router.all('/', async (req, res) => {
       }
       const code = String(crypto.randomInt(0, 1_000_000)).padStart(6, '0');
       try {
-        await phoneAuth.sendCode(phone, code, user?.name || '');
+        const delivery = await phoneAuth.sendCode(phone, code, user?.name || '');
+        console.info('[WhatsApp auth provider response]', JSON.stringify(delivery));
       } catch (error) {
         console.error('[WhatsApp auth delivery failed]', error.message || 'WHATSAPP_ERROR');
         return sendError(res, 'تعذر إرسال الرمز عبر WhatsApp. حاول لاحقاً.', 502);
@@ -175,7 +176,8 @@ router.all('/', async (req, res) => {
       if (phoneCodeCooling(req.ip, phone)) return sendError(res, 'انتظر دقيقة قبل طلب رمز جديد', 429);
       const code = String(crypto.randomInt(0, 1_000_000)).padStart(6, '0');
       try {
-        await phoneAuth.sendCode(phone, code, user.name);
+        const delivery = await phoneAuth.sendCode(phone, code, user.name);
+        console.info('[WhatsApp link provider response]', JSON.stringify(delivery));
       } catch (error) {
         console.error('[WhatsApp link delivery failed]', error.message || 'WHATSAPP_ERROR');
         return sendError(res, 'تعذر إرسال الرمز عبر WhatsApp. حاول لاحقاً.', 502);
