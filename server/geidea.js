@@ -36,7 +36,7 @@ async function readResponse(response) {
   return body;
 }
 
-async function createSession({ amount, reference, returnUrl, customer }) {
+async function createSession({ amount, reference, callbackUrl, returnUrl, customer }) {
   const { publicKey, password } = credentials();
   const timestamp = makeTimestamp();
   const currency = 'SAR';
@@ -54,6 +54,7 @@ async function createSession({ amount, reference, returnUrl, customer }) {
       signature: makeSignature(publicKey, amount, currency, reference, timestamp, password),
       paymentOperation: 'Pay',
       language: 'ar',
+      callbackUrl,
       returnUrl,
       customer: {
         email: customer.email,

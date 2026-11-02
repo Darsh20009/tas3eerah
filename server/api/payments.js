@@ -55,6 +55,7 @@ router.post('/', async (req, res) => {
       const { sessionId, publicKey } = await geidea.createSession({
         amount: selectedPlan.price,
         reference,
+        callbackUrl: `${origin}/api/payments/geidea-callback`,
         returnUrl: `${origin}/dashboard?panel=subscription`,
         customer: { email: req.user.email, name: req.user.name },
       });

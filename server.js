@@ -70,6 +70,8 @@ app.use('/api/auth', require('./server/api/auth'));
 app.use('/api/quotes', require('./server/api/quotes'));
 app.use('/api/messages', require('./server/api/messages'));
 app.use('/api/admin', require('./server/api/admin'));
+// Geidea's callback is informational; payment activation still requires server-side order verification.
+app.all('/api/payments/geidea-callback', (req, res) => res.sendStatus(200));
 app.use('/api/payments', require('./server/api/payments'));
 app.use('/api/contact', require('./server/api/contact'));
 app.use('/api/calculators', require('./server/api/calculators'));
