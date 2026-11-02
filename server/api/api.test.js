@@ -729,20 +729,25 @@ test('WhatsApp phone signup and existing-account phone linking require a verifie
   const originalFetch = global.fetch;
   const originalKey = process.env.QIROX_WHATSAPP_API_KEY;
   let deliveredCode = '';
-  let rejectDelivery = true;
+  let deliveryResponse = 'root_reject';
   process.env.QIROX_WHATSAPP_API_KEY = 'test-only-whatsapp-secret';
   global.fetch = async (url, options) => {
     if (!String(url).includes('/api/v1/projects/')) return originalFetch(url, options);
     const payload = JSON.parse(options.body);
     deliveredCode = payload.code;
     assert.match(payload.recipient.phone, /^\+\d{8,15}$/);
-    if (rejectDelivery) {
+    if (deliveryResponse === 'root_reject') {
       return new Response(JSON.stringify({ success: false, code: 'recipient_unavailable' }), {
         status: 200, headers: { 'Content-Type': 'application/json' },
       });
     }
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200, headers: { 'Content-Type': 'application/json' },
+    if (deliveryResponse === 'nested_reject') {
+      return new Response(JSON.stringify({ ok: true, delivery: { status: 'failed', code: 'recipient_unavailable' } }), {
+        status: 202, headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    return new Response(JSON.stringify({ ok: true, delivery: { status: 'queued', id: 'test-message' } }), {
+      status: 202, headers: { 'Content-Type': 'application/json' },
     });
   };
   try {
@@ -755,7 +760,14 @@ test('WhatsApp phone signup and existing-account phone linking require a verifie
     });
     assert.equal(rejected.response.status, 502);
     assert.equal(rejected.json.success, false);
-    rejectDelivery = false;
+    deliveryResponse = 'nested_reject';
+    const nestedRejected = await request('/api/auth', {
+      jar: signupJar, method: 'POST', token: signupCsrf,
+      body: { action: 'request_phone_code', phone, purpose: 'signup' },
+    });
+    assert.equal(nestedRejected.response.status, 502);
+    assert.equal(nestedRejected.json.success, false);
+    deliveryResponse = 'success';
     const requested = await request('/api/auth', {
       jar: signupJar, method: 'POST', token: signupCsrf,
       body: { action: 'request_phone_code', phone, purpose: 'signup' },

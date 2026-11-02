@@ -49,28 +49,43 @@ async function sendCode(phone, code, name = '') {
     responseBodyType = 'unreadable';
   }
   const providerStatus = String(result?.status || '').toLowerCase();
+  const delivery = result?.delivery && typeof result.delivery === 'object' ? result.delivery : null;
+  const deliveryStatus = String(delivery?.status || delivery?.state || '').toLowerCase();
   const providerRejected = result && (
     result.success === false ||
     result.ok === false ||
     ['error', 'failed', 'rejected'].includes(providerStatus) ||
+    ['error', 'failed', 'rejected'].includes(deliveryStatus) ||
+    delivery?.success === false ||
+    delivery?.ok === false ||
     (result.error !== undefined && result.error !== null && result.error !== false && result.error !== '')
   );
-  const providerCode = typeof result?.code === 'string' && /^[A-Za-z0-9_-]{1,48}$/.test(result.code)
-    ? `_${result.code}`
+  const rawProviderCode = result?.code || delivery?.code;
+  const providerCode = typeof rawProviderCode === 'string' && /^[A-Za-z0-9_-]{1,48}$/.test(rawProviderCode)
+    ? `_${rawProviderCode}`
     : '';
   if (!response.ok || providerRejected) {
     throw new Error(`WHATSAPP_DELIVERY_${response.status}${providerCode}`);
   }
-  const status = typeof result?.status === 'string' ? result.status.toLowerCase() : '';
+  const status = deliveryStatus || providerStatus;
+  const deliverySuccess = typeof delivery?.success === 'boolean'
+    ? delivery.success
+    : typeof delivery?.ok === 'boolean' ? delivery.ok : null;
   return {
     httpStatus: response.status,
     responseBodyType,
     responseKeys: result && typeof result === 'object' ? Object.keys(result).slice(0, 12) : [],
+    deliveryKeys: delivery ? Object.keys(delivery).slice(0, 12) : [],
     providerStatus: /^[a-z_-]{1,24}$/.test(status) ? status : (status ? 'other' : 'not_provided'),
-    providerSuccess: typeof result?.success === 'boolean'
-      ? result.success
-      : typeof result?.ok === 'boolean' ? result.ok : 'not_provided',
-    hasMessageReference: Boolean(result?.messageId || result?.message_id || result?.id || result?.data?.id),
+    providerSuccess: deliverySuccess !== null
+      ? deliverySuccess
+      : typeof result?.success === 'boolean'
+        ? result.success
+        : typeof result?.ok === 'boolean' ? result.ok : 'not_provided',
+    hasMessageReference: Boolean(
+      result?.messageId || result?.message_id || result?.id ||
+      delivery?.messageId || delivery?.message_id || delivery?.id || result?.data?.id
+    ),
   };
 }
 
