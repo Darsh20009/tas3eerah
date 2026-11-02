@@ -770,7 +770,7 @@ test('WhatsApp phone signup and existing-account phone linking require a verifie
     deliveryResponse = 'success';
     const requested = await request('/api/auth', {
       jar: signupJar, method: 'POST', token: signupCsrf,
-      body: { action: 'request_phone_code', phone, purpose: 'signup' },
+      body: { action: 'request_phone_code', phone, purpose: 'auto' },
     });
     assert.equal(requested.json.success, true);
     const verified = await request('/api/auth', {
@@ -778,6 +778,7 @@ test('WhatsApp phone signup and existing-account phone linking require a verifie
       body: { action: 'verify_phone_code', phone, code: deliveredCode },
     });
     assert.equal(verified.json.success, true);
+    assert.equal(verified.json.data.flow, 'signup');
     const created = await request('/api/auth', {
       jar: signupJar, method: 'POST', token: signupCsrf,
       body: { action: 'complete_phone_signup', name: 'مستخدم جوال' },
@@ -788,13 +789,15 @@ test('WhatsApp phone signup and existing-account phone linking require a verifie
 
     const linkJar = new Map();
     const linkCsrf = (await request('/api/auth?action=csrf', { jar: linkJar })).json.data.csrf_token;
+    const signedIn = await request('/api/auth', {
+      jar: linkJar, method: 'POST', token: linkCsrf,
+      body: { action: 'login', email: 'client@example.test', password: 'TestPassword@123' },
+    });
+    assert.equal(signedIn.json.success, true);
     const linkedPhone = '+966512345679';
     const linkRequested = await request('/api/auth', {
       jar: linkJar, method: 'POST', token: linkCsrf,
-      body: {
-        action: 'request_phone_link', phone: linkedPhone,
-        email: 'client@example.test', password: 'TestPassword@123',
-      },
+      body: { action: 'request_phone_link', phone: linkedPhone },
     });
     assert.equal(linkRequested.json.success, true);
     const linkVerified = await request('/api/auth', {

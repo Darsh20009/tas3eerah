@@ -917,6 +917,28 @@
               <input type="email" class="form-control" id="accEmail" value="<%= user['email'] %>" readonly>
             </div>
             <div class="form-group">
+              <label>رقم الجوال</label>
+              <p id="accountPhoneStatus" style="margin:0 0 8px;color:var(--muted);font-size:12px">
+                <%= user['phone_verified'] === 1 && user['phone'] ? `موثق: ${user['phone']}` : 'غير مربوط بحسابك' %>
+              </p>
+              <div style="display:flex;gap:8px;direction:ltr">
+                <select id="accountPhoneCountry" class="form-control" style="width:46%;direction:rtl" aria-label="رمز الدولة">
+                  <option value="+966">السعودية +966</option><option value="+971">الإمارات +971</option>
+                  <option value="+965">الكويت +965</option><option value="+973">البحرين +973</option>
+                  <option value="+974">قطر +974</option><option value="+968">عُمان +968</option>
+                  <option value="+20">مصر +20</option><option value="+962">الأردن +962</option>
+                  <option value="+44">بريطانيا +44</option><option value="+1">أمريكا +1</option>
+                </select>
+                <input id="accountPhoneNumber" class="form-control" style="min-width:0;flex:1" inputmode="tel" placeholder="5xxxxxxxx" dir="ltr">
+              </div>
+              <div id="accountPhoneCodeStep" class="hidden" style="margin-top:8px">
+                <input id="accountPhoneCode" class="form-control" inputmode="numeric" maxlength="6" placeholder="رمز التحقق" dir="ltr">
+                <button class="btn btn-primary" style="margin-top:8px" onclick="verifyAccountPhoneLink()">تحقق واربط الرقم</button>
+              </div>
+              <button id="accountPhoneSendButton" class="btn btn-outline" style="margin-top:8px" onclick="requestAccountPhoneLink()">إرسال رمز الربط</button>
+              <div id="accountPhoneFeedback" class="hidden" style="margin-top:8px" role="status"></div>
+            </div>
+            <div class="form-group">
               <label>الدور في النظام</label>
               <div class="account-readonly-role">
                 <span class="badge badge-<%= role %>"><span class="dot"></span><%= roleLabel %></span>

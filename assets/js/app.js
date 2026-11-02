@@ -2636,6 +2636,50 @@ async function saveAccount() {
   setTimeout(() => msg.className = 'hidden', 2500);
 }
 
+function accountPhoneValue() {
+  const country = document.getElementById('accountPhoneCountry')?.value || '+966';
+  const local = (document.getElementById('accountPhoneNumber')?.value || '').replace(/\D/g, '').replace(/^0+/, '');
+  return country + local;
+}
+
+async function requestAccountPhoneLink() {
+  const phone = accountPhoneValue();
+  const feedback = document.getElementById('accountPhoneFeedback');
+  if (!/^\+[1-9]\d{7,14}$/.test(phone)) {
+    feedback.className = 'alert alert-danger';
+    feedback.textContent = 'أدخل رقم جوال صحيحاً مع رمز الدولة';
+    return;
+  }
+  const result = await api('auth', { action: 'request_phone_link', phone });
+  feedback.className = result.success ? 'alert alert-success' : 'alert alert-danger';
+  feedback.textContent = result.message || result.error || 'تعذر إرسال رمز الربط';
+  if (result.success) {
+    document.getElementById('accountPhoneCodeStep')?.classList.remove('hidden');
+    document.getElementById('accountPhoneSendButton')?.classList.add('hidden');
+  }
+}
+
+async function verifyAccountPhoneLink() {
+  const phone = accountPhoneValue();
+  const code = document.getElementById('accountPhoneCode')?.value.trim() || '';
+  const feedback = document.getElementById('accountPhoneFeedback');
+  if (!/^\d{6}$/.test(code)) {
+    feedback.className = 'alert alert-danger';
+    feedback.textContent = 'أدخل الرمز المكوّن من 6 أرقام';
+    return;
+  }
+  const result = await api('auth', { action: 'verify_phone_code', phone, code });
+  feedback.className = result.success ? 'alert alert-success' : 'alert alert-danger';
+  feedback.textContent = result.message || result.error || 'تعذر ربط الرقم';
+  if (result.success) {
+    document.getElementById('accountPhoneStatus').textContent = `موثق: ${phone}`;
+    document.getElementById('accountPhoneCodeStep')?.classList.add('hidden');
+    document.getElementById('accountPhoneSendButton')?.classList.remove('hidden');
+    document.getElementById('accountPhoneNumber').value = '';
+    document.getElementById('accountPhoneCode').value = '';
+  }
+}
+
 // ─── HELPERS ─────────────────────────────
 function esc(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');

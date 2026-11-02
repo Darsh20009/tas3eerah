@@ -135,9 +135,13 @@ router.all('/', async (req, res) => {
 
     if (action === 'request_phone_code') {
       const phone = phoneAuth.normalizePhone(body.phone);
-      const purpose = body.purpose === 'signup' ? 'signup' : 'login';
+      const requestedPurpose = body.purpose === 'auto' ? 'auto' : body.purpose === 'signup' ? 'signup' : 'login';
       if (!phone) return sendError(res, 'أدخل رقم جوال دولياً صحيحاً');
       const user = await db.findOne('users', { phone, is_active: 1, phone_verified: 1 });
+      const purpose = requestedPurpose === 'auto' ? (user ? 'login' : 'signup') : requestedPurpose;
+      if (requestedPurpose === 'auto' && !user && await db.findOne('users', { phone, is_active: 1 })) {
+        return sendError(res, 'هذا الرقم مسجل لكنه غير موثق. تواصل مع الدعم لإكمال التحقق.');
+      }
       if (purpose === 'signup' && user) return sendError(res, 'هذا الرقم مرتبط بحساب. سجّل الدخول أو اربط حسابك الحالي.');
       if (purpose === 'login' && !user) {
         return sendOk(res, [], 'إذا كان الرقم مرتبطاً بحساب فسيصلك رمز الدخول.');
@@ -167,7 +171,7 @@ router.all('/', async (req, res) => {
     if (action === 'request_phone_link') {
       const phone = phoneAuth.normalizePhone(body.phone);
       const email = text(body.email, 254).toLowerCase();
-      const user = await auth.login(email, typeof body.password === 'string' ? body.password : '');
+      const user = req.user || await auth.login(email, typeof body.password === 'string' ? body.password : '');
       if (!phone || !user || user.unverified || user.email_verified !== 1) {
         return sendError(res, 'تعذر التحقق من الحساب أو رقم الجوال', 401);
       }
@@ -208,7 +212,7 @@ router.all('/', async (req, res) => {
       if (challenge.purpose === 'signup') {
         req.session.phoneSignupVerified = { phone, verifiedAt: Date.now() };
         req.session.phoneChallenge = null;
-        return sendOk(res, [], 'تم التحقق من الرقم. أكمل اسمك لإنشاء الحساب.');
+        return sendOk(res, { flow: 'signup' }, 'تم التحقق من الرقم. أكمل اسمك لإنشاء الحساب.');
       }
       const user = await db.findOne('users', {
         id: Number(challenge.userId), is_active: 1,
