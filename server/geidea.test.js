@@ -21,6 +21,7 @@ test('Geidea session creation signs the server-side amount and returns only the 
   try {
     const result = await geidea.createSession({
       amount: 49, reference: 'TAS-test-reference',
+      callbackUrl: 'https://example.test/api/payments/geidea-callback',
       returnUrl: 'https://example.test/dashboard',
       customer: { email: 'client@example.test', name: 'Test Client' },
     });
@@ -30,6 +31,7 @@ test('Geidea session creation signs the server-side amount and returns only the 
     const payload = JSON.parse(received.options.body);
     assert.equal(payload.amount, 49);
     assert.equal(payload.currency, 'SAR');
+    assert.equal(payload.callbackUrl, 'https://example.test/api/payments/geidea-callback');
     const signed = `public-test-key49.00SARTAS-test-reference${payload.timestamp}`;
     assert.equal(
       payload.signature,

@@ -296,6 +296,7 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
     assert.equal(pending.response.status, 200);
     assert.equal(pending.json.data.sessionId, 'test-session-1');
     assert.match(createdSession.reference, /^[A-Z0-9]{19}$/);
+    assert.equal(createdSession.callbackUrl, 'https://test.example.replit.dev/api/payments/geidea-callback');
     assert.equal((await db.findOne('users', { id: clientId })).plan, 'free', 'creating checkout cannot activate a plan');
     assert.equal((await db.findOne('payment_transactions', { id: pending.json.data.paymentId })).status, 'pending');
 
