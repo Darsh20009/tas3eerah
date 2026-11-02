@@ -53,6 +53,11 @@ app.use(session({
 app.use('/assets', express.static(path.join(root, 'assets'), {
   fallthrough: false, maxAge: '1h',
 }));
+app.get('/.well-known/apple-developer-merchantid-domain-association', (req, res, next) =>
+  res.sendFile(path.join(root, '.well-known', 'apple-developer-merchantid-domain-association'),
+    { dotfiles: 'allow' }, error => {
+    if (error) next(error);
+  }));
 
 const assetVersion = () => {
   const files = ['assets/css', 'assets/js'].flatMap(directory =>
