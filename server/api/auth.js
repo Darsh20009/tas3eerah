@@ -160,7 +160,7 @@ router.all('/', async (req, res) => {
         hash: phoneAuth.hashCode(code), expiresAt: Date.now() + 10 * 60_000,
         sentAt: Date.now(), attempts: 0,
       };
-      return sendOk(res, [], 'أرسلنا رمز التحقق عبر WhatsApp.');
+      return sendOk(res, [], 'قبل مزود WhatsApp طلب الإرسال، لكن وصول الرمز إلى هاتفك غير مؤكد.');
     }
 
     if (action === 'request_phone_link') {
@@ -186,7 +186,7 @@ router.all('/', async (req, res) => {
         hash: phoneAuth.hashCode(code), expiresAt: Date.now() + 10 * 60_000,
         sentAt: Date.now(), attempts: 0,
       };
-      return sendOk(res, [], 'أرسلنا رمز ربط الرقم عبر WhatsApp.');
+      return sendOk(res, [], 'قبل مزود WhatsApp طلب الإرسال، لكن وصول رمز الربط إلى هاتفك غير مؤكد.');
     }
 
     if (action === 'verify_phone_code') {

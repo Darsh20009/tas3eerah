@@ -729,12 +729,18 @@ test('WhatsApp phone signup and existing-account phone linking require a verifie
   const originalFetch = global.fetch;
   const originalKey = process.env.QIROX_WHATSAPP_API_KEY;
   let deliveredCode = '';
+  let rejectDelivery = true;
   process.env.QIROX_WHATSAPP_API_KEY = 'test-only-whatsapp-secret';
   global.fetch = async (url, options) => {
     if (!String(url).includes('/api/v1/projects/')) return originalFetch(url, options);
     const payload = JSON.parse(options.body);
     deliveredCode = payload.code;
     assert.match(payload.recipient.phone, /^\+\d{8,15}$/);
+    if (rejectDelivery) {
+      return new Response(JSON.stringify({ success: false, code: 'recipient_unavailable' }), {
+        status: 200, headers: { 'Content-Type': 'application/json' },
+      });
+    }
     return new Response(JSON.stringify({ success: true }), {
       status: 200, headers: { 'Content-Type': 'application/json' },
     });
@@ -743,6 +749,13 @@ test('WhatsApp phone signup and existing-account phone linking require a verifie
     const signupJar = new Map();
     const signupCsrf = (await request('/api/auth?action=csrf', { jar: signupJar })).json.data.csrf_token;
     const phone = '+966512345678';
+    const rejected = await request('/api/auth', {
+      jar: signupJar, method: 'POST', token: signupCsrf,
+      body: { action: 'request_phone_code', phone, purpose: 'signup' },
+    });
+    assert.equal(rejected.response.status, 502);
+    assert.equal(rejected.json.success, false);
+    rejectDelivery = false;
     const requested = await request('/api/auth', {
       jar: signupJar, method: 'POST', token: signupCsrf,
       body: { action: 'request_phone_code', phone, purpose: 'signup' },

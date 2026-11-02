@@ -33,7 +33,26 @@ async function sendCode(phone, code, name = '') {
     }),
     signal: AbortSignal.timeout(12_000),
   });
-  if (!response.ok) throw new Error(`WHATSAPP_DELIVERY_${response.status}`);
+  let result = null;
+  try {
+    const body = await response.text();
+    if (body) result = JSON.parse(body);
+  } catch {
+    // Some successful providers return an empty or non-JSON acknowledgement.
+  }
+  const providerStatus = String(result?.status || '').toLowerCase();
+  const providerRejected = result && (
+    result.success === false ||
+    result.ok === false ||
+    ['error', 'failed', 'rejected'].includes(providerStatus) ||
+    (result.error !== undefined && result.error !== null && result.error !== false && result.error !== '')
+  );
+  const providerCode = typeof result?.code === 'string' && /^[A-Za-z0-9_-]{1,48}$/.test(result.code)
+    ? `_${result.code}`
+    : '';
+  if (!response.ok || providerRejected) {
+    throw new Error(`WHATSAPP_DELIVERY_${response.status}${providerCode}`);
+  }
   return true;
 }
 
