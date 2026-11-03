@@ -30,8 +30,16 @@ function makeSignature(publicKey, amount, currency, reference, timestamp, passwo
 async function readResponse(response) {
   const body = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const error = new Error('تعذر إنشاء جلسة الدفع أو التحقق منها لدى جيديا.');
-    error.status = response.status;
+    const code = String(body.responseCode || body.code || '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 24);
+    const detail = String(body.detailedResponseMessage || body.responseMessage || body.message || '')
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/[A-Za-z0-9_-]{24,}/g, '[محذوف]')
+      .replace(/\s+/g, ' ').trim().slice(0, 120);
+    const diagnostics = [code && `رمز ${code}`, detail].filter(Boolean).join('، ');
+    const error = new Error(`تعذر تنفيذ الطلب لدى Geidea${diagnostics ? `: ${diagnostics}` : ''}.`);
+    error.status = 502;
+    error.expose = true;
+    error.code = code || undefined;
     throw error;
   }
   return body;
@@ -71,7 +79,10 @@ async function createSession({ amount, reference, callbackUrl, returnUrl, custom
     const code = String(body.responseCode || body.code || 'unknown');
     const detail = String(body.detailedResponseMessage || body.responseMessage || '')
       .replace(/[A-Za-z0-9_-]{24,}/g, '[redacted]').slice(0, 120);
-    throw new Error(`لم تُرجع جيديا معرّف جلسة دفع صالحاً (response code: ${code}; fields: ${fields}; detail: ${detail}).`);
+    const error = new Error(`لم تُرجع Geidea معرّف جلسة دفع صالحاً (رمز ${code}; الحقول ${fields}; ${detail}).`);
+    error.status = 502;
+    error.expose = true;
+    throw error;
   }
   return { sessionId, publicKey };
 }

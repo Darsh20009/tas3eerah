@@ -203,7 +203,7 @@ router.post('/', async (req, res) => {
     }
     return sendError(res, 'إجراء غير معروف', 400);
   } catch (error) {
-    return failFromError(res, error);
+    return failFromError(res, error, 'تعذر إتمام الاشتراك أو الاتصال بجيديا. لم تتغير خطتك؛ حاول مجدداً بعد قليل.');
   }
 });
 

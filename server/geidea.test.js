@@ -99,6 +99,41 @@ test('Geidea looks up an order by merchant reference on the KSA endpoint', async
   }
 });
 
+test('Geidea returns safe provider diagnostics without exposing long identifiers', async () => {
+  const previous = {
+    publicKey: process.env.GEIDEA_TEST_PUBLIC_KEY,
+    password: process.env.GEIDEA_TEST_API_PASSWORD,
+    fetch: global.fetch,
+  };
+  process.env.GEIDEA_TEST_PUBLIC_KEY = 'public-test-key';
+  process.env.GEIDEA_TEST_API_PASSWORD = 'private-test-password';
+  global.fetch = async () => ({
+    ok: false,
+    status: 400,
+    json: async () => ({
+      responseCode: '035',
+      detailedResponseMessage: 'Invalid request',
+      token: 'this-is-a-long-private-session-identifier-1234567890',
+    }),
+  });
+  try {
+    await assert.rejects(geidea.getOrder('order-test-id'), error => {
+      assert.equal(error.status, 502);
+      assert.equal(error.expose, true);
+      assert.match(error.message, /035/);
+      assert.match(error.message, /Invalid request/);
+      assert.doesNotMatch(error.message, /private-session-identifier/);
+      return true;
+    });
+  } finally {
+    global.fetch = previous.fetch;
+    if (previous.publicKey === undefined) delete process.env.GEIDEA_TEST_PUBLIC_KEY;
+    else process.env.GEIDEA_TEST_PUBLIC_KEY = previous.publicKey;
+    if (previous.password === undefined) delete process.env.GEIDEA_TEST_API_PASSWORD;
+    else process.env.GEIDEA_TEST_API_PASSWORD = previous.password;
+  }
+});
+
 test('Geidea refund uses the KSA refund endpoint and signs the full refund request', async () => {
   const previous = {
     publicKey: process.env.GEIDEA_TEST_PUBLIC_KEY,

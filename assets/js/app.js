@@ -1629,18 +1629,39 @@ async function confirmSubscriptionChoice() {
   if (!subscriptionChoice) return;
   const { planKey, mode } = subscriptionChoice;
   const isEmbedded = mode === 'payment' && window.self !== window.top;
-  let checkoutWindow = null;
-  if (isEmbedded) {
-    try { checkoutWindow = window.open('about:blank', '_blank'); } catch {}
-  }
   const confirmButton = document.getElementById('subscriptionReviewConfirm');
-  if (confirmButton) confirmButton.disabled = true;
   const status = document.getElementById('subscriptionReviewStatus');
   const setReviewStatus = (kind, ar, en) => {
     if (!status) return;
     status.className = `alert alert-${kind === 'success' ? 'success' : kind === 'info' ? 'info' : 'danger'} mt-16`;
     status.textContent = L.current === 'en' ? en : ar;
   };
+  if (confirmButton) confirmButton.disabled = true;
+  let checkoutWindow = null;
+  if (isEmbedded && mode === 'payment') {
+    try {
+      const availableWidth = screen.availWidth || innerWidth;
+      const availableHeight = screen.availHeight || innerHeight;
+      const width = Math.max(320, Math.min(480, availableWidth - 24));
+      const height = Math.max(320, Math.min(720, availableHeight - 36));
+      const left = Math.max(0, (screen.availLeft || 0) + Math.round((availableWidth - width) / 2));
+      const top = Math.max(0, (screen.availTop || 0) + availableHeight - height - 12);
+      checkoutWindow = window.open(
+        'about:blank',
+        'tas3eerah-geidea-checkout',
+        `popup=yes,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`,
+      );
+    } catch {}
+    if (!checkoutWindow || checkoutWindow.closed) {
+      setReviewStatus(
+        'error',
+        'منع المتصفح نافذة الدفع. اسمح بالنوافذ المنبثقة أو افتح لوحة التحكم في تبويب مستقل ثم أعد المحاولة.',
+        'Your browser blocked the payment window. Allow pop-ups or open the dashboard in a separate tab, then retry.',
+      );
+      if (confirmButton) confirmButton.disabled = false;
+      return;
+    }
+  }
   setReviewStatus('info', mode === 'trial' ? 'جارٍ تفعيل الشهر المجاني...' : 'جارٍ إنشاء جلسة الدفع...', mode === 'trial' ? 'Starting your free month...' : 'Creating your checkout session...');
   if (mode === 'trial') {
     const result = await api('payments', { action: 'start_trial', plan: planKey });
@@ -1662,14 +1683,30 @@ async function confirmSubscriptionChoice() {
   }
   try { localStorage.setItem(GEIDEA_PENDING_SESSION_KEY, result.data.sessionId); } catch {}
   if (isEmbedded) {
+    const syncAfterGeideaReturn = event => {
+      if (event.key !== GEIDEA_PENDING_SESSION_KEY || event.newValue !== null) return;
+      window.removeEventListener('storage', syncAfterGeideaReturn);
+      setReviewStatus('info', 'اكتمل الرجوع من الدفع. نحدّث حالة الاشتراك...', 'Returned from checkout. Updating your subscription status...');
+      window.setTimeout(() => {
+        window.location.href = `${window.location.pathname}?panel=subscription`;
+      }, 900);
+    };
+    window.addEventListener('storage', syncAfterGeideaReturn);
     const checkoutUrl = `https://www.ksamerchant.geidea.net/hpp/checkout/?${encodeURIComponent(result.data.sessionId)}`;
     if (checkoutWindow && !checkoutWindow.closed) {
       checkoutWindow.opener = null;
       checkoutWindow.location.replace(checkoutUrl);
-      setReviewStatus('info', 'فتحنا صفحة الدفع الآمنة في نافذة مستقلة.', 'Secure checkout opened in a separate tab.');
+      setReviewStatus('info', 'فتحنا الدفع الآمن في نافذة مستقلة أسفل الشاشة. أبقِها مفتوحة حتى العودة إلى صفحة الاشتراك.', 'Secure checkout opened in a separate window. Keep it open until it returns to your subscription page.');
       if (confirmButton) confirmButton.disabled = false;
     } else {
-      window.location.assign(checkoutUrl);
+      window.removeEventListener('storage', syncAfterGeideaReturn);
+      clearPendingGeideaSession();
+      setReviewStatus(
+        'error',
+        'أُغلقت نافذة الدفع قبل فتحها. اسمح بالنوافذ المنبثقة وأعد المحاولة؛ لم تتغير خطتك.',
+        'The payment window closed before checkout opened. Allow pop-ups and retry; your plan was not changed.',
+      );
+      if (confirmButton) confirmButton.disabled = false;
     }
     return;
   }

@@ -15,6 +15,12 @@ The hosted form may redirect directly to the configured return URL with `orderId
 
 **How to apply:** test the complete HPP return and server-side confirmation, not only session creation. A declined attempt can leave the HPP open without an error callback. Query the KSA order endpoint by the stored `MerchantReferenceId` while checkout is open; show a decline only for a final failed order, and still verify successful orders by order ID before activation.
 
+When the app runs inside Replit's preview iframe, keep Geidea's hosted checkout in a separate top-level popup rather than embedding HPP in another iframe. If the browser blocks the popup, stop before creating a payment session and explain how to allow popups or open the app in its own tab; never fall back to navigating the nested preview frame.
+
+**Why:** HPP rendering inside the nested preview was unreliable, and navigating the app iframe as a fallback made payment failures confusing.
+
+**How to apply:** open the popup synchronously from the user's click, position it near the bottom when the browser permits, and keep server-side verification on the return path.
+
 **Why:** the KSA sandbox returned a final Failed order with a Pay transaction by merchant-reference lookup even though the hosted iframe had sent no error callback to its parent.
 
 Refunds must follow the published one-hour and unused-plan conditions, require an explicit admin action, and refund the full captured amount. Keep direct refunds sandbox-only until live merchant credentials and permissions are configured. If Geidea's outcome is ambiguous, block automatic retries and reconcile the order in the merchant portal first.

@@ -483,6 +483,19 @@ select.form-control { cursor: pointer; }
 .modal-header h3 { font-size: 16px; font-weight: 700; }
 .modal-close { font-size: 18px; color: var(--muted); padding: 2px 6px; border-radius: 6px; transition: .12s; }
 .modal-close:hover { background: var(--surface); color: var(--text); }
+.subscription-sheet.modal-overlay { align-items: flex-end; padding: 0; }
+.subscription-sheet .modal-box {
+  width: min(100%, 560px);
+  max-width: 560px;
+  max-height: min(88dvh, 720px);
+  margin: 0 auto;
+  border-radius: 18px 18px 0 0;
+  animation: subscription-sheet-in .18s ease-out both;
+}
+@keyframes subscription-sheet-in {
+  from { transform: translateY(24px); }
+  to { transform: translateY(0); }
+}
 
 /* ══════════════════════════════════════════════════
    شريط التمرير
@@ -1438,6 +1451,7 @@ select.form-control { cursor: pointer; }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 @media (prefers-reduced-motion: reduce) {
+  .subscription-sheet .modal-box { animation: none; }
   .auth-step-screen, .auth-overlay:not(.hidden) .auth-box { animation: none; }
   .auth-tab, .auth-link, .btn { transition: none !important; }
 }
