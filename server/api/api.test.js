@@ -16,6 +16,7 @@ process.env.DB_TEST_SQLITE = '1';
 process.env.DB_PATH = path.join(temporaryDirectory, 'isolated.sqlite');
 
 const db = require('../db');
+const { PLANS } = require('../config');
 const email = require('../email');
 const authRouter = require('./auth');
 const quotesRouter = require('./quotes');
@@ -62,6 +63,11 @@ after(async () => {
 });
 
 test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', async () => {
+  assert.equal(PLANS.free.max_quotes, 5);
+  assert.equal(PLANS.free.max_pdf_reports, 5);
+  assert.equal(PLANS.free.history_limit, 5);
+  assert.equal(PLANS.free.max_users, 1);
+  assert.equal(PLANS.plus.price, 39);
   const sentMail = [];
   email.sendHtml = async (...args) => { sentMail.push(args); };
   await db.init();
@@ -156,6 +162,13 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
   assert.equal(sentMail[0][0], 'client@example.test');
   assert.match(sentMail[0][1], /حفظ تسعيرتك/);
 
+  for (let index = 2; index <= 5; index += 1) {
+    const allowedQuote = await request('/api/quotes', {
+      jar: clientJar, method: 'POST', token: csrfToken,
+      body: { ...quotePayload, title: `عرض اختبار ${index}` },
+    });
+    assert.equal(allowedQuote.response.status, 200, JSON.stringify(allowedQuote.json));
+  }
   const overQuota = await request('/api/quotes', {
     jar: clientJar, method: 'POST', token: csrfToken, body: quotePayload,
   });
@@ -194,7 +207,7 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
   const adminStats = await request('/api/admin?action=stats', { jar: adminJar });
   assert.equal(adminStats.response.status, 200);
   assert.equal(adminStats.json.success, true);
-  assert.equal(adminStats.json.data.quotes_total, 1);
+  assert.equal(adminStats.json.data.quotes_total, 5);
   assert.equal(adminStats.json.data.rating_count, 1);
 
   const originalDateNow = Date.now;
@@ -216,11 +229,11 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
     order: {
       status: approvedOrder ? 'Success' : 'Declined',
       merchantReferenceId: orderOverrides.reference ?? createdSession.reference,
-      amount: orderOverrides.amount ?? 49,
+      amount: orderOverrides.amount ?? 39,
       currency: orderOverrides.currency ?? 'SAR',
       transactions: [
-        { type: 'Authentication', status: 'Success', amount: 49, currency: 'SAR' },
-        { type: 'Pay', status: approvedOrder ? 'Success' : 'Declined', amount: 49, currency: 'SAR' },
+        { type: 'Authentication', status: 'Success', amount: 39, currency: 'SAR' },
+        { type: 'Pay', status: approvedOrder ? 'Success' : 'Declined', amount: 39, currency: 'SAR' },
       ],
     },
   });
@@ -295,6 +308,7 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
     });
     assert.equal(pending.response.status, 200);
     assert.equal(pending.json.data.sessionId, 'test-session-1');
+    assert.equal(pending.json.data.amount, 39);
     assert.match(createdSession.reference, /^[A-Z0-9]{19}$/);
     assert.equal(createdSession.callbackUrl, 'https://test.example.replit.dev/api/payments/geidea-callback');
     assert.equal((await db.findOne('users', { id: clientId })).plan, 'free', 'creating checkout cannot activate a plan');
@@ -866,7 +880,7 @@ test('account-owned sector history, restore/delete, selected tools and atomic PD
   await db.updateDoc('users', { id: client.id }, { plan: 'free' });
   const stateFor = tool => ({ version: 1, tool, fields: [{ selector: '#audit', value: '123' }], actions: [], currency_code: 'USD' });
   const savedIds = [];
-  for (const tool of ['services', 'menu', 'retail']) {
+  for (const tool of ['services', 'menu', 'retail', 'packages', 'design']) {
     const result = await post(client, '/api/calculators', {
       action: 'save', tool, title: 'نتيجة ' + tool, price: 123, currency_code: 'USD', state: stateFor(tool),
     });
@@ -874,10 +888,10 @@ test('account-owned sector history, restore/delete, selected tools and atomic PD
     savedIds.push(result.json.data.id);
   }
   assert.equal((await post(client, '/api/calculators', {
-    action: 'save', tool: 'tech', title: 'رابعة', price: 1, currency_code: 'SAR', state: stateFor('tech'),
+    action: 'save', tool: 'tech', title: 'سادسة', price: 1, currency_code: 'SAR', state: stateFor('tech'),
   })).response.status, 429);
   const list = await request('/api/calculators?action=list', client);
-  assert.equal(list.json.data.length, 3);
+  assert.equal(list.json.data.length, 5);
   assert.ok(list.json.data.every(record => !Object.hasOwn(record, 'state')));
   assert.equal((await request('/api/calculators?action=list', employee)).json.data.length, 0);
   for (const action of ['get', 'delete', 'restore']) {
@@ -914,9 +928,9 @@ test('account-owned sector history, restore/delete, selected tools and atomic PD
   const reservations = await Promise.all(Array.from({ length: 10 }, () => post(client, '/api/calculators', {
     action: 'reserve_pdf', tool: 'services',
   })));
-  assert.equal(reservations.filter(result => result.json.success).length, 3);
-  assert.equal(reservations.filter(result => result.response.status === 429).length, 7);
-  assert.equal((await request('/api/calculators?action=access', client)).json.data.pdf_used, 3);
+  assert.equal(reservations.filter(result => result.json.success).length, 5);
+  assert.equal(reservations.filter(result => result.response.status === 429).length, 5);
+  assert.equal((await request('/api/calculators?action=access', client)).json.data.pdf_used, 5);
   const clientQuote = await db.findOne('quotes', { client_id: client.id });
   assert.equal((await post(client, '/api/quotes', { action: 'reserve_pdf', id: clientQuote.id })).response.status, 429);
   assert.equal((await post(admin, '/api/calculators', { action: 'reserve_pdf', tool: 'tech' })).json.success, true);
