@@ -376,11 +376,11 @@ async function main() {
     await page.waitForFunction(() => document.getElementById('share-history').textContent.includes('لا توجد'));
     assert.equal(await page.locator('#share-points-display').innerText(), '0');
     await page.locator('#calculator-share-dialog [onclick="closeCalculatorShare()"]').click();
-    for (let index = 0; index < 3; index++) await page.evaluate(() => window.print());
-    assert.equal(await page.evaluate(() => window.__testPrintCalls), 3);
+    for (let index = 0; index < 5; index++) await page.evaluate(() => window.print());
+    assert.equal(await page.evaluate(() => window.__testPrintCalls), 5);
     page.once('dialog', dialog => dialog.accept());
     await page.evaluate(() => window.print());
-    assert.equal(await page.evaluate(() => window.__testPrintCalls), 3, 'PDF limit must block native print');
+    assert.equal(await page.evaluate(() => window.__testPrintCalls), 5, 'PDF limit must block native print');
     assert.match(await page.locator('#cloudStateStatus').innerText(), /حد تقارير PDF/);
     await page.goto(base + '/logout');
     await login('employee');

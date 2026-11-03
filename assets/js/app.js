@@ -2236,7 +2236,7 @@ async function loadUsers() {
   const r = await api(`admin?action=users&role=${role}&plan=${plan}&q=${encodeURIComponent(search)}`);
   const tb = document.getElementById('usersTbody');
   if (!tb) return;
-  if (!r.success) { tb.innerHTML = `<tr><td colspan="7">${r.error}</td></tr>`; return; }
+  if (!r.success) { tb.innerHTML = `<tr><td colspan="7">${esc(r.error || '')}</td></tr>`; return; }
   const users = r.data;
   if (!users.length) {
     tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">لا يوجد مستخدمون</td></tr>';
@@ -2256,13 +2256,19 @@ async function loadUsers() {
       <td style="font-size:11px;color:var(--muted)">${(u.created_at||'').slice(0,10)}</td>
       <td>
         <div class="actions">
-          <button class="btn btn-ghost btn-sm" onclick="editUser(${JSON.stringify(u).replace(/"/g,'&quot;')})">تعديل</button>
+          <button class="btn btn-ghost btn-sm" data-edit-user="${Number(u.id)}">تعديل</button>
           <button class="btn btn-ghost btn-sm" onclick="toggleUser(${u.id})">${u.is_active ? 'تعطيل' : 'تفعيل'}</button>
           <button class="btn btn-primary btn-sm" data-uid="${u.id}" data-uname="${esc(u.name)}" data-uplan="${esc(u.plan)}" onclick="openPlanModal(+this.dataset.uid,this.dataset.uname,this.dataset.uplan)">الخطة</button>
         </div>
       </td>
     </tr>
   `).join('');
+  tb.querySelectorAll('[data-edit-user]').forEach(button => {
+    button.addEventListener('click', () => {
+      const user = users.find(item => Number(item.id) === Number(button.dataset.editUser));
+      if (user) editUser(user);
+    });
+  });
 }
 
 function openUserModal() {
