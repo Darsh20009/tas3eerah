@@ -15,11 +15,11 @@ The hosted form may redirect directly to the configured return URL with `orderId
 
 **How to apply:** test the complete HPP return and server-side confirmation, not only session creation. A declined attempt can leave the HPP open without an error callback. Query the KSA order endpoint by the stored `MerchantReferenceId` while checkout is open; show a decline only for a final failed order, and still verify successful orders by order ID before activation.
 
-When the app runs inside Replit's preview iframe, keep Geidea's hosted checkout in a separate top-level popup rather than embedding HPP in another iframe. If the browser blocks the popup, stop before creating a payment session and explain how to allow popups or open the app in its own tab; never fall back to navigating the nested preview frame.
+The user wants Geidea checkout inside the current app page as a bottom sheet, not in a separate checkout page. Geidea's SDK explicitly rejects embedded frames (`window !== top`), so use its in-page checkout only when the app itself is top-level. In Replit's embedded preview, explain the limitation and offer to open the app itself in a standalone browser tab; do not bypass the SDK with a raw hosted-checkout iframe.
 
-**Why:** HPP rendering inside the nested preview was unreliable, and navigating the app iframe as a fallback made payment failures confusing.
+**Why:** the user explicitly requested same-page checkout, while Geidea's supported SDK refuses to run inside the nested Replit preview.
 
-**How to apply:** open the popup synchronously from the user's click, position it near the bottom when the browser permits, and keep server-side verification on the return path.
+**How to apply:** style Geidea's SDK-created checkout iframe as a bottom sheet in top-level app pages. Do not create a payment session inside an embedded preview that the SDK will reject.
 
 **Why:** the KSA sandbox returned a final Failed order with a Pay transaction by merchant-reference lookup even though the hosted iframe had sent no error callback to its parent.
 
