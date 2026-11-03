@@ -1580,9 +1580,44 @@ function closeSubscriptionReview() {
 }
 
 const GEIDEA_PENDING_SESSION_KEY = 'tas3eerah.pendingGeideaSession';
+let geideaCheckoutSheetObserver = null;
 
 function clearPendingGeideaSession() {
   try { localStorage.removeItem(GEIDEA_PENDING_SESSION_KEY); } catch {}
+}
+
+function prepareGeideaCheckoutSheet() {
+  const backdrop = document.createElement('div');
+  backdrop.setAttribute('aria-hidden', 'true');
+  Object.assign(backdrop.style, {
+    position: 'fixed', inset: '0', zIndex: '999099',
+    background: 'rgba(13,43,28,.48)',
+  });
+  const applySheet = () => {
+    const iframe = [...document.querySelectorAll('iframe')].find(frame => {
+      try { return new URL(frame.src).pathname.includes('/hpp/checkout/'); } catch { return false; }
+    });
+    if (iframe && !backdrop.isConnected) document.body.appendChild(backdrop);
+    if (!iframe && backdrop.isConnected) backdrop.remove();
+    if (!iframe) return;
+    Object.assign(iframe.style, {
+      position: 'fixed', top: 'auto', right: 'auto', bottom: '0', left: '50%',
+      transform: 'translateX(-50%)',
+      width: 'min(100vw, 560px)', height: 'min(88dvh, 780px)',
+      maxHeight: '88dvh', border: '0', borderRadius: '18px 18px 0 0',
+      overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,.2)',
+      zIndex: '999100', backgroundColor: 'transparent',
+    });
+  };
+  geideaCheckoutSheetObserver?.disconnect();
+  geideaCheckoutSheetObserver = new MutationObserver(applySheet);
+  geideaCheckoutSheetObserver.observe(document.body, { childList: true, subtree: true });
+  applySheet();
+  return () => {
+    geideaCheckoutSheetObserver?.disconnect();
+    geideaCheckoutSheetObserver = null;
+    backdrop.remove();
+  };
 }
 
 async function verifyRedirectedGeideaPayment(sessionId) {
@@ -1637,30 +1672,21 @@ async function confirmSubscriptionChoice() {
     status.textContent = L.current === 'en' ? en : ar;
   };
   if (confirmButton) confirmButton.disabled = true;
-  let checkoutWindow = null;
-  if (isEmbedded && mode === 'payment') {
-    try {
-      const availableWidth = screen.availWidth || innerWidth;
-      const availableHeight = screen.availHeight || innerHeight;
-      const width = Math.max(320, Math.min(480, availableWidth - 24));
-      const height = Math.max(320, Math.min(720, availableHeight - 36));
-      const left = Math.max(0, (screen.availLeft || 0) + Math.round((availableWidth - width) / 2));
-      const top = Math.max(0, (screen.availTop || 0) + availableHeight - height - 12);
-      checkoutWindow = window.open(
-        'about:blank',
-        'tas3eerah-geidea-checkout',
-        `popup=yes,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`,
-      );
-    } catch {}
-    if (!checkoutWindow || checkoutWindow.closed) {
-      setReviewStatus(
-        'error',
-        'منع المتصفح نافذة الدفع. اسمح بالنوافذ المنبثقة أو افتح لوحة التحكم في تبويب مستقل ثم أعد المحاولة.',
-        'Your browser blocked the payment window. Allow pop-ups or open the dashboard in a separate tab, then retry.',
-      );
-      if (confirmButton) confirmButton.disabled = false;
-      return;
-    }
+  if (isEmbedded) {
+    setReviewStatus(
+      'info',
+      'معاينة Replit تعرض التطبيق داخل إطار، وGeidea تمنع فتح نموذج الدفع داخله. افتح التطبيق نفسه في تبويب متصفح مستقل؛ سيظهر الدفع حينها داخل الصفحة من الأسفل.',
+      'Replit preview embeds this app, and Geidea blocks checkout inside embedded frames. Open this app in a browser tab; checkout will then appear in-page from the bottom.',
+    );
+    const openApp = document.createElement('a');
+    openApp.className = 'btn btn-outline mt-8';
+    openApp.href = window.location.href;
+    openApp.target = '_blank';
+    openApp.rel = 'noopener';
+    openApp.textContent = L.current === 'en' ? 'Open this app in a browser tab' : 'افتح التطبيق في تبويب المتصفح';
+    status?.append(document.createElement('br'), openApp);
+    if (confirmButton) confirmButton.disabled = false;
+    return;
   }
   setReviewStatus('info', mode === 'trial' ? 'جارٍ تفعيل الشهر المجاني...' : 'جارٍ إنشاء جلسة الدفع...', mode === 'trial' ? 'Starting your free month...' : 'Creating your checkout session...');
   if (mode === 'trial') {
@@ -1676,46 +1702,19 @@ async function confirmSubscriptionChoice() {
 
   const result = await api('payments', { action: 'create_session', plan: planKey });
   if (!result.success) {
-    if (checkoutWindow && !checkoutWindow.closed) checkoutWindow.close();
     setReviewStatus('error', `${result.error || 'تعذر بدء الدفع.'} لم تتغير خطتك. حاول مرة أخرى أو تواصل مع الدعم.`, 'Could not start Geidea checkout. Your plan was not changed. Try again or contact support.');
     if (confirmButton) confirmButton.disabled = false;
     return;
   }
   try { localStorage.setItem(GEIDEA_PENDING_SESSION_KEY, result.data.sessionId); } catch {}
-  if (isEmbedded) {
-    const syncAfterGeideaReturn = event => {
-      if (event.key !== GEIDEA_PENDING_SESSION_KEY || event.newValue !== null) return;
-      window.removeEventListener('storage', syncAfterGeideaReturn);
-      setReviewStatus('info', 'اكتمل الرجوع من الدفع. نحدّث حالة الاشتراك...', 'Returned from checkout. Updating your subscription status...');
-      window.setTimeout(() => {
-        window.location.href = `${window.location.pathname}?panel=subscription`;
-      }, 900);
-    };
-    window.addEventListener('storage', syncAfterGeideaReturn);
-    const checkoutUrl = `https://www.ksamerchant.geidea.net/hpp/checkout/?${encodeURIComponent(result.data.sessionId)}`;
-    if (checkoutWindow && !checkoutWindow.closed) {
-      checkoutWindow.opener = null;
-      checkoutWindow.location.replace(checkoutUrl);
-      setReviewStatus('info', 'فتحنا الدفع الآمن في نافذة مستقلة أسفل الشاشة. أبقِها مفتوحة حتى العودة إلى صفحة الاشتراك.', 'Secure checkout opened in a separate window. Keep it open until it returns to your subscription page.');
-      if (confirmButton) confirmButton.disabled = false;
-    } else {
-      window.removeEventListener('storage', syncAfterGeideaReturn);
-      clearPendingGeideaSession();
-      setReviewStatus(
-        'error',
-        'أُغلقت نافذة الدفع قبل فتحها. اسمح بالنوافذ المنبثقة وأعد المحاولة؛ لم تتغير خطتك.',
-        'The payment window closed before checkout opened. Allow pop-ups and retry; your plan was not changed.',
-      );
-      if (confirmButton) confirmButton.disabled = false;
-    }
-    return;
-  }
   const launchCheckout = () => {
     if (typeof window.GeideaCheckout !== 'function') {
+      clearPendingGeideaSession();
       setReviewStatus('error', 'تعذر تحميل صفحة الدفع من جيديا. لم تتغير خطتك؛ تحقق من الاتصال ثم أعد المحاولة.', 'Could not load Geidea checkout. Your plan was not changed; check your connection and retry.');
       if (confirmButton) confirmButton.disabled = false;
       return;
     }
+    let cleanupCheckoutSheet = () => {};
     try {
       let pollingTimer = null;
       let pollInFlight = false;
@@ -1734,10 +1733,12 @@ async function confirmSubscriptionChoice() {
         });
         if (confirmed.success) {
           stopPaymentPolling();
+          cleanupCheckoutSheet();
           clearPendingGeideaSession();
           window.location.href = `${window.location.pathname}?panel=subscription&payment=success`;
         } else {
           stopPaymentPolling();
+          cleanupCheckoutSheet();
           clearPendingGeideaSession();
           setReviewStatus('error', `${confirmed.error || 'لم تؤكد جيديا نجاح الدفع.'} لم يتم تفعيل الخطة. إذا خُصم المبلغ، تواصل مع الدعم.`, 'Geidea did not verify this payment. Your plan was not activated. Contact support if you were charged.');
           if (confirmButton) confirmButton.disabled = false;
@@ -1746,6 +1747,7 @@ async function confirmSubscriptionChoice() {
       const checkout = new window.GeideaCheckout(
         async data => {
           stopPaymentPolling();
+          cleanupCheckoutSheet();
           if (!data?.orderId) {
             setReviewStatus('error', 'لم يصل رقم الطلب من جيديا. لم تتغير خطتك؛ تواصل مع الدعم قبل إعادة الدفع.', 'Geidea did not return an order ID. Your plan was not changed; contact support before trying again.');
             if (confirmButton) confirmButton.disabled = false;
@@ -1755,6 +1757,7 @@ async function confirmSubscriptionChoice() {
         },
         data => {
           stopPaymentPolling();
+          cleanupCheckoutSheet();
           clearPendingGeideaSession();
           const providerMessage = String(
             data?.detailResponseMessage || data?.detailedResponseMessage || data?.responseMessage || '',
@@ -1782,6 +1785,7 @@ async function confirmSubscriptionChoice() {
         },
         () => {
           stopPaymentPolling();
+          cleanupCheckoutSheet();
           clearPendingGeideaSession();
           setReviewStatus('info', 'ألغيت الدفع. لم تتغير خطتك؛ يمكنك اختيار الخطة لاحقاً.', 'You cancelled checkout. Your plan was not changed; you can choose a plan later.');
           if (confirmButton) confirmButton.disabled = false;
@@ -1789,9 +1793,10 @@ async function confirmSubscriptionChoice() {
       );
       setReviewStatus(
         'info',
-        'أكمل الدفع في نافذة جيديا؛ لن تتغير خطتك حتى نتحقق من نجاح الدفع.',
-        'Complete checkout in the Geidea window; your plan will not change until payment is verified.',
+        'أكمل الدفع في النافذة التي ظهرت من أسفل الصفحة؛ لن تتغير خطتك حتى نتحقق من نجاح الدفع.',
+        'Complete checkout in the sheet at the bottom of this page; your plan will not change until payment is verified.',
       );
+      cleanupCheckoutSheet = prepareGeideaCheckoutSheet();
       checkout.startPayment(result.data.sessionId);
       pollingTimer = window.setInterval(async () => {
         if (!pollingActive || pollInFlight) return;
@@ -1812,6 +1817,7 @@ async function confirmSubscriptionChoice() {
           if (polled.data?.status === 'failed') {
             stopPaymentPolling();
             checkout.iframe?.remove();
+            cleanupCheckoutSheet();
             setReviewStatus(
               'error',
               'رفضت جيديا عملية الدفع. لم تتغير خطتك؛ يمكنك المحاولة مجدداً أو إلغاء الدفع.',
@@ -1827,6 +1833,8 @@ async function confirmSubscriptionChoice() {
         }
       }, 3000);
     } catch {
+      cleanupCheckoutSheet();
+      clearPendingGeideaSession();
       setReviewStatus('error', 'تعذر بدء واجهة دفع جيديا. لم تتغير خطتك؛ أعد المحاولة.', 'Could not start Geidea checkout. Your plan was not changed; retry.');
       if (confirmButton) confirmButton.disabled = false;
     }
@@ -1836,6 +1844,7 @@ async function confirmSubscriptionChoice() {
   if (script) {
     script.addEventListener('load', launchCheckout, { once: true });
     script.addEventListener('error', () => {
+      clearPendingGeideaSession();
       setReviewStatus('error', 'تعذر تحميل صفحة الدفع من جيديا. لم تتغير خطتك؛ أعد المحاولة.', 'Could not load Geidea checkout. Your plan was not changed; retry.');
       if (confirmButton) confirmButton.disabled = false;
     }, { once: true });
@@ -1846,6 +1855,7 @@ async function confirmSubscriptionChoice() {
   script.src = 'https://www.ksamerchant.geidea.net/hpp/geideaCheckout.min.js';
   script.onload = launchCheckout;
   script.onerror = () => {
+    clearPendingGeideaSession();
     setReviewStatus('error', 'تعذر تحميل صفحة الدفع من جيديا. لم تتغير خطتك؛ تحقق من الاتصال ثم أعد المحاولة.', 'Could not load Geidea checkout. Your plan was not changed; check your connection and retry.');
     if (confirmButton) confirmButton.disabled = false;
   };
