@@ -10,6 +10,21 @@ const geidea = require('../geidea');
 const { refundIneligibility } = require('../refund-policy');
 
 const router = express.Router();
+
+async function finishPaymentActivation(payment, userId) {
+  const expiresAt = payment.subscription_expires_at;
+  if (!expiresAt || !Number.isFinite(Date.parse(expiresAt))) {
+    throw new Error('بيانات تفعيل الاشتراك غير مكتملة');
+  }
+  await db.updateDoc('users', { id: Number(userId) }, {
+    plan: payment.plan, plan_expires_at: expiresAt,
+    trial_plan: null, trial_ends_at: null,
+  });
+  await db.updateDoc('payment_transactions', { id: payment.id, status: 'activation_pending' }, {
+    status: 'paid', updated_at: new Date().toISOString(),
+  });
+  return { plan: payment.plan, expires_at: expiresAt };
+}
 router.use(auth.loadUser, auth.requireUser);
 router.use((req, res, next) => req.method === 'POST' ? auth.csrfMiddleware(req, res, next) : next());
 
@@ -159,10 +174,20 @@ router.post('/', async (req, res) => {
         return sendError(res, 'بيانات الدفع غير مكتملة');
       }
       const paymentFilter = sessionId
-        ? { geidea_session_id: sessionId, user_id: Number(req.user.id), status: { $in: ['pending', 'verification_failed'] } }
-        : { id: paymentId, user_id: Number(req.user.id), status: { $in: ['pending', 'verification_failed'] } };
+        ? { geidea_session_id: sessionId, user_id: Number(req.user.id), status: { $in: ['pending', 'verification_failed', 'activation_pending', 'paid'] } }
+        : { id: paymentId, user_id: Number(req.user.id), status: { $in: ['pending', 'verification_failed', 'activation_pending', 'paid'] } };
       const payment = await db.findOne('payment_transactions', paymentFilter);
       if (!payment) return sendError(res, 'عملية الدفع غير موجودة أو عولجت مسبقاً', 404);
+      if (payment.status === 'paid') {
+        if (payment.geidea_order_id !== orderId) return sendError(res, 'معرّف الطلب لا يطابق العملية', 409);
+        return sendOk(res, { plan: payment.plan, expires_at: payment.subscription_expires_at },
+          'تم تأكيد الدفع وتفعيل الاشتراك');
+      }
+      if (payment.status === 'activation_pending') {
+        if (payment.geidea_order_id !== orderId) return sendError(res, 'معرّف الطلب لا يطابق العملية', 409);
+        const activation = await finishPaymentActivation(payment, req.user.id);
+        return sendOk(res, activation, 'تم تأكيد الدفع وتفعيل الاشتراك');
+      }
       const response = await geidea.getOrder(orderId);
       const order = response.order || response;
       const transactions = Array.isArray(order.transactions) ? order.transactions : [];
@@ -186,20 +211,29 @@ router.post('/', async (req, res) => {
         return sendError(res, 'لم تؤكد جيديا نجاح الدفع. لم يتم تفعيل الاشتراك.', 409);
       }
       const now = new Date();
-      const currentExpiry = Date.parse(req.user.plan_expires_at || '');
+      const currentUser = await db.findOne('users', { id: Number(req.user.id) });
+      const currentExpiry = Date.parse(currentUser?.plan_expires_at || '');
       const startsAt = Number.isFinite(currentExpiry) && currentExpiry > now.getTime()
         ? new Date(currentExpiry) : now;
       startsAt.setMonth(startsAt.getMonth() + 1);
       const expiresAt = startsAt.toISOString();
-      await db.updateDoc('payment_transactions', { id: payment.id }, {
-        status: 'paid', geidea_order_id: orderId, response_code: responseCode,
-        paid_at: now.toISOString(), updated_at: now.toISOString(),
+      const startAt = Number.isFinite(currentExpiry) && currentExpiry > now.getTime()
+        ? currentUser.plan_expires_at : now.toISOString();
+      const claimed = await db.updateDoc('payment_transactions', {
+        id: payment.id, status: { $in: ['pending', 'verification_failed'] },
+      }, {
+        status: 'activation_pending', geidea_order_id: orderId, response_code: responseCode,
+        paid_at: now.toISOString(), subscription_starts_at: startAt,
+        subscription_expires_at: expiresAt, updated_at: now.toISOString(),
       });
-      await db.updateDoc('users', { id: Number(req.user.id) }, {
-        plan: payment.plan, plan_expires_at: expiresAt,
-        trial_plan: null, trial_ends_at: null,
-      });
-      return sendOk(res, { plan: payment.plan, expires_at: expiresAt }, 'تم تأكيد الدفع وتفعيل الاشتراك');
+      let activationPayment = claimed
+        ? { ...payment, status: 'activation_pending', geidea_order_id: orderId, subscription_expires_at: expiresAt }
+        : await db.findOne('payment_transactions', { id: payment.id, status: 'activation_pending' });
+      if (!activationPayment || activationPayment.geidea_order_id !== orderId) {
+        return sendError(res, 'يجري تأكيد هذه العملية بالفعل. حدّث الصفحة بعد قليل.', 409);
+      }
+      const activation = await finishPaymentActivation(activationPayment, req.user.id);
+      return sendOk(res, activation, 'تم تأكيد الدفع وتفعيل الاشتراك');
     }
     return sendError(res, 'إجراء غير معروف', 400);
   } catch (error) {

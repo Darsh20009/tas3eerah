@@ -37,6 +37,7 @@ const COLLECTION_FIELDS = Object.freeze({
   payment_transactions: new Set([
     'id', 'user_id', 'plan', 'amount', 'currency', 'status', 'environment', 'merchant_reference_id',
     'geidea_session_id', 'geidea_order_id', 'response_code', 'created_at', 'updated_at', 'paid_at',
+    'subscription_starts_at', 'subscription_expires_at',
   ]),
   refund_requests: new Set([
     'id', 'payment_id', 'user_id', 'admin_id', 'amount', 'currency', 'environment', 'status',
@@ -549,7 +550,9 @@ function createSqliteSchema() {
       response_code TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT,
-      paid_at TEXT
+      paid_at TEXT,
+      subscription_starts_at TEXT,
+      subscription_expires_at TEXT
     );
     CREATE TABLE IF NOT EXISTS refund_requests (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -626,6 +629,10 @@ function createSqliteSchema() {
     })();
   }
   migrateColumns('quotes', { items: "TEXT NOT NULL DEFAULT '[]'", currency_code: "TEXT NOT NULL DEFAULT 'SAR'" });
+  migrateColumns('payment_transactions', {
+    subscription_starts_at: 'TEXT',
+    subscription_expires_at: 'TEXT',
+  });
   migrateColumns('sessions', {
     expires_at: 'INTEGER',
     updated_at: "TEXT NOT NULL DEFAULT (datetime('now'))",
@@ -786,6 +793,7 @@ async function initializeMongo() {
     mongoDatabase = mongoClient.db(config.MONGODB_DB_NAME);
     await mongoDatabase.command({ ping: 1 });
     await mongoDatabase.collection('users').dropIndex('email_1').catch(() => {});
+    await mongoDatabase.collection('sessions').dropIndex('expiresAt_1').catch(() => {});
     await Promise.all([
       mongoDatabase.collection('users').createIndex(
         { email: 1 }, { unique: true, partialFilterExpression: { email: { $type: 'string' } } },
@@ -800,7 +808,7 @@ async function initializeMongo() {
         { unique: true },
       ),
       mongoDatabase.collection('quote_ratings').createIndex({ quote_id: 1 }),
-      mongoDatabase.collection('sessions').createIndex({ expiresAt: 1 }),
+      mongoDatabase.collection('sessions').createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
       mongoDatabase.collection('calculator_states').createIndex({ user_id: 1, tool: 1 }, { unique: true }),
       mongoDatabase.collection('calculator_results').createIndex({ user_id: 1, tool: 1, id: -1 }),
       mongoDatabase.collection('price_shares').createIndex({ user_id: 1, id: -1 }),
@@ -1444,7 +1452,10 @@ async function sessionGet(id) {
     data = JSON.parse(row.sess);
     expiresAt = row.expires_at;
   }
-  if (Number.isFinite(expiresAt) && expiresAt <= Date.now()) return null;
+  if (Number.isFinite(expiresAt) && expiresAt <= Date.now()) {
+    await sessionDestroy(sid);
+    return null;
+  }
   return data;
 }
 
@@ -1479,6 +1490,7 @@ async function sessionSet(id, data, expiresAt) {
     );
     return;
   }
+  sqlite.prepare('DELETE FROM sessions WHERE expires_at <= ?').run(Date.now());
   sqlite.prepare(`
     INSERT INTO sessions (sid, sess, expires_at, updated_at)
     VALUES (?, ?, ?, ?)
@@ -1497,6 +1509,23 @@ async function sessionDestroy(id) {
     return result.deletedCount > 0;
   }
   return sqlite.prepare('DELETE FROM sessions WHERE sid = ?').run(sid).changes > 0;
+}
+
+async function sessionDestroyUser(userId, exceptSessionId = null) {
+  ensureInitialized();
+  const id = Number(userId);
+  if (!Number.isSafeInteger(id) || id < 1) fail('معرف المستخدم غير صالح.');
+  if (selectedMode === 'mongo') {
+    const filter = { 'data.userId': id };
+    if (exceptSessionId) filter._id = { $ne: validateSessionId(exceptSessionId) };
+    const result = await mongoDatabase.collection('sessions').deleteMany(filter);
+    return result.deletedCount;
+  }
+  const rows = sqlite.prepare('SELECT sid, sess FROM sessions').all();
+  const sessions = rows.filter(row => row.sid !== exceptSessionId &&
+    Number(JSON.parse(row.sess).userId) === id).map(row => row.sid);
+  for (const sid of sessions) sqlite.prepare('DELETE FROM sessions WHERE sid = ?').run(sid);
+  return sessions.length;
 }
 
 async function close() {
@@ -1580,6 +1609,7 @@ module.exports = Object.freeze({
   sessionGet,
   sessionSet,
   sessionDestroy,
+  sessionDestroyUser,
   saveCalculatorState,
   pdfReportUsage,
   reservePdfReport,

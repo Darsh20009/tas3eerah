@@ -390,6 +390,12 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
     assert.equal(confirmedPayment.response.status, 200);
     assert.equal((await db.findOne('users', { id: clientId })).plan, 'plus');
     assert.ok(Date.parse(confirmedPayment.json.data.expires_at) > Date.now());
+    const repeatedConfirmation = await request('/api/payments', {
+      jar: clientJar, method: 'POST', token: csrfToken,
+      body: { action: 'confirm', session_id: approvedSession.json.data.sessionId, order_id: approvedStatus.json.data.order_id },
+    });
+    assert.equal(repeatedConfirmation.response.status, 200);
+    assert.equal(repeatedConfirmation.json.data.expires_at, confirmedPayment.json.data.expires_at);
   } finally {
     Date.now = originalDateNow;
     geidea.createSession = originalCreateSession;

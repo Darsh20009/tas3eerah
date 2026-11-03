@@ -21,6 +21,38 @@ const GET_ACTIONS = new Set([
   'get_settings',
 ]);
 
+async function recomputePaidEntitlement(userId) {
+  const payments = await db.findAll('payment_transactions', {
+    user_id: Number(userId), status: 'paid',
+  });
+  payments.sort((left, right) => Date.parse(left.paid_at || left.created_at || 0) -
+    Date.parse(right.paid_at || right.created_at || 0));
+  let expiry = 0;
+  let plan = 'free';
+  for (const payment of payments) {
+    const recordedExpiry = Date.parse(payment.subscription_expires_at || '');
+    if (Number.isFinite(recordedExpiry)) {
+      expiry = Math.max(expiry, recordedExpiry);
+    } else {
+      const paidAt = Date.parse(payment.paid_at || payment.created_at || '');
+      if (!Number.isFinite(paidAt)) continue;
+      const start = new Date(Math.max(paidAt, expiry));
+      start.setMonth(start.getMonth() + 1);
+      expiry = start.getTime();
+    }
+    plan = payment.plan || plan;
+  }
+  if (expiry <= Date.now()) {
+    await db.updateDoc('users', { id: Number(userId) }, {
+      plan: 'free', plan_expires_at: null, trial_plan: null, trial_ends_at: null,
+    });
+    return { plan: 'free', expires_at: null };
+  }
+  const expiresAt = new Date(expiry).toISOString();
+  await db.updateDoc('users', { id: Number(userId) }, { plan, plan_expires_at: expiresAt });
+  return { plan, expires_at: expiresAt };
+}
+
 router.use(auth.loadUser, auth.requireAdmin);
 router.use((req, res, next) => req.method === 'POST' ? auth.csrfMiddleware(req, res, next) : next());
 
@@ -147,19 +179,12 @@ async function executeRefund(req, res, body) {
         throw new Error('تعذر تأكيد اكتمال الاسترداد لدى Geidea');
       }
       const now = new Date().toISOString();
+      await db.updateDoc('payment_transactions', { id: paymentId }, { status: 'refunded', updated_at: now });
+      await recomputePaidEntitlement(payment.user_id);
       await db.updateDoc('refund_requests', { id: refundId }, {
         status: 'refunded', geidea_refund_order_id: String(refundOrder.orderId || ''),
         response_code: String(refundOrder.responseCode || ''), updated_at: now, processed_at: now,
       });
-      await db.updateDoc('payment_transactions', { id: paymentId }, { status: 'refunded', updated_at: now });
-      const otherPaid = await db.count('payment_transactions', {
-        user_id: Number(payment.user_id), status: 'paid',
-      });
-      if (!otherPaid) {
-        await db.updateDoc('users', { id: Number(payment.user_id) }, {
-          plan: 'free', plan_expires_at: null, trial_plan: null, trial_ends_at: null,
-        });
-      }
       await db.insertDoc('activity_log', {
         user_id: Number(req.user.id), action: 'admin_refund_completed',
         details: `استرداد اختبار كامل للعملية ${paymentId} بمبلغ ${payment.amount} ${payment.currency}`,
@@ -302,6 +327,7 @@ async function userUpdate(req, res, body) {
   if (role) update.role = role;
   if (password) update.password_hash = await bcrypt.hash(password, 10);
   if (Object.keys(update).length) await db.updateDoc('users', { id }, update);
+  if (password) await db.sessionDestroyUser(id);
   await db.insertDoc('activity_log', {
     user_id: Number(req.user.id),
     action: 'admin_user_update',

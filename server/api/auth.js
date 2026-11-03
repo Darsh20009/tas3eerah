@@ -15,6 +15,28 @@ const {
 
 const router = express.Router();
 const phoneCodeCooldowns = new Map();
+const loginFailureWindows = new Map();
+
+function loginFailureCount(key) {
+  const now = Date.now();
+  const entry = loginFailureWindows.get(key);
+  if (!entry || entry.expiresAt <= now) {
+    loginFailureWindows.delete(key);
+    return 0;
+  }
+  return entry.count;
+}
+
+function recordLoginFailure(key) {
+  const count = loginFailureCount(key);
+  if (loginFailureWindows.size > 10_000) {
+    for (const [storedKey, entry] of loginFailureWindows) {
+      if (entry.expiresAt <= Date.now()) loginFailureWindows.delete(storedKey);
+    }
+    if (loginFailureWindows.size > 10_000) loginFailureWindows.delete(loginFailureWindows.keys().next().value);
+  }
+  loginFailureWindows.set(key, { count: count + 1, expiresAt: Date.now() + 15 * 60_000 });
+}
 
 function phoneCodeCooling(ip, phone) {
   const now = Date.now();
@@ -121,9 +143,19 @@ router.all('/', async (req, res) => {
       const email = text(body.email, 254);
       const password = typeof body.password === 'string' ? body.password : '';
       if (!email || !password) return sendError(res, 'يرجى إدخال البريد وكلمة المرور');
+      const accountKey = `account:${email.toLowerCase()}`;
+      const ipKey = `ip:${req.ip || 'unknown'}`;
+      if (loginFailureCount(accountKey) >= 8 || loginFailureCount(ipKey) >= 30) {
+        return sendError(res, 'محاولات كثيرة. انتظر 15 دقيقة ثم حاول مجدداً.', 429, 'LOGIN_RATE_LIMITED');
+      }
       const user = await auth.login(email, password);
-      if (!user) return sendError(res, 'البريد الإلكتروني أو كلمة المرور غير صحيحة', 401);
+      if (!user) {
+        recordLoginFailure(accountKey);
+        recordLoginFailure(ipKey);
+        return sendError(res, 'البريد الإلكتروني أو كلمة المرور غير صحيحة', 401);
+      }
       if (user.unverified) return sendError(res, 'تحقق من بريدك الإلكتروني برمز التوثيق قبل تسجيل الدخول', 403, 'EMAIL_NOT_VERIFIED');
+      loginFailureWindows.delete(accountKey);
       await auth.setAuthenticatedUser(req, user.id);
       await db.insertDoc('activity_log', {
         user_id: Number(user.id),
@@ -405,6 +437,7 @@ router.all('/', async (req, res) => {
         password_hash: await bcrypt.hash(password, 10),
         reset_otp_hash: null, reset_otp_expires_at: null,
       });
+      await db.sessionDestroyUser(user.id);
       return sendOk(res, [], 'تم تغيير كلمة المرور. يمكنك تسجيل الدخول الآن.');
     }
 
@@ -455,6 +488,7 @@ router.all('/', async (req, res) => {
         update.password_hash = await bcrypt.hash(body.password, 10);
       }
       await db.updateDoc('users', { id: Number(req.user.id) }, update);
+      if (update.password_hash) await db.sessionDestroyUser(req.user.id, req.sessionID);
       const updated = await db.findOne('users', { id: Number(req.user.id) });
       return sendOk(res, auth.safeUser(updated), 'تم تحديث البيانات');
     }

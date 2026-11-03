@@ -171,7 +171,7 @@ test('SQLite facade keeps legacy rows, enforces safe filters, aggregates and per
     await assert.rejects(db.aggregate('users', [{ $out: 'users' }]), /مرحلة تجميع غير مدعومة/);
   });
 
-  await t.test('sessions survive database reconnection and expire without implicit deletion', async () => {
+  await t.test('sessions survive database reconnection and expired sessions are removed', async () => {
     const session = { userId: 91, role: 'admin', cookie: { secure: true } };
     const expiry = Date.now() + 60_000;
     await db.sessionSet('persisted-session', session, expiry);
@@ -182,8 +182,13 @@ test('SQLite facade keeps legacy rows, enforces safe filters, aggregates and per
 
     await db.sessionSet('expired-session', { userId: 7 }, Date.now() - 1000);
     assert.equal(await db.sessionGet('expired-session'), null);
-    assert.equal(await db.count('sessions', { sid: 'expired-session' }), 1);
-    assert.equal(await db.sessionDestroy('persisted-session'), true);
+    assert.equal(await db.count('sessions', { sid: 'expired-session' }), 0);
+    await db.sessionSet('user-session-a', { userId: 91 }, Date.now() + 60_000);
+    await db.sessionSet('user-session-b', { userId: 91 }, Date.now() + 60_000);
+    assert.equal(await db.sessionDestroyUser(91, 'user-session-b'), 2);
+    assert.equal(await db.sessionGet('user-session-a'), null);
+    assert.deepEqual(await db.sessionGet('user-session-b'), { userId: 91 });
+    assert.equal(await db.sessionDestroy('persisted-session'), false);
     assert.equal(await db.sessionGet('persisted-session'), null);
   });
 
