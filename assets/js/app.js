@@ -1639,14 +1639,26 @@ async function confirmSubscriptionChoice() {
         },
         data => {
           stopPaymentPolling();
-          const providerMessage = String(data?.responseMessage || '').trim().slice(0, 120);
+          const providerMessage = String(
+            data?.detailResponseMessage || data?.detailedResponseMessage || data?.responseMessage || '',
+          ).trim().slice(0, 120);
+          const responseCode = String(data?.responseCode || '').trim().slice(0, 20);
+          const detailCode = String(data?.detailResponseCode || data?.detailedResponseCode || '').trim().slice(0, 20);
+          const diagnostic = [
+            responseCode && `رمز الاستجابة: ${responseCode}`,
+            detailCode && `رمز التفاصيل: ${detailCode}`,
+          ].filter(Boolean).join('، ');
+          const diagnosticEn = [
+            responseCode && `Response code: ${responseCode}`,
+            detailCode && `Detail code: ${detailCode}`,
+          ].filter(Boolean).join(', ');
           setReviewStatus(
             'error',
             providerMessage
-              ? `لم تكتمل عملية الدفع لدى جيديا: ${providerMessage}. لم تتغير خطتك.`
+              ? `لم تكتمل عملية الدفع لدى جيديا: ${providerMessage}.${diagnostic ? ` ${diagnostic}.` : ''} لم تتغير خطتك.`
               : 'لم تكتمل عملية الدفع. لم تتغير خطتك؛ يمكنك المحاولة مجدداً.',
             providerMessage
-              ? `Geidea could not complete the payment: ${providerMessage}. Your plan was not changed.`
+              ? `Geidea could not complete the payment: ${providerMessage}.${diagnosticEn ? ` ${diagnosticEn}.` : ''} Your plan was not changed.`
               : 'Payment did not complete. Your plan was not changed; you can try again.',
           );
           if (confirmButton) confirmButton.disabled = false;
