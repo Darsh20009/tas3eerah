@@ -119,7 +119,7 @@ router.post('/', async (req, res) => {
         amount: selectedPlan.price,
         currency: 'SAR',
         status: 'pending',
-        environment: 'test',
+        environment: geidea.getEnvironment(),
         merchant_reference_id: reference,
         geidea_session_id: sessionId,
       });

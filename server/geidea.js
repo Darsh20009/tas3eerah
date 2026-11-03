@@ -7,10 +7,25 @@ const ORDER_ENDPOINT = 'https://api.ksamerchant.geidea.net/pgw/api/v1/direct/ord
 const ORDERS_BY_REFERENCE_ENDPOINT = 'https://api.ksamerchant.geidea.net/pgw/api/v1/direct/order';
 const REFUND_ENDPOINT = 'https://api.ksamerchant.geidea.net/pgw/api/v1/direct/refund';
 
+function getEnvironment() {
+  const environment = String(process.env.GEIDEA_ENV || 'test').trim().toLowerCase();
+  if (!['test', 'live'].includes(environment)) {
+    throw new Error('GEIDEA_ENV يجب أن يكون test أو live.');
+  }
+  if (environment === 'live' && !require('./config').isProduction()) {
+    throw new Error('الدفع الحقيقي متاح فقط في بيئة الإنتاج.');
+  }
+  return environment;
+}
+
 function credentials() {
-  const publicKey = String(process.env.GEIDEA_TEST_PUBLIC_KEY || '');
-  const password = String(process.env.GEIDEA_TEST_API_PASSWORD || '');
-  if (!publicKey || !password) throw new Error('بيانات جيديا التجريبية غير مكتملة.');
+  const environment = getEnvironment();
+  const prefix = environment === 'live' ? 'GEIDEA_LIVE' : 'GEIDEA_TEST';
+  const publicKey = String(process.env[`${prefix}_PUBLIC_KEY`] || '');
+  const password = String(process.env[`${prefix}_API_PASSWORD`] || '');
+  if (!publicKey || !password) {
+    throw new Error(`بيانات Geidea لـ ${environment} غير مكتملة.`);
+  }
   return { publicKey, password };
 }
 
@@ -127,4 +142,4 @@ async function refundPayment({ orderId, amount }) {
   return readResponse(response);
 }
 
-module.exports = { createSession, getOrder, getOrdersByReference, refundPayment };
+module.exports = { createSession, getOrder, getOrdersByReference, refundPayment, getEnvironment };

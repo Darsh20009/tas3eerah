@@ -5,6 +5,21 @@ const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const geidea = require('./geidea');
 
+test('Geidea defaults to test mode and rejects live mode outside production', () => {
+  const previous = process.env.GEIDEA_ENV;
+  try {
+    delete process.env.GEIDEA_ENV;
+    assert.equal(geidea.getEnvironment(), 'test');
+    process.env.GEIDEA_ENV = 'invalid';
+    assert.throws(() => geidea.getEnvironment(), /GEIDEA_ENV/);
+    process.env.GEIDEA_ENV = 'live';
+    assert.throws(() => geidea.getEnvironment(), /فقط في بيئة الإنتاج/);
+  } finally {
+    if (previous === undefined) delete process.env.GEIDEA_ENV;
+    else process.env.GEIDEA_ENV = previous;
+  }
+});
+
 test('Geidea session creation signs the server-side amount and returns only the hosted session reference', async () => {
   const previous = {
     publicKey: process.env.GEIDEA_TEST_PUBLIC_KEY,
