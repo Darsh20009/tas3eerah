@@ -7,6 +7,7 @@ const { PLANS, APP_URL, isProduction } = require('../config');
 const auth = require('../auth');
 const { sendOk, sendError, failFromError, text } = require('./_helpers');
 const geidea = require('../geidea');
+const { refundIneligibility } = require('../refund-policy');
 
 const router = express.Router();
 router.use(auth.loadUser, auth.requireUser);
@@ -43,6 +44,44 @@ router.post('/', async (req, res) => {
         details: `تجربة مجانية لخطة ${plan}`,
       });
       return sendOk(res, { plan, expires_at: expiry.toISOString() }, 'بدأ الشهر المجاني');
+    }
+    if (action === 'refund_options') {
+      if (req.user.role !== 'client') return sendError(res, 'طلبات الاسترداد متاحة لحسابات العملاء فقط', 403);
+      const payments = await db.findAll('payment_transactions', {
+        user_id: Number(req.user.id), status: { $in: ['paid', 'refunded'] },
+      }, { sort: { paid_at: -1 }, limit: 20 });
+      const options = [];
+      for (const payment of payments) {
+        const previous = await db.findOne('refund_requests', { payment_id: Number(payment.id) });
+        const reason = previous?.status === 'refunded' || payment.status === 'refunded'
+          ? 'تم الاسترداد'
+          : previous?.status === 'pending' ? 'طلبك قيد مراجعة المدير'
+            : previous ? 'راجع الدعم بشأن حالة الطلب' : await refundIneligibility(payment);
+        options.push({
+          payment_id: Number(payment.id), amount: Number(payment.amount), currency: payment.currency,
+          plan: payment.plan, paid_at: payment.paid_at, eligible: !reason,
+          reason, requested: Boolean(previous),
+        });
+      }
+      return sendOk(res, options);
+    }
+    if (action === 'request_refund') {
+      if (req.user.role !== 'client') return sendError(res, 'طلب الاسترداد متاح لحسابات العملاء فقط', 403);
+      const paymentId = Number(req.body.payment_id);
+      if (!Number.isSafeInteger(paymentId) || paymentId < 1) return sendError(res, 'رقم العملية غير صالح');
+      const payment = await db.findOne('payment_transactions', {
+        id: paymentId, user_id: Number(req.user.id), status: 'paid',
+      });
+      if (!payment) return sendError(res, 'الدفعة غير موجودة أو غير مؤكدة', 404);
+      const reason = await refundIneligibility(payment);
+      if (reason) return sendError(res, reason, 409);
+      const previous = await db.findOne('refund_requests', { payment_id: paymentId });
+      if (previous) return sendError(res, 'يوجد طلب سابق لهذه الدفعة', 409);
+      await db.insertDoc('refund_requests', {
+        payment_id: paymentId, user_id: Number(req.user.id), amount: Number(payment.amount),
+        currency: payment.currency, environment: payment.environment, status: 'pending',
+      });
+      return sendOk(res, { payment_id: paymentId }, 'تم إرسال طلب الاسترداد إلى المدير');
     }
     if (action === 'create_session') {
       if (req.user.role !== 'client') return sendError(res, 'الدفع متاح لحسابات العملاء فقط', 403);

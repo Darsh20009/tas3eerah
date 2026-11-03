@@ -642,6 +642,15 @@
           <% } %>
         </div>
 
+        <div class="card" style="margin-top:18px">
+          <div class="card-header">
+            <div><h3>الاسترداد</h3><small style="color:var(--muted)">استرداد كامل خلال ٦٠ دقيقة من الدفع إذا لم تستخدم الباقة. يستخدم المدير الطلب لإرسال الاسترداد إلى Geidea. الدفع والاسترداد الحاليان في بيئة الاختبار فقط.</small></div>
+            <button class="btn btn-ghost btn-sm" onclick="loadMyRefundOptions()">تحديث</button>
+          </div>
+          <div id="myRefundOptions" style="font-size:13px;color:var(--muted)">جارٍ تحميل عمليات الدفع...</div>
+          <small style="display:block;margin-top:10px;color:var(--muted)">يشمل الاستخدام حساب التسعير أو تصدير PDF أو حفظ مشروع أو إضافة مستخدم. للاستفسار: tas3eerah.info@gmail.com</small>
+        </div>
+
         <div id="upgradeRequestMsg" class="hidden mt-16" style="padding:14px;border-radius:var(--r);text-align:center;font-size:13px"></div>
       </div>
     </div>
@@ -855,6 +864,16 @@
         <table class="data-table">
           <thead><tr><th>الاسم</th><th>البريد</th><th>الحالة</th><th>الخطة</th><th>القيمة الشهرية</th><th>المحصّل من العميل</th><th>تنتهي في / المتبقي</th><th>تغيير الخطة</th></tr></thead>
           <tbody id="subsTbody"><tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">جارٍ التحميل...</td></tr></tbody>
+        </table>
+      </div>
+      <div class="card" style="margin-top:18px">
+        <div class="card-header">
+          <div><h3>المدفوعات المؤهلة للاسترداد</h3><small style="color:var(--muted)">يقدّم العميل الطلب عبر البريد. يسترد المدير المبلغ كاملاً خلال ٦٠ دقيقة من الدفع إذا لم تُستخدم الباقة. الإرسال الحالي لبيئة Geidea التجريبية فقط.</small></div>
+          <button class="btn btn-ghost btn-sm" onclick="loadRefundCandidates()">تحديث</button>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>العميل</th><th>الخطة</th><th>المبلغ</th><th>تاريخ الدفع</th><th>الحالة</th><th>الإجراء</th></tr></thead>
+          <tbody id="refundCandidatesTbody"><tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">جارٍ التحميل...</td></tr></tbody>
         </table>
       </div>
     </div>

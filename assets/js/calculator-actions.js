@@ -5,6 +5,20 @@
   const root = document.querySelector('#integrated-tools .tool-screen');
   const dialog = document.getElementById('calculator-share-dialog');
   if (!context || !root || !dialog) return;
+  root.addEventListener('click', event => {
+    const button = event.target.closest('button');
+    if (!button || !/احسب|calculate/i.test(button.textContent || '')) return;
+    const resultText = () => [...root.querySelectorAll('[id*="result"], [class*="result"]')]
+      .filter(element => element.getClientRects().length)
+      .map(element => element.textContent.trim()).join('|');
+    const before = resultText();
+    window.setTimeout(() => {
+      const after = resultText();
+      if (after && after !== before) {
+        void api('record_use', { feature: 'calculation', tool: context.slug }).catch(() => {});
+      }
+    }, 350);
+  }, true);
   const escape = value => String(value ?? '').replace(/[&<>"']/g, character =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
   const api = (...args) => window.CalculatorCloud.request(...args);

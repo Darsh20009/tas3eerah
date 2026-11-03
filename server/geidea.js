@@ -5,6 +5,7 @@ const crypto = require('node:crypto');
 const SESSION_ENDPOINT = 'https://api.ksamerchant.geidea.net/payment-intent/api/v2/direct/session';
 const ORDER_ENDPOINT = 'https://api.ksamerchant.geidea.net/pgw/api/v1/direct/order/';
 const ORDERS_BY_REFERENCE_ENDPOINT = 'https://api.ksamerchant.geidea.net/pgw/api/v1/direct/order';
+const REFUND_ENDPOINT = 'https://api.ksamerchant.geidea.net/pgw/api/v1/direct/refund';
 
 function credentials() {
   const publicKey = String(process.env.GEIDEA_TEST_PUBLIC_KEY || '');
@@ -93,4 +94,26 @@ async function getOrdersByReference(reference) {
   return readResponse(response);
 }
 
-module.exports = { createSession, getOrder, getOrdersByReference };
+async function refundPayment({ orderId, amount }) {
+  const { publicKey, password } = credentials();
+  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Riyadh', month: 'numeric', day: 'numeric', year: 'numeric',
+    hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true,
+  }).formatToParts(new Date()).map(part => [part.type, part.value]));
+  const timestamp = `${parts.month}/${parts.day}/${parts.year} ${parts.hour}:${parts.minute}:${parts.second} ${parts.dayPeriod}`;
+  const refundAmount = Number(Number(amount).toFixed(2));
+  const signatureData = `${timestamp}${publicKey}${refundAmount}${orderId}`;
+  const signature = crypto.createHmac('sha256', password).update(signatureData).digest('base64');
+  const response = await fetch(REFUND_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      Authorization: authHeader(publicKey, password),
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({ orderId, refundAmount, timestamp, signature }),
+  });
+  return readResponse(response);
+}
+
+module.exports = { createSession, getOrder, getOrdersByReference, refundPayment };

@@ -6,6 +6,7 @@ const bcrypt = require('bcryptjs');
 const db = require('../db');
 const { PLANS } = require('../config');
 const auth = require('../auth');
+const { refundIneligibility } = require('../refund-policy');
 const mail = require('../email');
 const {
   actionOf, methodError, sendOk, sendError, failFromError, text, number,
@@ -13,9 +14,10 @@ const {
 } = require('./_helpers');
 
 const router = express.Router();
+const activeRefunds = new Set();
 const GET_ACTIONS = new Set([
   'stats', 'users', 'all_quotes', 'activity_log', 'plan_settings',
-  'contact_messages', 'mailbox_status', 'mailbox_inbox', 'mailbox_folders',
+  'contact_messages', 'mailbox_status', 'mailbox_inbox', 'mailbox_folders', 'refund_candidates',
   'get_settings',
 ]);
 
@@ -29,12 +31,14 @@ router.all('/', async (req, res) => {
   try {
     switch (action) {
       case 'stats': return await stats(res);
+      case 'refund_candidates': return await refundCandidates(res);
       case 'users': return await users(req, res);
       case 'user_create': return await userCreate(req, res, body);
       case 'user_update': return await userUpdate(req, res, body);
       case 'user_toggle': return await userToggle(req, res, body);
       case 'user_delete': return await userDelete(req, res, body);
       case 'set_plan': return await setPlan(req, res, body);
+      case 'refund_execute': return await executeRefund(req, res, body);
       case 'all_quotes': return await allQuotes(req, res);
       case 'activity_log': return await activityLog(req, res);
       case 'plan_settings': return sendOk(res, PLANS);
@@ -65,6 +69,113 @@ async function ratingStats() {
   const ratings = await db.findAll('quote_ratings');
   const sum = ratings.reduce((total, row) => total + Number(row.rating || 0), 0);
   return { average: ratings.length ? sum / ratings.length : 0, count: ratings.length };
+}
+
+async function refundCandidates(res) {
+  const payments = await db.findAll('payment_transactions', {
+    status: { $in: ['paid', 'refunded'] },
+  }, { sort: { paid_at: -1 }, limit: 100 });
+  const rows = [];
+  for (const payment of payments) {
+    const user = await db.findOne('users', { id: Number(payment.user_id) }, {
+      projection: { id: 1, name: 1, email: 1 },
+    });
+    const previous = await db.findOne('refund_requests', { payment_id: Number(payment.id) });
+    const reason = previous?.status === 'review_required'
+      ? 'تحقق من حالة العملية في Geidea قبل أي محاولة أخرى'
+      : previous?.status === 'refunded' || payment.status === 'refunded'
+        ? 'تم الاسترداد'
+        : previous && previous.status !== 'pending' ? 'يوجد طلب استرداد سابق لهذه العملية'
+          : await refundIneligibility(payment);
+    rows.push({
+      payment_id: Number(payment.id), user_id: Number(payment.user_id),
+      name: user?.name || '', email: user?.email || '',
+      plan: payment.plan, amount: Number(payment.amount), currency: payment.currency,
+      paid_at: payment.paid_at, environment: payment.environment,
+      eligible: !reason, reason, refund_status: previous?.status || '',
+    });
+  }
+  return sendOk(res, rows);
+}
+
+async function executeRefund(req, res, body) {
+  const paymentId = number(body.payment_id);
+  if (!Number.isSafeInteger(paymentId) || paymentId < 1) return sendError(res, 'رقم العملية غير صالح');
+  if (activeRefunds.has(paymentId)) return sendError(res, 'جارٍ معالجة هذا الاسترداد بالفعل', 409);
+  activeRefunds.add(paymentId);
+  try {
+    const payment = await db.findOne('payment_transactions', { id: paymentId });
+    if (!payment) return sendError(res, 'عملية الدفع غير موجودة', 404);
+    const existing = await db.findOne('refund_requests', { payment_id: paymentId });
+    if (existing && existing.status !== 'pending') return sendError(res, 'توجد محاولة استرداد سابقة؛ تحقق من حالة Geidea قبل المتابعة', 409);
+    const reason = await refundIneligibility(payment);
+    if (reason) return sendError(res, reason, 409);
+
+    const response = await require('../geidea').getOrder(payment.geidea_order_id);
+    const order = response.order || response;
+    const transactions = Array.isArray(order.transactions) ? order.transactions : [];
+    const paidTransaction = transactions.find(item => String(item.type || '').toLowerCase() === 'pay') || {};
+    const providerStatus = String(paidTransaction.status || order.status || order.orderStatus || '').toLowerCase();
+    const providerAmount = Number(order.amount ?? paidTransaction.amount);
+    const providerCurrency = String(order.currency || paidTransaction.currency || '').toUpperCase();
+    if (!['paid', 'success', 'succeeded', 'completed'].includes(providerStatus) ||
+        String(order.merchantReferenceId || order.merchantReference || '') !== payment.merchant_reference_id ||
+        Math.abs(providerAmount - Number(payment.amount)) >= 0.01 ||
+        providerCurrency !== String(payment.currency).toUpperCase()) {
+      return sendError(res, 'لم تتطابق بيانات الدفع لدى Geidea؛ لم يُرسل الاسترداد', 409);
+    }
+
+    const refundId = existing
+      ? Number(existing.id)
+      : await db.insertDoc('refund_requests', {
+        payment_id: paymentId, user_id: Number(payment.user_id), admin_id: Number(req.user.id),
+        amount: Number(payment.amount), currency: payment.currency, environment: payment.environment,
+        status: 'pending',
+      });
+    const claimed = await db.updateDoc('refund_requests', { id: refundId, status: 'pending' }, {
+      admin_id: Number(req.user.id), status: 'processing', updated_at: new Date().toISOString(),
+    });
+    if (!claimed) return sendError(res, 'سبق بدء معالجة هذا الاسترداد؛ تحقق من حالته', 409);
+    try {
+      const result = await require('../geidea').refundPayment({
+        orderId: payment.geidea_order_id, amount: payment.amount,
+      });
+      const refundOrder = result.order || result;
+      const status = String(refundOrder.status || refundOrder.orderStatus || '').toLowerCase();
+      const detail = String(refundOrder.detailedStatus || refundOrder.detailedOrderStatus || '').toLowerCase();
+      if (status !== 'success' || !detail.includes('refund')) {
+        throw new Error('تعذر تأكيد اكتمال الاسترداد لدى Geidea');
+      }
+      const now = new Date().toISOString();
+      await db.updateDoc('refund_requests', { id: refundId }, {
+        status: 'refunded', geidea_refund_order_id: String(refundOrder.orderId || ''),
+        response_code: String(refundOrder.responseCode || ''), updated_at: now, processed_at: now,
+      });
+      await db.updateDoc('payment_transactions', { id: paymentId }, { status: 'refunded', updated_at: now });
+      const otherPaid = await db.count('payment_transactions', {
+        user_id: Number(payment.user_id), status: 'paid',
+      });
+      if (!otherPaid) {
+        await db.updateDoc('users', { id: Number(payment.user_id) }, {
+          plan: 'free', plan_expires_at: null, trial_plan: null, trial_ends_at: null,
+        });
+      }
+      await db.insertDoc('activity_log', {
+        user_id: Number(req.user.id), action: 'admin_refund_completed',
+        details: `استرداد اختبار كامل للعملية ${paymentId} بمبلغ ${payment.amount} ${payment.currency}`,
+      });
+      return sendOk(res, { status: 'refunded' }, 'تم تأكيد الاسترداد من Geidea');
+    } catch (error) {
+      await db.updateDoc('refund_requests', { id: refundId }, {
+        status: 'review_required',
+        failure_message: 'تحقق من حالة العملية في بوابة Geidea. لا تعِد الإرسال تلقائياً.',
+        updated_at: new Date().toISOString(),
+      });
+      return sendError(res, 'لم يمكن تأكيد النتيجة. تحقّق من بوابة Geidea قبل أي محاولة أخرى.', 502);
+    }
+  } finally {
+    activeRefunds.delete(paymentId);
+  }
 }
 
 async function stats(res) {

@@ -16,3 +16,9 @@ The hosted form may redirect directly to the configured return URL with `orderId
 **How to apply:** test the complete HPP return and server-side confirmation, not only session creation. A declined attempt can leave the HPP open without an error callback. Query the KSA order endpoint by the stored `MerchantReferenceId` while checkout is open; show a decline only for a final failed order, and still verify successful orders by order ID before activation.
 
 **Why:** the KSA sandbox returned a final Failed order with a Pay transaction by merchant-reference lookup even though the hosted iframe had sent no error callback to its parent.
+
+Refunds must follow the published one-hour and unused-plan conditions, require an explicit admin action, and refund the full captured amount. Keep direct refunds sandbox-only until live merchant credentials and permissions are configured. If Geidea's outcome is ambiguous, block automatic retries and reconcile the order in the merchant portal first.
+
+**Why:** a timed-out refund response can hide a completed money movement; retrying blindly could refund the same purchase twice, and this project currently has test credentials only.
+
+**How to apply:** re-check payment status, amount, currency, ownership, request window, and recorded feature usage before the admin confirms. Treat provider success as complete only after its returned order status confirms a full refund.

@@ -210,6 +210,26 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
   assert.equal(adminStats.json.data.quotes_total, 5);
   assert.equal(adminStats.json.data.rating_count, 1);
 
+  const paidAt = new Date().toISOString();
+  const refundPaymentId = await db.insertDoc('payment_transactions', {
+    user_id: clientId, plan: 'plus', amount: 39, currency: 'SAR', status: 'paid',
+    environment: 'test', merchant_reference_id: 'TREFUNDTEST1',
+    geidea_order_id: 'refund-order-test', paid_at: paidAt,
+  });
+  const refundOptions = await request('/api/payments', {
+    jar: clientJar, method: 'POST', token: csrfToken, body: { action: 'refund_options' },
+  });
+  assert.equal(refundOptions.json.success, true);
+  assert.equal(refundOptions.json.data.find(item => item.payment_id === refundPaymentId).eligible, true);
+  const refundRequest = await request('/api/payments', {
+    jar: clientJar, method: 'POST', token: csrfToken,
+    body: { action: 'request_refund', payment_id: refundPaymentId },
+  });
+  assert.equal(refundRequest.json.success, true);
+  assert.equal((await db.findOne('refund_requests', { payment_id: refundPaymentId })).status, 'pending');
+  const refundQueue = await request('/api/admin?action=refund_candidates', { jar: adminJar });
+  assert.equal(refundQueue.json.data.find(item => item.payment_id === refundPaymentId).eligible, true);
+
   const originalDateNow = Date.now;
   const originalCreateSession = geidea.createSession;
   const originalGetOrder = geidea.getOrder;

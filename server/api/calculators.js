@@ -5,6 +5,7 @@ const db = require('../db');
 const auth = require('../auth');
 const account = require('../calculator-account');
 const tools = require('../tools');
+const usage = require('../subscription-usage');
 const { currencyFor } = require('../currencies');
 const { sendOk, sendError, failFromError, actionOf, text } = require('./_helpers');
 const router = express.Router();
@@ -82,9 +83,15 @@ router.all('/', async (req, res) => {
         sector, city, product, price, unit, currency_code: currency.code });
       return sendOk(res, { id });
     }
+    if (action === 'record_use') {
+      if (text(body.feature, 30) !== 'calculation') return sendError(res, 'نوع الاستخدام غير صالح');
+      await usage.recordPaidFeatureUse(userId, 'calculation');
+      return sendOk(res);
+    }
     if (action === 'reserve_pdf') {
       const limit = account.limits(req.user).pdf_limit;
       if (!await db.reservePdfReport(userId, limit)) return sendError(res, 'وصلت إلى حد تقارير PDF لهذا الشهر', 429);
+      await usage.recordPaidFeatureUse(userId, 'pdf_export');
       return sendOk(res, { used: await db.pdfReportUsage(userId), limit });
     }
     if (action === 'state') {
@@ -106,6 +113,7 @@ router.all('/', async (req, res) => {
       if (limit !== -1 && await db.count('calculator_results', { user_id: userId }) >= limit) {
         return sendError(res, `وصلت إلى حد السجل (${limit}). احذف نتيجة قديمة أو قم بترقية الباقة.`, 429);
       }
+      await usage.recordPaidFeatureUse(userId, 'calculator_saved');
       const id = await db.insertDoc('calculator_results', {
         user_id: userId, tool, title, price, currency_code: currency.code, state: body.state,
       });

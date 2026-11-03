@@ -38,6 +38,10 @@ const COLLECTION_FIELDS = Object.freeze({
     'id', 'user_id', 'plan', 'amount', 'currency', 'status', 'environment', 'merchant_reference_id',
     'geidea_session_id', 'geidea_order_id', 'response_code', 'created_at', 'updated_at', 'paid_at',
   ]),
+  refund_requests: new Set([
+    'id', 'payment_id', 'user_id', 'admin_id', 'amount', 'currency', 'environment', 'status',
+    'geidea_refund_order_id', 'response_code', 'failure_message', 'created_at', 'updated_at', 'processed_at',
+  ]),
   calculator_results: new Set(['id', 'user_id', 'tool', 'title', 'price', 'currency_code', 'state', 'created_at']),
   calculator_states: new Set(['id', 'user_id', 'tool', 'state', 'updated_at']),
   price_shares: new Set(['id', 'user_id', 'tool', 'participant_type', 'sector', 'city', 'product', 'price', 'unit', 'currency_code', 'created_at']),
@@ -547,6 +551,22 @@ function createSqliteSchema() {
       updated_at TEXT,
       paid_at TEXT
     );
+    CREATE TABLE IF NOT EXISTS refund_requests (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      payment_id INTEGER NOT NULL UNIQUE,
+      user_id INTEGER NOT NULL,
+      admin_id INTEGER,
+      amount REAL NOT NULL,
+      currency TEXT NOT NULL,
+      environment TEXT NOT NULL DEFAULT 'test',
+      status TEXT NOT NULL,
+      geidea_refund_order_id TEXT,
+      response_code TEXT,
+      failure_message TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT,
+      processed_at TEXT
+    );
     CREATE TABLE IF NOT EXISTS _counters (
       id TEXT PRIMARY KEY,
       seq INTEGER NOT NULL DEFAULT 0
@@ -784,6 +804,7 @@ async function initializeMongo() {
       mongoDatabase.collection('calculator_states').createIndex({ user_id: 1, tool: 1 }, { unique: true }),
       mongoDatabase.collection('calculator_results').createIndex({ user_id: 1, tool: 1, id: -1 }),
       mongoDatabase.collection('price_shares').createIndex({ user_id: 1, id: -1 }),
+      mongoDatabase.collection('refund_requests').createIndex({ payment_id: 1 }, { unique: true }),
     ]);
     selectedMode = 'mongo';
   } catch {

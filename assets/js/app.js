@@ -529,6 +529,7 @@ function nav(btn) {
   if (titleEl) titleEl.textContent = panelTitle(panel);
 
   if (panel === 'quotes')          loadQuotes();
+  if (panel === 'subscription')    loadMyRefundOptions();
   if (panel === 'clients')         loadClients();
   if (panel === 'messages')        loadInbox();
   if (panel === 'users')           loadUsers();
@@ -558,6 +559,7 @@ function navDirect(panelId) {
   if (titleEl) titleEl.textContent = panelTitle(panelId);
 
   if (panelId === 'quote-new')     initQuoteForm();
+  if (panelId === 'subscription')  loadMyRefundOptions();
   if (panelId === 'quotes')        loadQuotes();
   if (panelId === 'messages')      loadInbox();
   if (panelId === 'users')         loadUsers();
@@ -2301,6 +2303,7 @@ async function savePlan() {
 
 // ─── ADMIN: SUBSCRIPTIONS ────────────────
 async function loadSubscriptions() {
+  void loadRefundCandidates();
   const r = await api('admin?action=stats');
   if (r.success) {
     setText('planCount_free',       r.data.plan_free);
@@ -2337,6 +2340,69 @@ async function loadSubscriptions() {
       </td>
     </tr>
   `).join('');
+}
+
+async function loadRefundCandidates() {
+  const tb = document.getElementById('refundCandidatesTbody');
+  if (!tb) return;
+  const r = await api('admin?action=refund_candidates');
+  if (!r.success) {
+    tb.innerHTML = `<tr><td colspan="6" style="color:var(--danger);text-align:center">${esc(r.error || 'تعذر تحميل طلبات الاسترداد')}</td></tr>`;
+    return;
+  }
+  const rows = r.data || [];
+  if (!rows.length) {
+    tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">لا توجد دفعات مؤكدة مؤهلة للاسترداد حالياً</td></tr>';
+    return;
+  }
+  tb.innerHTML = rows.map(row => `
+    <tr>
+      <td>${esc(row.name)}<small style="display:block;color:var(--muted);direction:ltr">${esc(row.email)}</small></td>
+      <td>${esc(planLabel(row.plan))}</td>
+      <td>${new Intl.NumberFormat('ar-SA').format(Number(row.amount))} ${esc(row.currency)}</td>
+      <td style="direction:ltr;font-size:12px">${esc(row.paid_at || '—')}</td>
+      <td>${row.eligible ? '<span class="badge" style="color:#2a8a60">مؤهل · اختبار</span>' : `<span style="color:var(--muted);font-size:12px">${esc(row.reason || 'غير مؤهل')}</span>`}</td>
+      <td>${row.eligible ? `<button class="btn btn-sm" style="background:var(--danger);color:#fff" onclick="executeRefund(${Number(row.payment_id)},${Number(row.amount)})">إرسال الاسترداد</button>` : '—'}</td>
+    </tr>
+  `).join('');
+}
+
+async function loadMyRefundOptions() {
+  const target = document.getElementById('myRefundOptions');
+  if (!target) return;
+  const result = await api('payments', { action: 'refund_options' });
+  if (!result.success) {
+    target.textContent = result.error || 'تعذر تحميل عمليات الدفع';
+    return;
+  }
+  if (!result.data.length) {
+    target.textContent = 'لا توجد دفعات مؤكدة متاحة للاسترداد.';
+    return;
+  }
+  target.innerHTML = `<div style="overflow-x:auto"><table class="data-table">
+    <thead><tr><th>الخطة</th><th>المبلغ</th><th>تاريخ الدفع</th><th>الحالة</th><th></th></tr></thead>
+    <tbody>${result.data.map(row => `<tr>
+      <td>${esc(planLabel(row.plan))}</td>
+      <td>${new Intl.NumberFormat('ar-SA').format(Number(row.amount))} ${esc(row.currency)}</td>
+      <td style="direction:ltr;font-size:12px">${esc(row.paid_at || '—')}</td>
+      <td>${esc(row.reason || 'مؤهل لطلب الاسترداد')}</td>
+      <td>${row.eligible ? `<button class="btn btn-outline btn-sm" onclick="requestRefund(${Number(row.payment_id)})">طلب الاسترداد</button>` : ''}</td>
+    </tr>`).join('')}</tbody></table></div>`;
+}
+
+async function requestRefund(paymentId) {
+  if (!window.confirm('تأكيد طلب استرداد كامل؟ يشترط تقديم الطلب خلال ساعة وعدم استخدام الباقة.')) return;
+  const result = await api('payments', { action: 'request_refund', payment_id: paymentId });
+  window.alert(result.message || result.error || 'تعذر إرسال الطلب');
+  await loadMyRefundOptions();
+}
+
+async function executeRefund(paymentId, amount) {
+  const confirmation = `سيتم إرسال استرداد كامل بمبلغ ${amount} ر.س إلى Geidea sandbox. هل تريد المتابعة؟`;
+  if (!window.confirm(confirmation)) return;
+  const result = await api('admin', { action: 'refund_execute', payment_id: paymentId });
+  window.alert(result.success ? 'أكدت Geidea الاسترداد التجريبي.' : (result.error || 'تعذر تأكيد الاسترداد.'));
+  await Promise.all([loadRefundCandidates(), loadSubscriptions()]);
 }
 
 async function quickPlan(id, plan) {

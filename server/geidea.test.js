@@ -98,3 +98,37 @@ test('Geidea looks up an order by merchant reference on the KSA endpoint', async
     else process.env.GEIDEA_TEST_API_PASSWORD = previous.password;
   }
 });
+
+test('Geidea refund uses the KSA refund endpoint and signs the full refund request', async () => {
+  const previous = {
+    publicKey: process.env.GEIDEA_TEST_PUBLIC_KEY,
+    password: process.env.GEIDEA_TEST_API_PASSWORD,
+    fetch: global.fetch,
+  };
+  process.env.GEIDEA_TEST_PUBLIC_KEY = 'public-test-key';
+  process.env.GEIDEA_TEST_API_PASSWORD = 'private-test-password';
+  let received;
+  global.fetch = async (url, options) => {
+    received = { url, options };
+    return { ok: true, json: async () => ({ order: { status: 'Success', detailedStatus: 'Refunded' } }) };
+  };
+  try {
+    const result = await geidea.refundPayment({ orderId: 'order-test-id', amount: 39 });
+    assert.equal(result.order.detailedStatus, 'Refunded');
+    assert.match(received.url, /api\.ksamerchant\.geidea\.net\/pgw\/api\/v1\/direct\/refund$/);
+    const payload = JSON.parse(received.options.body);
+    assert.equal(payload.orderId, 'order-test-id');
+    assert.equal(payload.refundAmount, 39);
+    const signed = `${payload.timestamp}public-test-key39order-test-id`;
+    assert.equal(
+      payload.signature,
+      crypto.createHmac('sha256', 'private-test-password').update(signed).digest('base64'),
+    );
+  } finally {
+    global.fetch = previous.fetch;
+    if (previous.publicKey === undefined) delete process.env.GEIDEA_TEST_PUBLIC_KEY;
+    else process.env.GEIDEA_TEST_PUBLIC_KEY = previous.publicKey;
+    if (previous.password === undefined) delete process.env.GEIDEA_TEST_API_PASSWORD;
+    else process.env.GEIDEA_TEST_API_PASSWORD = previous.password;
+  }
+});

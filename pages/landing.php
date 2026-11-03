@@ -744,7 +744,7 @@ const LANDING_TRANSLATIONS = {
   'تلتزم بالاستخدام للأغراض المشروعة فقط وفق الأنظمة المعمول بها في المملكة العربية السعودية.':'You agree to use the platform only for lawful purposes under the applicable laws of Saudi Arabia.',
   'جميع محتويات المنصة محمية بموجب حقوق الملكية الفكرية وتعود لـ تسعيرة.':'All platform content is protected by intellectual property rights and belongs to Tas3eerah.',
   'يمكنك إلغاء اشتراكك في أي وقت. تبقى مزاياك حتى نهاية الفترة المدفوعة.':'You can cancel your subscription at any time. Your benefits remain available until the end of the paid period.',
-  'نُقدم استرداداً كاملاً خلال ٧ أيام من الاشتراك الأول إذا لم تستخدم الميزات المدفوعة.':'We provide a full refund within 7 days of the first subscription if you have not used paid features.',
+  'يحق طلب استرداد كامل خلال ساعة واحدة من الدفع، بشرط عدم استخدام أي ميزة مدفوعة.':'A full refund may be requested within one hour of payment, provided no paid feature has been used.',
   'كوكي الجلسة الضرورية لتسجيل الدخول. تنتهي تلقائياً خلال ٣٠ يوماً أو عند تسجيل الخروج. لا نستخدم كوكيز تتبعية أو تسويقية.':'The session cookie required for sign-in. It expires automatically after 30 days or when you sign out. We do not use tracking or marketing cookies.',
   'يرجى تعبئة جميع الحقول':'Please fill in all fields',
   'تم استلام رسالتك وسنرد خلال يوم عمل.':'Your message was received. We will reply within one business day.',
@@ -1059,7 +1059,8 @@ const POLICIES = {
     <h3 style="font-size:15px;font-weight:800;margin:20px 0 10px;color:var(--p)">١. إلغاء الاشتراك</h3>
     <p style="color:var(--muted);font-size:13px;line-height:2">يمكنك إلغاء اشتراكك في أي وقت. تبقى مزاياك حتى نهاية الفترة المدفوعة.</p>
     <h3 style="font-size:15px;font-weight:800;margin:20px 0 10px;color:var(--p)">٢. الاسترداد</h3>
-    <p style="color:var(--muted);font-size:13px;line-height:2">نُقدم استرداداً كاملاً خلال ٧ أيام من الاشتراك الأول إذا لم تستخدم الميزات المدفوعة.</p>`
+    <p style="color:var(--muted);font-size:13px;line-height:2">يحق طلب استرداد كامل خلال ٦٠ دقيقة من الدفع بشرط عدم استخدام الباقة. ويُعد من الاستخدام إجراء حساب تسعير أو تصدير PDF أو حفظ مشروع أو إضافة مستخدم. يرسل العميل طلبه إلى tas3eerah.info@gmail.com مع البريد المسجل ورقم العملية، ويتولى المدير إرساله إلى Geidea بعد التحقق من الأهلية.</p>
+    <p style="color:var(--muted);font-size:13px;line-height:2">عند الخصم المكرر أو الخصم دون تفعيل الباقة بسبب خلل تقني من جهتنا، نعالج الحالة خلال ٧ أيام. تُعاد المبالغ المستردة إلى وسيلة الدفع نفسها خلال ١٤ يوم عمل.</p>`
   },
   cookies: {
     title: 'سياسة الكوكيز',

@@ -6,6 +6,7 @@ const { PLANS } = require('../config');
 const auth = require('../auth');
 const email = require('../email');
 const notifications = require('../notification-email');
+const usage = require('../subscription-usage');
 const { currencyFor, formatMoney } = require('../currencies');
 const {
   actionOf, methodError, sendOk, sendError, failFromError, text, number,
@@ -51,6 +52,7 @@ router.all('/', async (req, res) => {
         if (!canAccessQuote(req.user, quote)) return sendError(res, 'غير مسموح', 403);
         const limit = req.user.role === 'admin' ? -1 : PLANS[auth.effectivePlan(req.user)].max_pdf_reports;
         if (!await db.reservePdfReport(req.user.id, limit)) return sendError(res, 'وصلت إلى حد تقارير PDF لهذا الشهر', 429);
+        await usage.recordPaidFeatureUse(req.user.id, 'quote_pdf_export');
         return sendOk(res, { used: await db.pdfReportUsage(req.user.id), limit });
       }
       default:
@@ -235,6 +237,7 @@ async function createQuote(req, res, body) {
     action: 'quote_created',
     details: `رقم العرض: ${quoteNumber} | العنوان: ${title} | العميل: ${client?.name || user.name || clientId} | الإجمالي: ${formatMoney(totals.total, currencyCode)} | ${notes ? 'توجد ملاحظات' : 'بدون ملاحظات'}`,
   });
+  if (user.role === 'client') await usage.recordPaidFeatureUse(user.id, 'quote_created');
   if (user.role === 'client') {
     const delivery = await notifications.quoteReceipt(user, { title, number: quoteNumber });
     return sendOk(res, { id, number: quoteNumber, email_sent: delivery.sent },
