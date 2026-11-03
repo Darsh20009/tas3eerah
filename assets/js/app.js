@@ -361,7 +361,10 @@ document.addEventListener('DOMContentLoaded', () => {
   if (params.get('panel') === 'subscription' && APP.role === 'client') {
     navDirect('subscription');
     const paymentState = params.get('payment');
+    let pendingSessionId = '';
+    try { pendingSessionId = localStorage.getItem(GEIDEA_PENDING_SESSION_KEY) || ''; } catch {}
     if (paymentState === 'success') {
+      clearPendingGeideaSession();
       showSubscriptionStatus(
         'success',
         'تم التحقق من الدفع وتفعيل الخطة. راجع تاريخ الانتهاء واستخدام الشهر في هذه الصفحة.',
@@ -369,6 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
       );
       window.history.replaceState({}, '', `${window.location.pathname}?panel=subscription`);
     } else if (paymentState === 'trial') {
+      clearPendingGeideaSession();
       showSubscriptionStatus(
         'success',
         'بدأ الشهر المجاني. تاريخ الانتهاء وحدود خطتك الحالية ظاهرة في هذه الصفحة.',
@@ -376,14 +380,16 @@ document.addEventListener('DOMContentLoaded', () => {
       );
       window.history.replaceState({}, '', `${window.location.pathname}?panel=subscription`);
     } else if (paymentState === 'cancelled') {
+      clearPendingGeideaSession();
       showSubscriptionStatus('info', 'أُلغيت عملية الدفع. لم تتغير خطتك؛ يمكنك اختيار خطة لاحقاً.', 'Checkout was cancelled. Your plan was not changed; you can choose a plan later.');
       window.history.replaceState({}, '', `${window.location.pathname}?panel=subscription`);
     } else if (paymentState === 'failed') {
+      clearPendingGeideaSession();
       showSubscriptionStatus('error', 'لم تكتمل عملية الدفع ولم تتغير خطتك. حاول مجدداً أو تواصل مع الدعم إذا خُصم المبلغ.', 'Payment did not complete and your plan was not changed. Retry or contact support if you were charged.');
       window.history.replaceState({}, '', `${window.location.pathname}?panel=subscription`);
-    } else if (params.get('orderId') && params.get('sessionId')) {
+    } else if (params.get('orderId') && (params.get('sessionId') || pendingSessionId)) {
       const orderId = params.get('orderId');
-      const sessionId = params.get('sessionId');
+      const sessionId = params.get('sessionId') || pendingSessionId;
       showSubscriptionStatus(
         'info',
         'نتحقق من الدفع لدى جيديا قبل تحديث خطتك...',
@@ -392,6 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
       window.history.replaceState({}, '', `${window.location.pathname}?panel=subscription`);
       void api('payments', { action: 'confirm', session_id: sessionId, order_id: orderId })
         .then(result => {
+          clearPendingGeideaSession();
           if (result.success) {
             showSubscriptionStatus(
               'success',
@@ -411,6 +418,9 @@ document.addEventListener('DOMContentLoaded', () => {
           'تعذر التحقق من الدفع الآن. لم تتغير خطتك؛ أعد تحميل الصفحة أو تواصل مع الدعم.',
           'Could not verify the payment yet. Your plan was not changed; reload the page or contact support.',
         ));
+    } else if (pendingSessionId) {
+      window.history.replaceState({}, '', `${window.location.pathname}?panel=subscription`);
+      void verifyRedirectedGeideaPayment(pendingSessionId);
     }
   }
   languageObserver = new MutationObserver(() => {
@@ -1567,9 +1577,60 @@ function closeSubscriptionReview() {
   subscriptionChoice = null;
 }
 
+const GEIDEA_PENDING_SESSION_KEY = 'tas3eerah.pendingGeideaSession';
+
+function clearPendingGeideaSession() {
+  try { localStorage.removeItem(GEIDEA_PENDING_SESSION_KEY); } catch {}
+}
+
+async function verifyRedirectedGeideaPayment(sessionId) {
+  showSubscriptionStatus('info', 'نتحقق من حالة الدفع لدى جيديا...', 'Checking payment status with Geidea...');
+  for (let attempt = 0; attempt < 30; attempt += 1) {
+    try {
+      const status = await api('payments', { action: 'status', session_id: sessionId });
+      if (!status.success) {
+        clearPendingGeideaSession();
+        showSubscriptionStatus('error', `${status.error || 'تعذر التحقق من الدفع.'} لم تتغير خطتك.`, 'Could not verify payment. Your plan was not changed.');
+        return;
+      }
+      if (status.data?.status === 'failed') {
+        clearPendingGeideaSession();
+        showSubscriptionStatus('error', 'رفضت جيديا الدفع. لم تتغير خطتك؛ يمكنك المحاولة مجدداً.', 'Geidea declined the payment. Your plan was not changed; you can retry.');
+        return;
+      }
+      if (status.data?.status === 'ready' && status.data.order_id) {
+        const confirmed = await api('payments', {
+          action: 'confirm', session_id: sessionId, order_id: status.data.order_id,
+        });
+        clearPendingGeideaSession();
+        if (confirmed.success) {
+          showSubscriptionStatus('success', 'تم التحقق من الدفع وتفعيل الخطة.', 'Payment verified and your plan is active.');
+        } else {
+          showSubscriptionStatus('error', `${confirmed.error || 'لم تؤكد جيديا نجاح الدفع.'} لم تتغير خطتك.`, 'Geidea did not verify payment. Your plan was not changed.');
+        }
+        return;
+      }
+    } catch {
+      // A temporary lookup failure should not activate a plan or stop later checks.
+    }
+    await new Promise(resolve => window.setTimeout(resolve, 2000));
+  }
+  clearPendingGeideaSession();
+  showSubscriptionStatus(
+    'info',
+    'لم يصل تأكيد الدفع بعد. لم تتغير خطتك؛ أعد تحميل الصفحة للتحقق مجدداً.',
+    'Payment confirmation has not arrived yet. Your plan was not changed; reload to check again.',
+  );
+}
+
 async function confirmSubscriptionChoice() {
   if (!subscriptionChoice) return;
   const { planKey, mode } = subscriptionChoice;
+  const isEmbedded = mode === 'payment' && window.self !== window.top;
+  let checkoutWindow = null;
+  if (isEmbedded) {
+    try { checkoutWindow = window.open('about:blank', '_blank'); } catch {}
+  }
   const confirmButton = document.getElementById('subscriptionReviewConfirm');
   if (confirmButton) confirmButton.disabled = true;
   const status = document.getElementById('subscriptionReviewStatus');
@@ -1592,8 +1653,22 @@ async function confirmSubscriptionChoice() {
 
   const result = await api('payments', { action: 'create_session', plan: planKey });
   if (!result.success) {
+    if (checkoutWindow && !checkoutWindow.closed) checkoutWindow.close();
     setReviewStatus('error', `${result.error || 'تعذر بدء الدفع.'} لم تتغير خطتك. حاول مرة أخرى أو تواصل مع الدعم.`, 'Could not start Geidea checkout. Your plan was not changed. Try again or contact support.');
     if (confirmButton) confirmButton.disabled = false;
+    return;
+  }
+  try { localStorage.setItem(GEIDEA_PENDING_SESSION_KEY, result.data.sessionId); } catch {}
+  if (isEmbedded) {
+    const checkoutUrl = `https://www.ksamerchant.geidea.net/hpp/checkout/?${encodeURIComponent(result.data.sessionId)}`;
+    if (checkoutWindow && !checkoutWindow.closed) {
+      checkoutWindow.opener = null;
+      checkoutWindow.location.replace(checkoutUrl);
+      setReviewStatus('info', 'فتحنا صفحة الدفع الآمنة في نافذة مستقلة.', 'Secure checkout opened in a separate tab.');
+      if (confirmButton) confirmButton.disabled = false;
+    } else {
+      window.location.assign(checkoutUrl);
+    }
     return;
   }
   const launchCheckout = () => {
@@ -1620,9 +1695,11 @@ async function confirmSubscriptionChoice() {
         });
         if (confirmed.success) {
           stopPaymentPolling();
+          clearPendingGeideaSession();
           window.location.href = `${window.location.pathname}?panel=subscription&payment=success`;
         } else {
           stopPaymentPolling();
+          clearPendingGeideaSession();
           setReviewStatus('error', `${confirmed.error || 'لم تؤكد جيديا نجاح الدفع.'} لم يتم تفعيل الخطة. إذا خُصم المبلغ، تواصل مع الدعم.`, 'Geidea did not verify this payment. Your plan was not activated. Contact support if you were charged.');
           if (confirmButton) confirmButton.disabled = false;
         }
@@ -1639,6 +1716,7 @@ async function confirmSubscriptionChoice() {
         },
         data => {
           stopPaymentPolling();
+          clearPendingGeideaSession();
           const providerMessage = String(
             data?.detailResponseMessage || data?.detailedResponseMessage || data?.responseMessage || '',
           ).trim().slice(0, 120);
@@ -1665,6 +1743,7 @@ async function confirmSubscriptionChoice() {
         },
         () => {
           stopPaymentPolling();
+          clearPendingGeideaSession();
           setReviewStatus('info', 'ألغيت الدفع. لم تتغير خطتك؛ يمكنك اختيار الخطة لاحقاً.', 'You cancelled checkout. Your plan was not changed; you can choose a plan later.');
           if (confirmButton) confirmButton.disabled = false;
         },
