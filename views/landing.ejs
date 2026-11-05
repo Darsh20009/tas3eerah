@@ -697,15 +697,8 @@
           <p class="auth-step-helper">تم التحقق من الرقم. أكمل بيانات الحساب الجديد.</p>
           <div id="phoneSignupProfileFields">
             <input id="phoneSignupName" class="form-control" placeholder="الاسم الكامل" autocomplete="name">
-            <p class="auth-step-helper">البريد وكلمة المرور اختياريان معاً، ويمكن استخدامهما للدخول لاحقاً.</p>
-            <input id="phoneSignupEmail" class="form-control" type="email" placeholder="البريد الإلكتروني (اختياري)" dir="ltr">
-            <input id="phoneSignupPassword" class="form-control" type="password" placeholder="كلمة المرور (مع البريد، 8 أحرف على الأقل)" autocomplete="new-password" dir="ltr">
+            <p class="auth-step-helper">سيكون إنشاء الحساب والدخول باستخدام رقم الجوال بعد التحقق منه.</p>
             <button type="button" class="btn btn-primary w-full" onclick="completePhoneSignup()">إنشاء الحساب</button>
-          </div>
-          <div id="phoneExistingEmailCodePanel" class="hidden">
-            <p class="auth-step-helper">هذا البريد مرتبط بحساب سابق. أدخل رمز البريد لربط رقمك دون كلمة المرور القديمة.</p>
-            <input id="phoneExistingEmailCode" class="form-control auth-otp-input" inputmode="numeric" maxlength="6" placeholder="رمز البريد" dir="ltr" autocomplete="one-time-code">
-            <button type="button" class="btn btn-primary w-full" onclick="verifyPhoneEmailLink()">تحقق واربط الحساب</button>
           </div>
         </div>
         <div id="phoneLinkPanel" class="hidden">
@@ -1077,7 +1070,7 @@ function showAuth(tab) {
   document.getElementById('loginForm').classList.remove('hidden');
   document.getElementById('registerForm').classList.add('hidden');
   setAuthMethod('login', 'phone');
-  ['phoneLoginCodePanel', 'phoneLinkPanel', 'phoneAutoProfile', 'phoneExistingEmailCodePanel']
+   ['phoneLoginCodePanel', 'phoneLinkPanel', 'phoneAutoProfile']
     .forEach(id => document.getElementById(id)?.classList.add('hidden'));
   document.getElementById('phoneSignupProfileFields')?.classList.remove('hidden');
   document.getElementById('phoneLoginEntry')?.classList.remove('hidden');
@@ -1289,25 +1282,12 @@ async function requestPhoneLink() {
 }
 async function completePhoneSignup() {
   const name = document.getElementById('phoneSignupName').value.trim();
-  const email = document.getElementById('phoneSignupEmail').value.trim();
-  const password = document.getElementById('phoneSignupPassword').value;
-  const result = await apiPost('/api/auth', { action: 'complete_phone_signup', name, email, password });
-  if (!result.success) { showFlowStatus(result.error || 'تعذر إنشاء الحساب', true); return; }
-  if (result.data?.flow === 'link_existing_email') {
-    document.getElementById('phoneSignupProfileFields').classList.add('hidden');
-    document.getElementById('phoneExistingEmailCodePanel').classList.remove('hidden');
-    showFlowStatus(result.message);
-    document.getElementById('phoneExistingEmailCode').focus();
+  if (name.length < 2) {
+    showFlowStatus('أدخل الاسم الكامل', true);
     return;
   }
-  location.href = '/dashboard';
-}
-async function verifyPhoneEmailLink() {
-  const email = document.getElementById('phoneSignupEmail').value.trim();
-  const code = document.getElementById('phoneExistingEmailCode').value.trim();
-  if (!/^\d{6}$/.test(code)) { showFlowStatus('أدخل رمز البريد المكوّن من 6 أرقام', true); return; }
-  const result = await apiPost('/api/auth', { action: 'verify_phone_email_link', email, code });
-  if (!result.success) { showFlowStatus(result.error || 'تعذر ربط الحساب', true); return; }
+  const result = await apiPost('/api/auth', { action: 'complete_phone_signup', name });
+  if (!result.success) { showFlowStatus(result.error || 'تعذر إنشاء الحساب', true); return; }
   location.href = '/dashboard';
 }
 function openRegisterFromLogin() {
