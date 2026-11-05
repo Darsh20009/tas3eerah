@@ -1685,6 +1685,8 @@ async function confirmSubscriptionChoice() {
     openApp.rel = 'noopener';
     openApp.textContent = L.current === 'en' ? 'Open this app in a browser tab' : 'افتح التطبيق في تبويب المتصفح';
     status?.append(document.createElement('br'), openApp);
+    status?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    openApp.focus({ preventScroll: true });
     if (confirmButton) confirmButton.disabled = false;
     return;
   }

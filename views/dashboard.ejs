@@ -624,7 +624,7 @@
                 <span> · </span><span data-ar="السعر: <%= formatNumber(pVal.price, 0) %> ر.س" data-en="Price: <%= formatNumber(pVal.price, 0) %> SAR"><%= `السعر: ${formatNumber(pVal.price, 0)} ر.س` %></span>
               </div>
               <% if (trialEligible) { %>
-              <button class="btn btn-primary btn-sm" style="width:100%;margin-top:12px"
+              <button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-top:12px"
                       onclick="reviewSubscriptionChoice('<%= pKey %>', 'trial')">
                 <span data-ar="راجع الشهر المجاني" data-en="Review free month">راجع الشهر المجاني</span>
               </button>
@@ -633,7 +633,7 @@
               <% } else if (user.trial_used_at) { %>
               <p style="font-size:11px;color:var(--muted);margin:10px 0 0" data-ar="الشهر المجاني مستخدم لهذا الحساب." data-en="The free month has already been used on this account.">الشهر المجاني مستخدم لهذا الحساب.</p>
               <% } %>
-              <button class="btn btn-outline btn-sm" style="width:100%;margin-top:12px"
+              <button type="button" class="btn btn-outline btn-sm" style="width:100%;margin-top:12px"
                       onclick="reviewSubscriptionChoice('<%= pKey %>', 'payment')">
                 <span data-ar="<%= effectivePlan === pKey ? 'مراجعة التجديد والدفع' : 'مراجعة الخطة والدفع' %>" data-en="<%= effectivePlan === pKey ? 'Review renewal and payment' : 'Review plan and payment' %>"><%= effectivePlan === pKey ? 'مراجعة التجديد والدفع' : 'مراجعة الخطة والدفع' %></span>
               </button>
@@ -1347,10 +1347,10 @@
     <p id="subscriptionReviewTrialNote" class="mailbox-note hidden" style="margin-top:12px"></p>
     <div id="subscriptionReviewStatus" class="hidden mt-16" role="status" aria-live="polite"></div>
     <div class="flex gap-8" style="margin-top:20px">
-      <button class="btn btn-primary flex-1" id="subscriptionReviewConfirm" onclick="confirmSubscriptionChoice()">
+      <button type="button" class="btn btn-primary flex-1" id="subscriptionReviewConfirm" onclick="confirmSubscriptionChoice()">
         <span data-ar="تأكيد ومتابعة" data-en="Confirm and continue">تأكيد ومتابعة</span>
       </button>
-      <button class="btn btn-ghost" id="subscriptionReviewCancel" onclick="closeSubscriptionReview()">
+      <button type="button" class="btn btn-ghost" id="subscriptionReviewCancel" onclick="closeSubscriptionReview()">
         <span data-ar="رجوع" data-en="Back">رجوع</span>
       </button>
     </div>
