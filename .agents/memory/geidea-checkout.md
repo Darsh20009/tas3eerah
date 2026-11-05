@@ -9,6 +9,12 @@ For the KSA Geidea test flow, create sessions through `api.ksamerchant.geidea.ne
 
 **How to apply:** keep API credentials server-side, use KSA test hosts with test credentials, use a short ASCII description and alphanumeric reference, and retain server-side order verification before granting a plan.
 
+For HPP session creation, require both `responseCode` and `detailedResponseCode` to equal `000`, in addition to a valid session ID. An HTTP 200 response alone is not proof that Geidea accepted the request.
+
+**Why:** Geidea's HPP sample explicitly checks both provider codes, and application/json responses can contain provider-level failures despite an HTTP success status.
+
+**How to apply:** validate both response fields before storing a pending transaction or exposing the session to the browser; return only sanitized provider diagnostics on failure.
+
 The hosted form may redirect directly to the configured return URL with `orderId` and `sessionId`; verify the order on the server and bind it to the authenticated user's stored session before granting a plan. Geidea order lookups can contain both Authentication and Pay transactions; use the Pay transaction and the provider's top-level response code rather than treating the first transaction as the payment result.
 
 **Why:** a real sandbox order succeeded while the first transaction was Authentication, and an earlier parser marked it failed despite the order and Pay transaction succeeding.

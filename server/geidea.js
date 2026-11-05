@@ -88,6 +88,26 @@ async function createSession({ amount, reference, callbackUrl, returnUrl, custom
     }),
   });
   const body = await readResponse(response);
+  const responseCode = String(body.responseCode || '');
+  const detailCode = String(body.detailedResponseCode || body.detailResponseCode || '');
+  if (responseCode !== '000' || detailCode !== '000') {
+    const safeResponseCode = responseCode.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 24);
+    const safeDetailCode = detailCode.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 24);
+    const detail = String(body.detailedResponseMessage || body.detailResponseMessage || body.responseMessage || '')
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/[A-Za-z0-9_-]{24,}/g, '[محذوف]')
+      .replace(/\s+/g, ' ').trim().slice(0, 120);
+    const diagnostics = [
+      safeResponseCode && `رمز ${safeResponseCode}`,
+      safeDetailCode && `تفاصيل ${safeDetailCode}`,
+      detail,
+    ].filter(Boolean).join('، ');
+    const error = new Error(`رفضت Geidea إنشاء جلسة الدفع${diagnostics ? `: ${diagnostics}` : ''}.`);
+    error.status = 502;
+    error.expose = true;
+    error.code = safeResponseCode || 'GEIDEA_SESSION_REJECTED';
+    throw error;
+  }
   const sessionId = body.session?.id || body.sessionId;
   if (typeof sessionId !== 'string' || !sessionId) {
     const fields = Object.keys(body).join(', ') || 'none';

@@ -31,7 +31,14 @@ test('Geidea session creation signs the server-side amount and returns only the 
   let received;
   global.fetch = async (url, options) => {
     received = { url, options };
-    return { ok: true, json: async () => ({ session: { id: 'session-test-id' } }) };
+    return {
+      ok: true,
+      json: async () => ({
+        responseCode: '000',
+        detailedResponseCode: '000',
+        session: { id: 'session-test-id' },
+      }),
+    };
   };
   try {
     const result = await geidea.createSession({
@@ -53,6 +60,44 @@ test('Geidea session creation signs the server-side amount and returns only the 
       crypto.createHmac('sha256', 'private-test-password').update(signed).digest('base64'),
     );
     assert.equal(received.options.headers.Authorization.startsWith('Basic '), true);
+  } finally {
+    global.fetch = previous.fetch;
+    if (previous.publicKey === undefined) delete process.env.GEIDEA_TEST_PUBLIC_KEY;
+    else process.env.GEIDEA_TEST_PUBLIC_KEY = previous.publicKey;
+    if (previous.password === undefined) delete process.env.GEIDEA_TEST_API_PASSWORD;
+    else process.env.GEIDEA_TEST_API_PASSWORD = previous.password;
+  }
+});
+
+test('Geidea rejects HTTP 200 sessions unless both provider response codes succeed', async () => {
+  const previous = {
+    publicKey: process.env.GEIDEA_TEST_PUBLIC_KEY,
+    password: process.env.GEIDEA_TEST_API_PASSWORD,
+    fetch: global.fetch,
+  };
+  process.env.GEIDEA_TEST_PUBLIC_KEY = 'public-test-key';
+  process.env.GEIDEA_TEST_API_PASSWORD = 'private-test-password';
+  global.fetch = async () => ({
+    ok: true,
+    json: async () => ({
+      responseCode: '110',
+      detailedResponseCode: '035',
+      detailedResponseMessage: 'The request was rejected',
+      session: { id: 'must-not-be-used' },
+    }),
+  });
+  try {
+    await assert.rejects(
+      geidea.createSession({
+        amount: 49, reference: 'TAS-test-reference',
+        callbackUrl: 'https://example.test/api/payments/geidea-callback',
+        returnUrl: 'https://example.test/dashboard',
+        customer: { name: 'Test Client' },
+      }),
+      error => error.status === 502 && error.expose === true &&
+        /110/.test(error.message) && /035/.test(error.message) &&
+        !error.message.includes('must-not-be-used'),
+    );
   } finally {
     global.fetch = previous.fetch;
     if (previous.publicKey === undefined) delete process.env.GEIDEA_TEST_PUBLIC_KEY;
