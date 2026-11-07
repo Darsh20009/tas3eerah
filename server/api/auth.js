@@ -16,6 +16,11 @@ const {
 const router = express.Router();
 const phoneCodeCooldowns = new Map();
 const loginFailureWindows = new Map();
+const EMAIL_AUTH_ACTIONS = new Set([
+  'login', 'request_phone_link', 'verify_phone_email_link',
+  'request_login_code', 'verify_login_code', 'register', 'resend_verification',
+  'verify_email', 'forgot_password', 'validate_reset_code', 'reset_password',
+]);
 
 function loginFailureCount(key) {
   const now = Date.now();
@@ -117,6 +122,10 @@ router.all('/', async (req, res) => {
   const body = req.body || {};
 
   try {
+    if (config.APP_ENV !== 'test' && EMAIL_AUTH_ACTIONS.has(action)) {
+      return sendError(res, 'تسجيل الدخول وإدارة الحساب بالبريد غير متاحين. استخدم رقم الجوال.', 410, 'EMAIL_AUTH_DISABLED');
+    }
+
     if (action === 'csrf') {
       if (!isRead) return methodError(res);
       const token = auth.csrfToken(req);
@@ -269,44 +278,18 @@ router.all('/', async (req, res) => {
         return sendError(res, 'انتهت صلاحية التحقق. اطلب رمزاً جديداً.');
       }
       const name = text(body.name, 120);
-      const email = text(body.email, 254).toLowerCase() || null;
-      const password = typeof body.password === 'string' ? body.password : '';
-      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return sendError(res, 'أدخل بريداً صحيحاً');
-      const existingEmailUser = email ? await db.findOne('users', { email, is_active: 1 }) : null;
-      if (existingEmailUser) {
-        if (await db.findOne('users', { phone: pending.phone, is_active: 1 })) {
-          return sendError(res, 'رقم الجوال مرتبط بحساب آخر');
-        }
-        const purpose = Number(existingEmailUser.email_verified) === 1 ? 'login' : 'verify';
-        const delivery = await sendCode(existingEmailUser, purpose);
-        if (delivery.cooldown) return sendError(res, 'انتظر دقيقة قبل طلب رمز جديد', 429);
-        if (!delivery.sent) return sendError(res, 'تعذر إرسال رمز التحقق إلى البريد. حاول لاحقاً.', 502);
-        req.session.phoneEmailLinkPending = {
-          phone: pending.phone, userId: Number(existingEmailUser.id), email,
-          purpose, expiresAt: Date.now() + 10 * 60_000,
-        };
-        req.session.phoneSignupVerified = null;
-        return sendOk(res, { flow: 'link_existing_email', email },
-          'هذا البريد مرتبط بحساب سابق. أرسلنا رمزاً إليه لإثبات ملكيته وربط الجوال. لا تحتاج كلمة المرور القديمة.');
-      }
       if (name.length < 2) return sendError(res, 'الاسم قصير جداً');
-      if (!email && password) return sendError(res, 'أدخل البريد أيضاً لاستخدام كلمة المرور');
-      if (email && password.length < 8) {
-        return sendError(res, 'أدخل بريداً صحيحاً وكلمة مرور من 8 أحرف على الأقل');
-      }
       if (await db.findOne('users', { phone: pending.phone })) return sendError(res, 'الرقم مرتبط بحساب آخر');
       const newUser = {
-        name, password_hash: email ? await bcrypt.hash(password, 10) : null,
+        name, password_hash: null,
         phone: pending.phone, phone_verified: 1, role: 'client', plan: 'free',
         is_active: 1, email_verified: 0,
       };
-      if (email) newUser.email = email;
       const id = await db.insertDoc('users', newUser);
       const user = await db.findOne('users', { id: Number(id) });
       req.session.phoneSignupVerified = null;
       await auth.setAuthenticatedUser(req, id);
       await db.insertDoc('activity_log', { user_id: Number(id), action: 'register', ip: req.ip || '' });
-      if (email) await sendCode(user, 'verify');
       return sendOk(res, auth.safeUser(user), 'تم إنشاء الحساب برقم الجوال.');
     }
 

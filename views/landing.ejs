@@ -661,10 +661,6 @@
       <p class="social-config-note">ملاحظة: يحتاج الدخول الاجتماعي إلى إعداد — <a href="#" style="color:var(--p)">اطلع على الإعداد</a></p>
       <% } %>
 
-      <div class="auth-method-switch" role="tablist" aria-label="طريقة تسجيل الدخول">
-        <button type="button" class="auth-method-tab active" data-auth-method="login-phone" onclick="setAuthMethod('login','phone')">رقم الجوال</button>
-        <button type="button" class="auth-method-tab" data-auth-method="login-email" data-ar="دخول مؤقت للحسابات القديمة بالبريد" data-en="Temporary email sign-in for existing accounts" onclick="setAuthMethod('login','email')">دخول مؤقت للحسابات القديمة بالبريد</button>
-      </div>
       <div id="loginPhonePanel" class="phone-auth-panel">
         <div id="phoneLoginEntry">
         <div class="form-group">
@@ -686,7 +682,6 @@
           <p class="auth-step-helper">أدخل الرمز الذي أرسلناه عبر WhatsApp.</p>
           <input id="phoneLoginCode" class="form-control auth-otp-input" inputmode="numeric" maxlength="6" placeholder="••••••" dir="ltr">
           <button id="phoneLoginVerifyButton" type="button" class="btn btn-primary w-full" onclick="verifyPhoneCode('auto')">تحقق ومتابعة</button>
-          <button type="button" class="auth-link" onclick="showPhoneLink()">لدي حساب بالبريد؟ اربطه بهذا الرقم</button>
         </div>
         <div id="phoneAutoProfile" class="hidden">
           <p class="auth-step-helper">تم التحقق من الرقم. أكمل بيانات الحساب الجديد.</p>
@@ -695,12 +690,6 @@
             <p class="auth-step-helper">سيكون إنشاء الحساب والدخول باستخدام رقم الجوال بعد التحقق منه.</p>
             <button type="button" class="btn btn-primary w-full" onclick="completePhoneSignup()">إنشاء الحساب</button>
           </div>
-        </div>
-        <div id="phoneLinkPanel" class="hidden">
-          <input id="phoneLinkEmail" class="form-control" type="email" placeholder="البريد المسجل" dir="ltr">
-          <input id="phoneLinkPassword" class="form-control" type="password" placeholder="كلمة المرور" dir="ltr" autocomplete="current-password">
-          <button type="button" class="btn btn-primary w-full" onclick="requestPhoneLink()">تحقق من الحساب وأرسل الرمز</button>
-          <button type="button" class="auth-link" onclick="showPhoneCode()">العودة إلى رمز الدخول</button>
         </div>
       </div>
 

@@ -139,7 +139,7 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
   assert.equal(Object.hasOwn(login.json.data, 'password_hash'), false);
 
   const me = await request('/api/auth?action=me', { jar: clientJar });
-  assert.equal(me.json.data.email, 'client@example.test');
+  assert.equal(me.json.data.email, undefined);
 
   const quotePayload = {
     action: 'create',
@@ -552,7 +552,7 @@ test('auth, CSRF, quote quotas, and admin guards use isolated SQLite data', asyn
     body: { action: 'verify_login_code', email: 'new@example.test', code: loginCode[1] },
   });
   assert.equal(codeLogin.json.success, true);
-  assert.equal(codeLogin.json.data.email, 'new@example.test');
+  assert.equal(codeLogin.json.data.email, undefined);
   assert.equal(Object.hasOwn(codeLogin.json.data, 'login_otp_hash'), false);
   const mailCountBeforeUnknownEmail = sentMail.length;
   const unknownLoginCode = await request('/api/auth', {
@@ -853,14 +853,9 @@ test('WhatsApp phone signup and existing-account phone linking require a verifie
       jar: emailLinkJar, method: 'POST', token: emailLinkCsrf,
       body: { action: 'complete_phone_signup', name: 'ربط البريد', email: 'client@example.test' },
     });
-    assert.equal(emailLinkStarted.json.data.flow, 'link_existing_email');
-    assert.match(emailCode, /^\d{6}$/);
-    const emailLinkVerified = await request('/api/auth', {
-      jar: emailLinkJar, method: 'POST', token: emailLinkCsrf,
-      body: { action: 'verify_phone_email_link', email: 'client@example.test', code: emailCode },
-    });
-    assert.equal(emailLinkVerified.json.success, true);
-    assert.equal((await db.findOne('users', { email: 'client@example.test' })).phone, emailLinkPhone);
+    assert.equal(emailLinkStarted.json.success, true);
+    assert.equal((await db.findOne('users', { phone: emailLinkPhone })).email, null);
+    assert.equal((await db.findOne('users', { email: 'client@example.test' })).phone, null);
 
     const linkJar = new Map();
     const linkCsrf = (await request('/api/auth?action=csrf', { jar: linkJar })).json.data.csrf_token;

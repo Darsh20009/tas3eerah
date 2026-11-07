@@ -21,6 +21,7 @@ function safeUser(user) {
   if (!user) return null;
   const safe = { ...user };
   delete safe.password_hash;
+  delete safe.email;
   for (const key of ['email_otp_hash', 'email_otp_expires_at', 'email_otp_attempts', 'email_otp_sent_at',
     'reset_otp_hash', 'reset_otp_expires_at', 'reset_otp_attempts', 'reset_otp_sent_at',
     'login_otp_hash', 'login_otp_expires_at', 'login_otp_attempts', 'login_otp_sent_at',
