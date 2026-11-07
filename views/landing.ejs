@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<% if (typeof locals.csrfToken !== 'string') throw new Error('Landing route must provide csrfToken'); if (typeof locals.openAccessMode !== 'boolean') throw new Error('Landing route must provide openAccessMode'); if (!plans || typeof plans !== 'object') throw new Error('Landing route must provide plans'); const csrfToken = locals.csrfToken; const openAccessMode = locals.openAccessMode; const googleEnabled = Boolean(locals.googleEnabled); const appleEnabled = Boolean(locals.appleEnabled); const oauthError = locals.oauthError || ''; const assetVersion = locals.assetVersion || 1; const currentYear = new Date().getFullYear(); const formatNumber = (value, decimals = 0) => Number(value || 0).toLocaleString('en-US',{minimumFractionDigits:decimals,maximumFractionDigits:decimals}); const count = value => Array.isArray(value) ? value.length : Object.keys(value || {}).length; const escapeHtml = value => value; %>
+<% if (typeof locals.csrfToken !== 'string') throw new Error('Landing route must provide csrfToken'); if (typeof locals.openAccessMode !== 'boolean') throw new Error('Landing route must provide openAccessMode'); if (!plans || typeof plans !== 'object') throw new Error('Landing route must provide plans'); const csrfToken = locals.csrfToken; const openAccessMode = locals.openAccessMode; const googleEnabled = false; const appleEnabled = false; const oauthError = ''; const assetVersion = locals.assetVersion || 1; const currentYear = new Date().getFullYear(); const formatNumber = (value, decimals = 0) => Number(value || 0).toLocaleString('en-US',{minimumFractionDigits:decimals,maximumFractionDigits:decimals}); const count = value => Array.isArray(value) ? value.length : Object.keys(value || {}).length; const escapeHtml = value => value; %>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
@@ -618,18 +618,13 @@
     </div>
 
     <div id="authError" class="auth-error hidden"></div>
-    <% if (Boolean(oauthError)) { %>
-    <div class="auth-error" style="display:block;margin-bottom:12px">
-      تنبيه: <%= oauthError %>
-    </div>
-    <% } %>
 
     <!-- تسجيل الدخول -->
     <div id="loginForm">
       <h3 class="auth-flow-title" style="margin-bottom:14px">تسجيل الدخول أو إنشاء حساب</h3>
 
       <!-- أزرار الدخول الاجتماعي -->
-      <div class="social-btns">
+      <div class="social-btns hidden">
         <% if (googleEnabled) { %>
         <a href="/auth/google" class="social-btn social-btn-google">
           <svg width="18" height="18" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -668,7 +663,7 @@
 
       <div class="auth-method-switch" role="tablist" aria-label="طريقة تسجيل الدخول">
         <button type="button" class="auth-method-tab active" data-auth-method="login-phone" onclick="setAuthMethod('login','phone')">رقم الجوال</button>
-        <button type="button" class="auth-method-tab" data-auth-method="login-email" onclick="setAuthMethod('login','email')">البريد الإلكتروني</button>
+        <button type="button" class="auth-method-tab" data-auth-method="login-email" data-ar="دخول مؤقت للحسابات القديمة بالبريد" data-en="Temporary email sign-in for existing accounts" onclick="setAuthMethod('login','email')">دخول مؤقت للحسابات القديمة بالبريد</button>
       </div>
       <div id="loginPhonePanel" class="phone-auth-panel">
         <div id="phoneLoginEntry">
@@ -710,6 +705,7 @@
       </div>
 
       <div id="loginEmailPanel" class="hidden">
+      <button type="button" class="auth-link auth-back-link" data-ar="العودة للدخول برقم الجوال" data-en="Back to phone sign-in" onclick="setAuthMethod('login','phone')">العودة للدخول برقم الجوال</button>
       <div class="social-divider"><span data-ar="أو سجّل بالبريد" data-en="or use email">أو سجّل بالبريد</span></div>
 
       <div id="loginEmailStage" class="login-stage">
@@ -725,7 +721,7 @@
         <button type="button" class="btn btn-outline w-full auth-method-secondary" onclick="usePasswordLogin()">الدخول بكلمة المرور</button>
         <div class="auth-signup-note">
           <span>ليس لديك حساب؟</span>
-          <button class="auth-link" type="button" onclick="openRegisterFromLogin()">إنشاء حساب بالبريد</button>
+          <button class="auth-link" type="button" onclick="openRegisterFromLogin()">إنشاء حساب جديد برقم الجوال</button>
         </div>
         <button class="auth-link auth-back-link" type="button" onclick="setLoginStage('email')">تغيير البريد</button>
       </div>
@@ -746,7 +742,7 @@
         <button type="button" class="btn btn-primary w-full" onclick="verifyLoginCode()">تسجيل الدخول بالرمز</button>
         <div class="auth-signup-note">
           <button class="auth-link" type="button" onclick="requestLoginCode()">إعادة إرسال الرمز</button>
-          <button class="auth-link" type="button" onclick="openRegisterFromLogin()">إنشاء حساب بالبريد</button>
+          <button class="auth-link" type="button" onclick="openRegisterFromLogin()">إنشاء حساب جديد برقم الجوال</button>
         </div>
         <button class="auth-link auth-back-link" type="button" onclick="setLoginStage('method')">طريقة دخول أخرى</button>
       </div>
@@ -762,7 +758,7 @@
       </div>
 
       <!-- أزرار التسجيل الاجتماعي -->
-      <div class="social-btns">
+      <div class="social-btns hidden">
         <% if (googleEnabled) { %>
         <a href="/auth/google" class="social-btn social-btn-google">
           <svg width="18" height="18" viewBox="0 0 48 48" fill="none"><path d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" fill="#FFC107"/><path d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z" fill="#FF3D00"/><path d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0124 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" fill="#4CAF50"/><path d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 01-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z" fill="#1976D2"/></svg>
@@ -842,7 +838,7 @@
         <button id="requestResetCodeButton" class="btn btn-primary w-full" type="button" onclick="requestResetCode()">إرسال رمز الاستعادة</button>
         <div class="auth-signup-note">
           <span>ليس لديك حساب بعد؟</span>
-          <button class="auth-link" type="button" onclick="openRegisterWithEmail()">إنشاء حساب بالبريد</button>
+          <button class="auth-link" type="button" onclick="showAuth('register')">إنشاء حساب جديد برقم الجوال</button>
         </div>
       </div>
       <div id="resetStepCode" class="auth-step-screen hidden">
@@ -852,7 +848,7 @@
         <button class="btn btn-primary w-full" type="button" onclick="continuePasswordReset()">التحقق والمتابعة</button>
         <div class="auth-signup-note">
           <button class="auth-link" type="button" onclick="requestResetCode()">إعادة إرسال الرمز</button>
-          <button class="auth-link" type="button" onclick="openRegisterWithEmail()">إنشاء حساب بالبريد</button>
+          <button class="auth-link" type="button" onclick="showAuth('register')">إنشاء حساب جديد برقم الجوال</button>
         </div>
       </div>
       <form id="resetStepPassword" class="auth-step-screen hidden" onsubmit="submitPasswordReset();return false;">

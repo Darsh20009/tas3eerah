@@ -75,7 +75,6 @@ app.all('/api/payments/geidea-callback', (req, res) => res.sendStatus(200));
 app.use('/api/payments', require('./server/api/payments'));
 app.use('/api/contact', require('./server/api/contact'));
 app.use('/api/calculators', require('./server/api/calculators'));
-app.use('/auth', require('./server/oauth'));
 app.all('/api/{*path}', (req, res) => res.status(404).json({
   success: false, error: 'المسار المطلوب غير موجود',
 }));
@@ -111,11 +110,6 @@ app.get('/', async (req, res, next) => {
       satisfactionRate,
     csrfToken: auth.csrfToken(req),
     openAccessMode: false,
-    googleEnabled: config.isOAuthRedirectConfigured() &&
-      Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
-    appleEnabled: config.isOAuthRedirectConfigured() &&
-      Boolean(process.env.APPLE_CLIENT_ID && process.env.APPLE_TEAM_ID && process.env.APPLE_KEY_ID && process.env.APPLE_PRIVATE_KEY),
-    oauthError: String(req.query.oauth_error || ''),
     assetVersion: assetVersion(),
   });
   } catch (error) {
