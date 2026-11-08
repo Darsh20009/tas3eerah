@@ -284,10 +284,28 @@ async function userCreate(req, res, body) {
   if (!name || !phone) return sendError(res, 'الاسم ورقم الجوال الصحيح مطلوبان');
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return sendError(res, 'البريد الإلكتروني غير صحيح');
   if (password && password.length < 8) return sendError(res, 'كلمة المرور يجب أن تكون 8 أحرف على الأقل');
-  if (await db.findOne('users', { phone })) return sendError(res, 'رقم الجوال مسجل مسبقاً');
-  if (email && await db.findOne('users', { email })) return sendError(res, 'البريد مسجل مسبقاً');
   if (!auth.ROLE_VALUES.has(role)) return sendError(res, 'دور غير صحيح');
   if (!Object.hasOwn(PLANS, plan)) return sendError(res, 'خطة غير صحيحة');
+  const existingPhoneUser = await db.findOne('users', { phone });
+  if (existingPhoneUser) {
+    if (role !== 'admin' || existingPhoneUser.role !== 'client') {
+      return sendError(res, 'رقم الجوال مرتبط بحساب موجود. افتح الحساب الحالي لتعديل دوره.');
+    }
+    if (email && await db.findOne('users', { email })) return sendError(res, 'البريد مسجل مسبقاً');
+    const update = { role: 'admin', name };
+    if (email) update.email = email;
+    if (password) update.password_hash = await bcrypt.hash(password, 10);
+    await db.updateDoc('users', { id: Number(existingPhoneUser.id) }, update);
+    if (password) await db.sessionDestroyUser(Number(existingPhoneUser.id));
+    await db.insertDoc('activity_log', {
+      user_id: Number(req.user.id),
+      action: 'admin_user_promote_client',
+      details: `ترقية حساب عميل إلى مدير: ${Number(existingPhoneUser.id)}`,
+    });
+    return sendOk(res, { id: Number(existingPhoneUser.id), promoted: true },
+      'تم تحويل حساب العميل الحالي إلى مدير مع الاحتفاظ بسجلاته.');
+  }
+  if (email && await db.findOne('users', { email })) return sendError(res, 'البريد مسجل مسبقاً');
   const id = await db.insertDoc('users', {
     name,
     email,

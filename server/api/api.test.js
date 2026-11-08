@@ -727,6 +727,21 @@ test('user management, quote lifecycle, messaging and settings are isolated and 
   const phoneOnlyEmployee = await signInPhone('+966500000011');
   assert.equal(phoneOnlyEmployee.user.role, 'employee');
   assert.equal((await db.findOne('users', { phone: '+966500000011' })).email, null);
+  const existingCustomerId = await db.insertDoc('users', {
+    name: 'عميل سابق', phone: '+966500000012', phone_verified: 1,
+    role: 'client', plan: 'free', is_active: 1,
+  });
+  const promotedAdmin = await post(admin, '/api/admin', {
+    action: 'user_create', name: 'مدير النظام بالجوال', phone: '+966500000012',
+    role: 'admin', plan: 'free',
+  });
+  assert.equal(promotedAdmin.json.success, true, JSON.stringify(promotedAdmin.json));
+  assert.equal(promotedAdmin.json.data.id, existingCustomerId);
+  const promotedAccount = await db.findOne('users', { id: existingCustomerId });
+  assert.equal(promotedAccount.role, 'admin');
+  assert.equal(promotedAccount.phone_verified, 1);
+  const promotedPhoneLogin = await signInPhone('+966500000012');
+  assert.equal(promotedPhoneLogin.user.role, 'admin');
   const client = await signIn('client@example.test');
   const changedPlan = await post(admin, '/api/admin', {
     action: 'set_plan', id: client.user.id, plan: 'pro',
