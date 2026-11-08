@@ -6,6 +6,7 @@ const bcrypt = require('bcryptjs');
 const db = require('../db');
 const { PLANS } = require('../config');
 const auth = require('../auth');
+const phoneAuth = require('../whatsapp-auth');
 const { refundIneligibility } = require('../refund-policy');
 const mail = require('../email');
 const {
@@ -236,6 +237,7 @@ async function users(req, res) {
     filter.$or = [
       { name: { $regex: escaped, $options: 'i' } },
       { email: { $regex: escaped, $options: 'i' } },
+      { phone: { $regex: escaped, $options: 'i' } },
     ];
   }
   if (req.query.role) filter.role = text(req.query.role, 40);
@@ -243,7 +245,7 @@ async function users(req, res) {
   const results = await db.findAll('users', filter, {
     sort: { created_at: -1 },
     projection: {
-      id: 1, name: 1, email: 1, role: 1, plan: 1,
+      id: 1, name: 1, email: 1, phone: 1, phone_verified: 1, role: 1, plan: 1,
       plan_expires_at: 1, is_active: 1, created_at: 1,
       trial_used_at: 1, trial_plan: 1, trial_ends_at: 1,
     },
@@ -275,21 +277,22 @@ async function users(req, res) {
 
 async function userCreate(req, res, body) {
   const name = text(body.name, 120);
-  const email = text(body.email, 254).toLowerCase();
-  const password = typeof body.password === 'string' ? body.password : '';
+  const email = text(body.email, 254).toLowerCase() || null;
+  const phone = phoneAuth.normalizePhone(body.phone);
   const role = text(body.role || 'client', 40);
   const plan = text(body.plan || 'free', 40);
-  if (!name || !email) return sendError(res, 'الاسم والبريد مطلوبان');
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return sendError(res, 'البريد الإلكتروني غير صحيح');
-  if (await db.findOne('users', { email })) return sendError(res, 'البريد مسجل مسبقاً');
+  if (!name || !phone) return sendError(res, 'الاسم ورقم الجوال الصحيح مطلوبان');
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return sendError(res, 'البريد الإلكتروني غير صحيح');
+  if (await db.findOne('users', { phone })) return sendError(res, 'رقم الجوال مسجل مسبقاً');
+  if (email && await db.findOne('users', { email })) return sendError(res, 'البريد مسجل مسبقاً');
   if (!auth.ROLE_VALUES.has(role)) return sendError(res, 'دور غير صحيح');
   if (!Object.hasOwn(PLANS, plan)) return sendError(res, 'خطة غير صحيحة');
-  if (password && password.length < 8) return sendError(res, 'كلمة المرور يجب أن تكون 8 أحرف على الأقل');
-  const initialPassword = password || crypto.randomBytes(12).toString('base64url');
   const id = await db.insertDoc('users', {
     name,
     email,
-    password_hash: await bcrypt.hash(initialPassword, 10),
+    password_hash: null,
+    phone,
+    phone_verified: 0,
     role,
     plan,
     plan_expires_at: null,
@@ -298,13 +301,9 @@ async function userCreate(req, res, body) {
   await db.insertDoc('activity_log', {
     user_id: Number(req.user.id),
     action: 'admin_user_create',
-    details: `مستخدم جديد: ${email}`,
+    details: 'مستخدم جديد عبر الجوال',
   });
-  return sendOk(
-    res,
-    { id },
-    password ? 'تم إنشاء المستخدم' : `تم إنشاء المستخدم. كلمة المرور المؤقتة: ${initialPassword}`,
-  );
+  return sendOk(res, { id }, 'تم إنشاء الحساب. على المستخدم إثبات رقم الجوال عند أول دخول.');
 }
 
 async function userUpdate(req, res, body) {
@@ -315,6 +314,17 @@ async function userUpdate(req, res, body) {
   if (!Number.isInteger(id) || id < 1) return sendError(res, 'معرف المستخدم مطلوب');
   const user = await db.findOne('users', { id });
   if (!user) return sendError(res, 'المستخدم غير موجود', 404);
+  if (body.phone !== undefined) {
+    const phone = phoneAuth.normalizePhone(body.phone);
+    if (!phone) return sendError(res, 'رقم الجوال غير صحيح');
+    const owner = await db.findOne('users', { phone });
+    if (owner && Number(owner.id) !== id) return sendError(res, 'رقم الجوال مرتبط بحساب آخر');
+    if (phone !== user.phone) {
+      await db.updateDoc('users', { id }, { phone, phone_verified: 0 });
+      user.phone = phone;
+      user.phone_verified = 0;
+    }
+  }
   if (role && !auth.ROLE_VALUES.has(role)) return sendError(res, 'دور غير صحيح');
   if (role && role !== 'admin' && user.role === 'admin') {
     if (await db.count('users', { role: 'admin', is_active: 1 }) <= 1) {

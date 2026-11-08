@@ -179,10 +179,12 @@ router.all('/', async (req, res) => {
       const requestedPurpose = body.purpose === 'auto' ? 'auto' : body.purpose === 'signup' ? 'signup' : 'login';
       if (!phone) return sendError(res, 'أدخل رقم جوال دولياً صحيحاً');
       const user = await db.findOne('users', { phone, is_active: 1, phone_verified: 1 });
-      const purpose = requestedPurpose === 'auto' ? (user ? 'login' : 'signup') : requestedPurpose;
-      if (requestedPurpose === 'auto' && !user && await db.findOne('users', { phone, is_active: 1 })) {
-        return sendError(res, 'هذا الرقم مسجل لكنه غير موثق. تواصل مع الدعم لإكمال التحقق.');
-      }
+      const existingUnverified = !user && requestedPurpose === 'auto'
+        ? await db.findOne('users', { phone, is_active: 1 })
+        : null;
+      const purpose = requestedPurpose === 'auto'
+        ? (user ? 'login' : existingUnverified ? 'verify_existing' : 'signup')
+        : requestedPurpose;
       if (purpose === 'signup' && user) return sendError(res, 'هذا الرقم مرتبط بحساب. سجّل الدخول أو اربط حسابك الحالي.');
       if (purpose === 'login' && !user) {
         return sendOk(res, [], 'إذا كان الرقم مرتبطاً بحساب فسيصلك رمز الدخول.');
@@ -194,7 +196,8 @@ router.all('/', async (req, res) => {
       }
       const code = String(crypto.randomInt(0, 1_000_000)).padStart(6, '0');
       try {
-        const delivery = await phoneAuth.sendCode(phone, code, user?.name || '');
+        const targetUser = user || existingUnverified;
+        const delivery = await phoneAuth.sendCode(phone, code, targetUser?.name || '');
         console.info('[WhatsApp auth provider response]', JSON.stringify(delivery));
       } catch (error) {
         console.error('[WhatsApp auth delivery failed]', error.message || 'WHATSAPP_ERROR');
@@ -202,7 +205,7 @@ router.all('/', async (req, res) => {
       }
       phoneCodeCooldowns.set(`${req.ip || 'unknown'}:${phone}`, Date.now());
       req.session.phoneChallenge = {
-        phone, purpose, userId: user ? Number(user.id) : null,
+        phone, purpose, userId: (user || existingUnverified) ? Number((user || existingUnverified).id) : null,
         hash: phoneAuth.hashCode(code), expiresAt: Date.now() + 10 * 60_000,
         sentAt: Date.now(), attempts: 0,
       };
@@ -259,6 +262,13 @@ router.all('/', async (req, res) => {
         id: Number(challenge.userId), is_active: 1,
       });
       if (!user) return sendError(res, 'الحساب غير موجود', 404);
+      if (challenge.purpose === 'verify_existing') {
+        if (user.phone !== phone || user.phone_verified === 1) {
+          return sendError(res, 'تعذر تأكيد ملكية هذا الرقم');
+        }
+        await db.updateDoc('users', { id: Number(user.id) }, { phone_verified: 1 });
+        user.phone_verified = 1;
+      }
       if (challenge.purpose === 'link') {
         const owner = await db.findOne('users', { phone, is_active: 1 });
         if (owner && Number(owner.id) !== Number(user.id)) return sendError(res, 'رقم الجوال مرتبط بحساب آخر');

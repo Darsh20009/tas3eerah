@@ -820,10 +820,10 @@
             <option value="plus">Plus</option>
             <option value="pro">Pro</option>
           </select>
-          <input class="form-control" id="uSearch" placeholder="بحث بالاسم أو البريد..." onkeyup="loadUsers()" style="flex:1">
+          <input class="form-control" id="uSearch" placeholder="بحث بالاسم أو رقم الجوال..." onkeyup="loadUsers()" style="flex:1">
         </div>
         <table class="data-table" id="usersTable">
-          <thead><tr><th>الاسم</th><th>البريد</th><th>الدور</th><th>الخطة</th><th>الحالة</th><th>تاريخ التسجيل</th><th>إجراءات</th></tr></thead>
+          <thead><tr><th>الاسم</th><th>رقم الجوال</th><th>الدور</th><th>الخطة</th><th>الحالة</th><th>تاريخ التسجيل</th><th>إجراءات</th></tr></thead>
           <tbody id="usersTbody"><tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">جارٍ التحميل...</td></tr></tbody>
         </table>
       </div>
@@ -1139,8 +1139,7 @@
     </div>
     <input type="hidden" id="umId" value="">
     <div class="form-group"><label>الاسم *</label><input type="text" class="form-control" id="umName"></div>
-    <div class="form-group"><label>البريد الإلكتروني *</label><input type="email" class="form-control" id="umEmail" dir="ltr"></div>
-    <div class="form-group"><label>كلمة المرور (فارغ = بدون تغيير)</label><input type="password" class="form-control" id="umPass" dir="ltr" placeholder="Demo@2025"></div>
+    <div class="form-group"><label>رقم الجوال الدولي *</label><input type="tel" class="form-control" id="umPhone" dir="ltr" inputmode="tel" placeholder="+9665xxxxxxxx"></div>
     <div class="form-row">
       <div class="form-group">
         <label>الدور</label>

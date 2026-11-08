@@ -678,25 +678,57 @@ test('user management, quote lifecycle, messaging and settings are isolated and 
   function post(session, path, body) {
     return request(path, { ...session, method: 'POST', body });
   }
+  async function signInPhone(phone) {
+    const originalFetch = global.fetch;
+    const originalKey = process.env.QIROX_WHATSAPP_API_KEY;
+    let deliveredCode = '';
+    process.env.QIROX_WHATSAPP_API_KEY = 'test-only-whatsapp-secret';
+    global.fetch = async (url, options) => {
+      if (!String(url).includes('/api/v1/projects/')) return originalFetch(url, options);
+      deliveredCode = JSON.parse(options.body).code;
+      return new Response(JSON.stringify({ ok: true, delivery: { status: 'queued' } }), {
+        status: 202, headers: { 'Content-Type': 'application/json' },
+      });
+    };
+    try {
+      const jar = new Map();
+      const csrf = (await request('/api/auth?action=csrf', { jar })).json.data.csrf_token;
+      const requested = await request('/api/auth', {
+        jar, method: 'POST', token: csrf,
+        body: { action: 'request_phone_code', phone, purpose: 'auto' },
+      });
+      assert.equal(requested.json.success, true);
+      const verified = await request('/api/auth', {
+        jar, method: 'POST', token: csrf,
+        body: { action: 'verify_phone_code', phone, code: deliveredCode },
+      });
+      assert.equal(verified.json.success, true);
+      return { jar, token: csrf, user: verified.json.data };
+    } finally {
+      global.fetch = originalFetch;
+      if (originalKey === undefined) delete process.env.QIROX_WHATSAPP_API_KEY;
+      else process.env.QIROX_WHATSAPP_API_KEY = originalKey;
+    }
+  }
   const admin = await signIn('admin@example.test');
   const employeeCreated = await post(admin, '/api/admin', {
-    action: 'user_create', name: 'موظف مراجعة', email: 'review-employee@example.test',
-    password: 'TestPassword@123', role: 'employee', plan: 'pro',
+    action: 'user_create', name: 'موظف مراجعة', phone: '+966500000009',
+    role: 'employee', plan: 'pro',
   });
   assert.equal(employeeCreated.json.success, true);
   const employeeId = employeeCreated.json.data.id;
-  const employee = await signIn('review-employee@example.test');
+  const employee = await signInPhone('+966500000009');
   const client = await signIn('client@example.test');
   const changedPlan = await post(admin, '/api/admin', {
     action: 'set_plan', id: client.user.id, plan: 'pro',
   });
   assert.equal(changedPlan.json.success, true);
   const otherCreated = await post(admin, '/api/admin', {
-    action: 'user_create', name: 'عميل آخر', email: 'review-other@example.test',
-    password: 'TestPassword@123', role: 'client', plan: 'pro',
+    action: 'user_create', name: 'عميل آخر', phone: '+966500000010',
+    role: 'client', plan: 'pro',
   });
   assert.equal(otherCreated.json.success, true);
-  const other = await signIn('review-other@example.test');
+  const other = await signInPhone('+966500000010');
   for (const session of [employee, client, other]) {
     const denied = await request('/api/admin?action=users', session);
     assert.equal(denied.response.status, 403);

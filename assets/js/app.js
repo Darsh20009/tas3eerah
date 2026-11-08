@@ -2238,7 +2238,7 @@ async function loadUsers() {
   const r = await api(`admin?action=users&role=${role}&plan=${plan}&q=${encodeURIComponent(search)}`);
   const tb = document.getElementById('usersTbody');
   if (!tb) return;
-  if (!r.success) { tb.innerHTML = `<tr><td colspan="7">${esc(r.error || '')}</td></tr>`; return; }
+   if (!r.success) { tb.innerHTML = `<tr><td colspan="7">${esc(r.error || '')}</td></tr>`; return; }
   const users = r.data;
   if (!users.length) {
     tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">لا يوجد مستخدمون</td></tr>';
@@ -2247,7 +2247,7 @@ async function loadUsers() {
   tb.innerHTML = users.map(u => `
     <tr>
        <td class="user-content">${esc(u.name)}</td>
-       <td class="user-content" style="direction:ltr;text-align:right;font-size:12px">${esc(u.email)}</td>
+        <td class="user-content" style="direction:ltr;text-align:right;font-size:12px">${esc(u.phone || '—')}${u.phone && !u.phone_verified ? ' <small>(بانتظار التحقق)</small>' : ''}</td>
       <td><span class="badge badge-${u.role}">${roleLabel(u.role)}</span></td>
       <td><span class="badge badge-${u.plan}">${planLabel(u.plan)}</span></td>
       <td>
@@ -2276,7 +2276,7 @@ async function loadUsers() {
 function openUserModal() {
   document.getElementById('umId').value = '';
   document.getElementById('userModalTitle').textContent = 'مستخدم جديد';
-  ['umName','umEmail','umPass'].forEach(id => { document.getElementById(id).value = ''; });
+  ['umName','umPhone'].forEach(id => { document.getElementById(id).value = ''; });
   document.getElementById('umRole').value = 'client';
   document.getElementById('umPlan').value = 'free';
   document.getElementById('umMsg').className = 'hidden';
@@ -2287,8 +2287,7 @@ function editUser(u) {
   document.getElementById('umId').value   = u.id;
   document.getElementById('userModalTitle').textContent = 'تعديل المستخدم';
   document.getElementById('umName').value = u.name;
-  document.getElementById('umEmail').value= u.email;
-  document.getElementById('umPass').value = '';
+   document.getElementById('umPhone').value = u.phone || '';
   document.getElementById('umRole').value = u.role;
   document.getElementById('umPlan').value = u.plan;
   document.getElementById('umMsg').className = 'hidden';
@@ -2302,19 +2301,18 @@ function closeUserModal() {
 async function saveUser() {
   const id   = document.getElementById('umId').value;
   const name = document.getElementById('umName').value.trim();
-  const email= document.getElementById('umEmail').value.trim();
-  const pass = document.getElementById('umPass').value;
+  const phone= document.getElementById('umPhone').value.trim();
   const role = document.getElementById('umRole').value;
   const plan = document.getElementById('umPlan').value;
 
   let r;
   if (id) {
-    r = await api('admin', { action: 'user_update', id: parseInt(id), name, role, password: pass || undefined });
+    r = await api('admin', { action: 'user_update', id: parseInt(id), name, role, phone });
     if (r.success) {
       await api('admin', { action: 'set_plan', id: parseInt(id), plan });
     }
   } else {
-    r = await api('admin', { action: 'user_create', name, email, role, plan, password: pass || 'Demo@2025' });
+    r = await api('admin', { action: 'user_create', name, phone, role, plan });
   }
   if (r.success) {
     showInModal('umMsg', r.message || 'تم الحفظ', false);
