@@ -769,35 +769,8 @@ async function ensureAdmin(admin) {
   await insertDoc('users', update);
 }
 
-async function ensurePhoneAdmin(phone) {
-  const existing = await findOne('users', { phone });
-  if (existing) {
-    await updateDoc('users', { id: Number(existing.id) }, {
-      role: 'admin',
-      plan: 'pro',
-      plan_expires_at: null,
-      is_active: 1,
-    });
-    return;
-  }
-  await insertDoc('users', {
-    name: 'مدير النظام',
-    email: null,
-    password_hash: null,
-    phone,
-    phone_verified: 0,
-    role: 'admin',
-    plan: 'pro',
-    plan_expires_at: null,
-    is_active: 1,
-    email_verified: 0,
-  });
-}
-
 async function seedIfNeeded() {
   if (config.APP_ENV === 'test') return;
-  const configuredAdminPhone = config.getConfiguredAdminPhone();
-  if (configuredAdminPhone) await ensurePhoneAdmin(configuredAdminPhone);
   if ((await count('users', { role: 'admin' })) > 0) return;
 
   const configuredAdmin = config.getConfiguredAdmin();

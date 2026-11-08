@@ -713,11 +713,20 @@ test('user management, quote lifecycle, messaging and settings are isolated and 
   const admin = await signIn('admin@example.test');
   const employeeCreated = await post(admin, '/api/admin', {
     action: 'user_create', name: 'موظف مراجعة', phone: '+966500000009',
+    email: 'review-employee@example.test', password: 'TestPassword@123',
     role: 'employee', plan: 'pro',
   });
   assert.equal(employeeCreated.json.success, true);
   const employeeId = employeeCreated.json.data.id;
-  const employee = await signInPhone('+966500000009');
+  const employee = await signIn('review-employee@example.test');
+  const phoneOnlyCreated = await post(admin, '/api/admin', {
+    action: 'user_create', name: 'موظف بالجوال فقط', phone: '+966500000011',
+    role: 'employee', plan: 'free',
+  });
+  assert.equal(phoneOnlyCreated.json.success, true);
+  const phoneOnlyEmployee = await signInPhone('+966500000011');
+  assert.equal(phoneOnlyEmployee.user.role, 'employee');
+  assert.equal((await db.findOne('users', { phone: '+966500000011' })).email, null);
   const client = await signIn('client@example.test');
   const changedPlan = await post(admin, '/api/admin', {
     action: 'set_plan', id: client.user.id, plan: 'pro',
@@ -725,10 +734,11 @@ test('user management, quote lifecycle, messaging and settings are isolated and 
   assert.equal(changedPlan.json.success, true);
   const otherCreated = await post(admin, '/api/admin', {
     action: 'user_create', name: 'عميل آخر', phone: '+966500000010',
+    email: 'review-other@example.test', password: 'TestPassword@123',
     role: 'client', plan: 'pro',
   });
   assert.equal(otherCreated.json.success, true);
-  const other = await signInPhone('+966500000010');
+  const other = await signIn('review-other@example.test');
   for (const session of [employee, client, other]) {
     const denied = await request('/api/admin?action=users', session);
     assert.equal(denied.response.status, 403);

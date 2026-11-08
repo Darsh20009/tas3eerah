@@ -120,11 +120,6 @@ function getConfiguredAdmin() {
   return { email, password };
 }
 
-function getConfiguredAdminPhone() {
-  const phone = String(process.env.INITIAL_ADMIN_PHONE || '').replace(/[^\d+]/g, '');
-  return /^\+[1-9]\d{7,14}$/.test(phone) ? phone : '';
-}
-
 module.exports = Object.freeze({
   APP_ENV,
   APP_URL,
@@ -137,5 +132,4 @@ module.exports = Object.freeze({
   isOAuthRedirectConfigured,
   assertDatabaseReady,
   getConfiguredAdmin,
-  getConfiguredAdminPhone,
 });

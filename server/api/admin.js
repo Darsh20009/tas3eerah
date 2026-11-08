@@ -1,6 +1,5 @@
 'use strict';
 
-const crypto = require('node:crypto');
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const db = require('../db');
@@ -279,10 +278,12 @@ async function userCreate(req, res, body) {
   const name = text(body.name, 120);
   const email = text(body.email, 254).toLowerCase() || null;
   const phone = phoneAuth.normalizePhone(body.phone);
+  const password = typeof body.password === 'string' ? body.password : '';
   const role = text(body.role || 'client', 40);
   const plan = text(body.plan || 'free', 40);
   if (!name || !phone) return sendError(res, 'الاسم ورقم الجوال الصحيح مطلوبان');
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return sendError(res, 'البريد الإلكتروني غير صحيح');
+  if (password && password.length < 8) return sendError(res, 'كلمة المرور يجب أن تكون 8 أحرف على الأقل');
   if (await db.findOne('users', { phone })) return sendError(res, 'رقم الجوال مسجل مسبقاً');
   if (email && await db.findOne('users', { email })) return sendError(res, 'البريد مسجل مسبقاً');
   if (!auth.ROLE_VALUES.has(role)) return sendError(res, 'دور غير صحيح');
@@ -290,7 +291,7 @@ async function userCreate(req, res, body) {
   const id = await db.insertDoc('users', {
     name,
     email,
-    password_hash: null,
+    password_hash: password ? await bcrypt.hash(password, 10) : null,
     phone,
     phone_verified: 0,
     role,

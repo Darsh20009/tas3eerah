@@ -2307,7 +2307,9 @@ async function saveUser() {
 
   let r;
   if (id) {
-    r = await api('admin', { action: 'user_update', id: parseInt(id), name, role, phone });
+    const payload = { action: 'user_update', id: parseInt(id), name, role };
+    if (phone) payload.phone = phone;
+    r = await api('admin', payload);
     if (r.success) {
       await api('admin', { action: 'set_plan', id: parseInt(id), plan });
     }
