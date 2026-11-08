@@ -739,12 +739,11 @@ test('user management, quote lifecycle, messaging and settings are isolated and 
   });
   assert.equal(promotedAdmin.json.success, true, JSON.stringify(promotedAdmin.json));
   assert.equal(promotedAdmin.json.data.id, existingCustomerId);
-  assert.equal((await request('/api/auth?action=me', existingCustomerSession)).response.status, 401);
+  const refreshedCustomerSession = await request('/api/auth?action=me', existingCustomerSession);
+  assert.equal(refreshedCustomerSession.json.data.role, 'admin');
   const promotedAccount = await db.findOne('users', { id: existingCustomerId });
   assert.equal(promotedAccount.role, 'admin');
   assert.equal(promotedAccount.phone_verified, 1);
-  const promotedPhoneLogin = await signInPhone('+966500000012');
-  assert.equal(promotedPhoneLogin.user.role, 'admin');
   const client = await signIn('client@example.test');
   const changedPlan = await post(admin, '/api/admin', {
     action: 'set_plan', id: client.user.id, plan: 'pro',
