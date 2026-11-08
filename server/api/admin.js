@@ -21,6 +21,22 @@ const GET_ACTIONS = new Set([
   'get_settings',
 ]);
 
+function clearAuthCookies(req, res) {
+  const secure = req.secure || String(req.get('x-forwarded-proto') || '').split(',')[0].trim() === 'https';
+  res.clearCookie('TAS3_SESS', { httpOnly: true, secure, sameSite: 'lax', path: '/' });
+  res.clearCookie('TAS3_CSRF', { secure, sameSite: 'lax', path: '/' });
+}
+
+async function invalidateUserSessions(req, res, userId) {
+  const id = Number(userId);
+  if (id === Number(req.user.id)) {
+    await auth.logout(req);
+    clearAuthCookies(req, res);
+    return;
+  }
+  await db.sessionDestroyUser(id);
+}
+
 async function recomputePaidEntitlement(userId) {
   const payments = await db.findAll('payment_transactions', {
     user_id: Number(userId), status: 'paid',
@@ -296,7 +312,7 @@ async function userCreate(req, res, body) {
     if (email) update.email = email;
     if (password) update.password_hash = await bcrypt.hash(password, 10);
     await db.updateDoc('users', { id: Number(existingPhoneUser.id) }, update);
-    if (password) await db.sessionDestroyUser(Number(existingPhoneUser.id));
+    await invalidateUserSessions(req, res, existingPhoneUser.id);
     await db.insertDoc('activity_log', {
       user_id: Number(req.user.id),
       action: 'admin_user_promote_client',
@@ -356,13 +372,15 @@ async function userUpdate(req, res, body) {
   if (role) update.role = role;
   if (password) update.password_hash = await bcrypt.hash(password, 10);
   if (Object.keys(update).length) await db.updateDoc('users', { id }, update);
-  if (password) await db.sessionDestroyUser(id);
+  if (password || (role && role !== user.role)) await invalidateUserSessions(req, res, id);
   await db.insertDoc('activity_log', {
     user_id: Number(req.user.id),
     action: 'admin_user_update',
     details: `مستخدم: ${id}`,
   });
-  return sendOk(res, [], 'تم التحديث');
+  return sendOk(res, [], role && role !== user.role
+    ? 'تم تحديث الدور وإنهاء الجلسات القديمة. سجّل الدخول مجدداً.'
+    : 'تم التحديث');
 }
 
 async function userToggle(req, res, body) {

@@ -731,12 +731,15 @@ test('user management, quote lifecycle, messaging and settings are isolated and 
     name: 'عميل سابق', phone: '+966500000012', phone_verified: 1,
     role: 'client', plan: 'free', is_active: 1,
   });
+  const existingCustomerSession = await signInPhone('+966500000012');
+  assert.equal(existingCustomerSession.user.role, 'client');
   const promotedAdmin = await post(admin, '/api/admin', {
     action: 'user_create', name: 'مدير النظام بالجوال', phone: '+966500000012',
     role: 'admin', plan: 'free',
   });
   assert.equal(promotedAdmin.json.success, true, JSON.stringify(promotedAdmin.json));
   assert.equal(promotedAdmin.json.data.id, existingCustomerId);
+  assert.equal((await request('/api/auth?action=me', existingCustomerSession)).response.status, 401);
   const promotedAccount = await db.findOne('users', { id: existingCustomerId });
   assert.equal(promotedAccount.role, 'admin');
   assert.equal(promotedAccount.phone_verified, 1);
